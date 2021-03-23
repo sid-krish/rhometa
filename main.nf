@@ -156,7 +156,7 @@ process REFORMAT_FASTA {
 }
 
 
-process ISOLATE_GENOME{
+process ISOLATE_GENOME {
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
 
     maxForks 1
@@ -175,7 +175,7 @@ process ISOLATE_GENOME{
 }
 
 
-process ART_ILLUMINA{
+process ART_ILLUMINA {
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
 
     maxForks 1
@@ -194,6 +194,92 @@ process ART_ILLUMINA{
     """
     // go with single end reads initially to make things easier
     // mflen should be around 500, sdev around 50-60
+}
+
+
+process BWA_MEM {
+    publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+
+    // cpus 8
+
+    maxForks 1
+
+    input:
+        path firstGenome_fa
+        path art_fastSimBac_fq
+        val path_fn_modifier
+
+    output:
+        path "Aligned.bam", emit: aligned_bam
+
+    script:
+    // using first fa entry only (one genome)
+    """
+    bwa index firstGenome.fa
+    bwa mem -t 4 firstGenome.fa art_fastSimBac.fq > Aligned.sam
+    samtools view -bS Aligned.sam > Aligned.bam
+    """
+    // HPC will consider this to be using 8 threads
+}
+
+
+process PROCESS_SORT_INDEX{
+    publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+
+    maxForks 1
+    
+    input:
+        path aligned_bam
+        val path_fn_modifier
+
+    output:
+        path "Aligned.csorted_fm_md.bam", emit: processed_bam
+        path "Aligned.csorted_fm_md.bam.bai", emit: processed_index
+        path "bam_stats.txt", emit: bam_stats_txt
+
+    script:
+    // samtools fixmate requires queryname sorting (-n option)
+    // samtools fixmate -r removes secondary and unmapped reads
+    // samtools fixmate -m adds ms (mate score) tags. These are used by markdup to select the best reads to keep.
+    
+    // samtools markdup requires chromosomal coordinate sorting
+    // samtools markdup -r remove duplicates
+    // samtools markdup -l expected maximum read length of INT bases.
+    """
+    #!/bin/bash
+    bam_file_name=\$(echo ${aligned_bam} | cut -d. -f1)
+
+    samtools stats --threads 4 "\$bam_file_name".bam  > bam_stats.txt
+    max_read_len=\$(grep "maximum length" bam_stats.txt | cut -f 3)
+
+    samtools fixmate --threads 4 -r -m  "\$bam_file_name".bam "\$bam_file_name".qsorted_fm.bam
+
+    samtools sort --threads 4 "\$bam_file_name".qsorted_fm.bam -o "\$bam_file_name".csorted_fm.bam
+    samtools markdup --threads 4 -r -l \$max_read_len "\$bam_file_name".csorted_fm.bam "\$bam_file_name".csorted_fm_md.bam
+
+    samtools index -@ 4 "\$bam_file_name".csorted_fm_md.bam
+    """
+}
+
+
+process LOFREQ{
+    publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+
+    maxForks 1
+
+    input:
+        path firstGenome_fa
+        path processed_bam
+        path processed_index
+        val path_fn_modifier
+
+    output:
+        path "lofreqOut.vcf", emit: lofreqOut_vcf
+
+    script:
+    """
+    lofreq call -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted_fm_md.bam
+    """
 }
 
 
@@ -240,5 +326,11 @@ workflow {
     ISOLATE_GENOME(REFORMAT_FASTA.out.reformatted_fa, RATE_SELECTOR.out.path_fn_modifier)
 
     ART_ILLUMINA(REFORMAT_FASTA.out.reformatted_fa, RATE_SELECTOR.out.path_fn_modifier)
+
+    BWA_MEM(ISOLATE_GENOME.out.firstGenome_fa, ART_ILLUMINA.out.art_fastSimBac_fq, RATE_SELECTOR.out.path_fn_modifier)
+
+    PROCESS_SORT_INDEX(BWA_MEM.out.aligned_bam, RATE_SELECTOR.out.path_fn_modifier)
+
+    LOFREQ(ISOLATE_GENOME.out.firstGenome_fa, PROCESS_SORT_INDEX.out.processed_bam, PROCESS_SORT_INDEX.out.processed_index, RATE_SELECTOR.out.path_fn_modifier)
 
 }
