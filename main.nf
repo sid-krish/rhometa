@@ -398,7 +398,7 @@ workflow {
 
     LOOKUP_TABLE_LDPOP(RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
 
-    PYRHO_HAP_SETS_AND_MERGE(LOOKUP_TABLE_LDPOP.out.lookupTable_txt, PAIRWISE_BIALLELIC_TABLE.out.pairwise_biallelic_table_csv,
-     SEQ_GEN.out.seqgenout_fa,RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
+    // PYRHO_HAP_SETS_AND_MERGE(LOOKUP_TABLE_LDPOP.out.lookupTable_txt, PAIRWISE_BIALLELIC_TABLE.out.pairwise_biallelic_table_csv,
+    //  SEQ_GEN.out.seqgenout_fa,RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
 
 }

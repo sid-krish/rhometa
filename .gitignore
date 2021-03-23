@@ -28,3 +28,5 @@
 work/
 
 Output/
+
+bin/__pycache__/

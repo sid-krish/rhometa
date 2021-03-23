@@ -149,6 +149,8 @@ def _get_hap_likelihood(table, config, sample_size):
                 to_add11 = sample_size - full - to_add00 - to_add01 - to_add10
                 log_comb = _get_hap_comb(hconf, to_add00, to_add01, to_add10,
                                          to_add11)
+                print(str(to_add00) + ',' + str(hconf[0, 1] + to_add01) + ',' + str(hconf[1, 0] + to_add10) + ',' + str(
+                    hconf[1, 1] + to_add11))
                 this_idx = get_table_idx(hconf[0, 0] + to_add00,
                                          hconf[0, 1] + to_add01,
                                          hconf[1, 0] + to_add10,
@@ -157,7 +159,6 @@ def _get_hap_likelihood(table, config, sample_size):
                 this_ll = table[this_idx, :] + log_comb
                 to_return = np.logaddexp(to_return, this_ll)
                 print(this_idx)
-                # print(str(to_add00) + ',' + str(hconf[0, 1] + to_add01) + ',' + str(hconf[1, 0] + to_add10) + ',' + str( hconf[1, 1] + to_add11))
     return to_return
 
 
