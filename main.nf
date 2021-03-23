@@ -282,6 +282,67 @@ process LOFREQ{
     """
 }
 
+process WATTERSON_ESTIMATE {
+    maxForks 1
+
+    input:
+        val sample_size
+        val genome_size
+        path variants_in_fasta_csv
+
+    output:
+        stdout emit: theta
+
+    script:
+    """
+    watterson_estimate.py variants_in_fasta.csv ${genome_size} ${sample_size}
+    """
+}
+
+
+process LOOKUP_TABLE_LDPOP {
+    publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+
+    maxForks 1 
+    
+    input:
+        val sample_size
+        val path_fn_modifier
+
+    output:
+        path "lookupTable.txt", emit: lookupTable_txt
+
+    script:
+    // There are other parameters that can be adjusted, I've left them out for the time being
+    // also they mention twice muation and recom rate, for the mutation and recom parameters which I am unsure how to interpret
+    """
+    ldtable.py --cores 4 -n ${sample_size} -th ${params.mutation_rate} -rh ${params.ldpop_rho_range} --approx > lookupTable.txt
+    """
+}
+
+
+process PYRHO_HAP_SETS_AND_MERGE {
+    publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+
+    maxForks 1
+
+    input:
+        path lookup_table_txt
+        path pairwise_biallelic_table_csv
+        path seqgenOut
+        val genome_size
+        val path_fn_modifier
+
+    output:
+        path "table_ids_for_eq3.csv", emit: table_ids_for_eq3_csv
+        path "eq3.csv", emit: eq3_csv
+
+    script:
+    """
+    pyrho_hap_sets_and_merge.py lookupTable.txt pairwise_biallelic_table.csv seqgenOut.fa ${params.ldpop_rho_range} ${genome_size} > table_ids_for_eq3.csv
+    """
+}
+
 
 workflow {
     // Note: Channels can be called unlimited number of times in DSL2
@@ -332,5 +393,12 @@ workflow {
     PROCESS_SORT_INDEX(BWA_MEM.out.aligned_bam, RATE_SELECTOR.out.path_fn_modifier)
 
     LOFREQ(ISOLATE_GENOME.out.firstGenome_fa, PROCESS_SORT_INDEX.out.processed_bam, PROCESS_SORT_INDEX.out.processed_index, RATE_SELECTOR.out.path_fn_modifier)
+
+    // WATTERSON_ESTIMATE()
+
+    LOOKUP_TABLE_LDPOP(RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
+
+    PYRHO_HAP_SETS_AND_MERGE(LOOKUP_TABLE_LDPOP.out.lookupTable_txt, PAIRWISE_BIALLELIC_TABLE.out.pairwise_biallelic_table_csv,
+     SEQ_GEN.out.seqgenout_fa,RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
 
 }
