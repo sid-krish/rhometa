@@ -311,13 +311,33 @@ process PAIRWISE_TABLE{
 }
 
 
-process PAIRWISE_BIALLELIC_TABLE{
+process PAIRWISE_RESAMPLE{
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
 
     maxForks 1
 
     input:
         path pairwise_table_csv
+        val sample_size
+        val path_fn_modifier
+
+    output:
+        path "pairwise_resampled.csv", emit: pairwise_resampled_csv
+
+    script:
+    """
+    pairwise_resample.py pairwise_table.csv ${params.seed} ${sample_size}
+    """
+}
+
+
+process PAIRWISE_BIALLELIC_TABLE{
+    publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+
+    maxForks 1
+
+    input:
+        path pairwise_resampled_csv
         val path_fn_modifier
 
     output:
@@ -328,7 +348,7 @@ process PAIRWISE_BIALLELIC_TABLE{
     // There was serious error which prevented it from working properly, but is now fixed.
     // Need to fix in other projects that use this also
     """
-    biallelic_filter.py pairwise_table.csv
+    biallelic_filter.py pairwise_resampled.csv
     """
 }
 
@@ -447,7 +467,9 @@ workflow {
 
     PAIRWISE_TABLE(LOFREQ.out.lofreqOut_vcf,PROCESS_SORT_INDEX.out.bam_stats_txt,PROCESS_SORT_INDEX.out.processed_bam,PROCESS_SORT_INDEX.out.processed_index, RATE_SELECTOR.out.path_fn_modifier)
 
-    PAIRWISE_BIALLELIC_TABLE(PAIRWISE_TABLE.out.pairwise_table_csv, RATE_SELECTOR.out.path_fn_modifier)
+    PAIRWISE_RESAMPLE(PAIRWISE_TABLE.out.pairwise_table_csv, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
+
+    PAIRWISE_BIALLELIC_TABLE(PAIRWISE_RESAMPLE.out.pairwise_resampled_csv, RATE_SELECTOR.out.path_fn_modifier)
 
     // WATTERSON_ESTIMATE()
 
