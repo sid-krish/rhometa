@@ -23,39 +23,39 @@ if __name__ == '__main__':
     genome_size = 20000
 
     vcf_to_genos = parse_vcf_to_genos(vcf_file, 1)
-    # genos = seqs_to_genos[0]
+    genos = seqs_to_genos[0]
 
-    # genos_to_configs = genos_to_configs(genos, genome_size, 1)
-    # configs = genos_to_configs[0]
-    #
-    # lookup_table_cols = ["Type", "#", "00", "01", "10", "11", "Rho"] + rhos_from_string(lookup_table_rho_range)
-    # df_lookup_table = pd.read_table(lookup_table, sep='\s+', skiprows=5, names=lookup_table_cols)
-    #
-    # df_lookup_table["00 01 10 11"] = df_lookup_table["00"].astype(str) + ' ' + \
-    #                                  df_lookup_table["01"].astype(str) + ' ' + \
-    #                                  df_lookup_table["10"].astype(str) + ' ' + \
-    #                                  df_lookup_table["11"].astype(str)
-    #
-    #
-    # df_lookup_table.drop(columns=["Type", "#", "00", "01", "10", "11", "Rho"], inplace=True)
-    #
-    # df_lookup_table.set_index("00 01 10 11", inplace=True)
-    #
-    # likelihood_table_for_configs = compute_splines(configs, df_lookup_table)
-    #
-    # likelihoods_for_configs = likelihood_table_for_configs[0]
-    #
-    # df_likelihoods = pd.DataFrame(data=likelihoods_for_configs)
-    #
-    # df_likelihoods.columns = rhos_from_string(lookup_table_rho_range)
-    #
-    # df_pairwise_biallelic = pd.read_csv(pairwise_biallelic_table)
-    #
-    # d_ij = df_pairwise_biallelic["d_ij"].tolist()
-    #
-    # df_likelihoods["d_ij"] = d_ij
-    #
-    # df_likelihoods.to_csv("eq3.csv", index=None)
+    genos_to_configs = genos_to_configs(genos, genome_size, 1)
+    configs = genos_to_configs[0]
+
+    lookup_table_cols = ["Type", "#", "00", "01", "10", "11", "Rho"] + rhos_from_string(lookup_table_rho_range)
+    df_lookup_table = pd.read_table(lookup_table, sep='\s+', skiprows=5, names=lookup_table_cols)
+
+    df_lookup_table["00 01 10 11"] = df_lookup_table["00"].astype(str) + ' ' + \
+                                     df_lookup_table["01"].astype(str) + ' ' + \
+                                     df_lookup_table["10"].astype(str) + ' ' + \
+                                     df_lookup_table["11"].astype(str)
+
+
+    df_lookup_table.drop(columns=["Type", "#", "00", "01", "10", "11", "Rho"], inplace=True)
+
+    df_lookup_table.set_index("00 01 10 11", inplace=True)
+
+    likelihood_table_for_configs = compute_splines(configs, df_lookup_table)
+
+    likelihoods_for_configs = likelihood_table_for_configs[0]
+
+    df_likelihoods = pd.DataFrame(data=likelihoods_for_configs)
+
+    df_likelihoods.columns = rhos_from_string(lookup_table_rho_range)
+
+    df_pairwise_biallelic = pd.read_csv(pairwise_biallelic_table)
+
+    d_ij = df_pairwise_biallelic["d_ij"].tolist()
+
+    df_likelihoods["d_ij"] = d_ij
+
+    df_likelihoods.to_csv("eq3.csv", index=None)
 
     # in utility.py
     # have a look at

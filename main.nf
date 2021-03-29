@@ -61,13 +61,13 @@ process FAST_SIM_BAC {
         val path_fn_modifier
 
     output:
-        path "rho_calc.txt", emit: rho_rho_calc_txt
+        // path "rho_calc.txt", emit: rho_rho_calc_txt
         path "trees.txt", emit: trees_txt
              
     script:
     """
     fastSimBac ${sample_size} ${genome_size} -s ${params.seed} -T -t ${params.mutation_rate} -r ${rho_rate} ${params.recom_tract_len} > trees.txt
-    calc_rho.py ${params.effective_pop_size} ${rho_rate} ${genome_size}
+    # calc_rho.py ${params.effective_pop_size} ${rho_rate} ${genome_size}
     """
 }
 
@@ -190,7 +190,7 @@ process ART_ILLUMINA {
     script:
     """
     art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN \
-    --in reformatted.fa --len ${params.meanFragmentLen} --fcov 2 --out art_fastSimBac
+    --in reformatted.fa --len ${params.meanFragmentLen} --fcov 3 --out art_fastSimBac
     """
     // go with single end reads initially to make things easier
     // mflen should be around 500, sdev around 50-60
@@ -281,6 +281,57 @@ process LOFREQ{
     lofreq call -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted_fm_md.bam
     """
 }
+
+
+process PAIRWISE_TABLE{
+    publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+
+    maxForks 1
+
+    input:
+        path lofreqOut_vcf 
+        path bam_stats_txt
+        path bam_file
+        path bam_index
+        val path_fn_modifier
+
+    output:
+        path "pairwise_table.csv", emit: pairwise_table_csv
+
+    script:
+    // Some more work can be done to handle pairing info
+    // It could be that one read made it through but not the other for discarding reads, both must be removed.
+    // Check with Aaron if this is to do with secondary reads, if so that is handled with samtools now.
+
+    """
+    #!/bin/bash
+    max_read_len=\$(grep "maximum length" bam_stats.txt | cut -f 3)
+    pairwise_table.py \$max_read_len ${bam_file} ${lofreqOut_vcf}
+    """
+}
+
+
+process PAIRWISE_BIALLELIC_TABLE{
+    publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+
+    maxForks 1
+
+    input:
+        path pairwise_table_csv
+        val path_fn_modifier
+
+    output:
+        path "pairwise_biallelic_table.csv", emit: pairwise_biallelic_table_csv
+
+    script:
+    // NOTE
+    // There was serious error which prevented it from working properly, but is now fixed.
+    // Need to fix in other projects that use this also
+    """
+    biallelic_filter.py pairwise_table.csv
+    """
+}
+
 
 process WATTERSON_ESTIMATE {
     maxForks 1
@@ -394,9 +445,13 @@ workflow {
 
     LOFREQ(ISOLATE_GENOME.out.firstGenome_fa, PROCESS_SORT_INDEX.out.processed_bam, PROCESS_SORT_INDEX.out.processed_index, RATE_SELECTOR.out.path_fn_modifier)
 
+    PAIRWISE_TABLE(LOFREQ.out.lofreqOut_vcf,PROCESS_SORT_INDEX.out.bam_stats_txt,PROCESS_SORT_INDEX.out.processed_bam,PROCESS_SORT_INDEX.out.processed_index, RATE_SELECTOR.out.path_fn_modifier)
+
+    PAIRWISE_BIALLELIC_TABLE(PAIRWISE_TABLE.out.pairwise_table_csv, RATE_SELECTOR.out.path_fn_modifier)
+
     // WATTERSON_ESTIMATE()
 
-    LOOKUP_TABLE_LDPOP(RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
+    // LOOKUP_TABLE_LDPOP(RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
 
     // PYRHO_HAP_SETS_AND_MERGE(LOOKUP_TABLE_LDPOP.out.lookupTable_txt, PAIRWISE_BIALLELIC_TABLE.out.pairwise_biallelic_table_csv,
     //  SEQ_GEN.out.seqgenout_fa,RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
