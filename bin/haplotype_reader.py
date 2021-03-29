@@ -131,7 +131,7 @@ def _read_fasta(fasta_filename, ploidy):
         def _fasta_char_to_int(char):
             if ploidy > 1:
                 try:
-                    if int(char) > ploidy:
+                    if int(char) > ploidy: # int(char) will only work if its fasta is digit encoded
                         raise IOError('Genotypes must be encoded as digits. '
                                       'Missingness should be encoded as "N".')
                     return int(char)
@@ -139,7 +139,7 @@ def _read_fasta(fasta_filename, ploidy):
                     if char != 'N':
                         raise IOError('Genotypes must be encoded as digits. '
                                       'Missingness should be encoded as "N".')
-                    return -1
+                    return -1  # -1 Only if its an N?
             if ploidy == 1:
                 try:
                     if int(char) > ploidy:
@@ -210,6 +210,7 @@ def parse_seqs_to_genos(fasta_filename, ploidy, locs_filename=None):
         NotImplementedError: Third entry of header of locs file must be "L".
     """
     genos = _read_fasta(fasta_filename, ploidy)
+
     if (
             np.any(genos[genos >= 0] > ploidy)
             and np.any(genos[genos >= 0] <= ploidy)
@@ -221,8 +222,8 @@ def parse_seqs_to_genos(fasta_filename, ploidy, locs_filename=None):
         c_present = np.any(genos == ploidy + 2, axis=0).astype(int)
         g_present = np.any(genos == ploidy + 3, axis=0).astype(int)
         t_present = np.any(genos == ploidy + 4, axis=0).astype(int)
-        keep = (a_present + c_present + g_present + t_present) <= 2
-        genos[genos >= 0] = (genos < genos.max(axis=0))[genos >= 0]
+        keep = (a_present + c_present + g_present + t_present) <= 2  # Checking for bi-allelic?
+        genos[genos >= 0] = (genos < genos.max(axis=0))[genos >= 0]  # max allele selection? Need to print and see
     if locs_filename:
         locs = _read_locs(locs_filename)
     else:

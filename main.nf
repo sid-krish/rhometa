@@ -190,7 +190,7 @@ process ART_ILLUMINA {
     script:
     """
     art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN \
-    --in reformatted.fa --len ${params.meanFragmentLen} --fcov 3 --out art_fastSimBac
+    --in reformatted.fa --len ${params.meanFragmentLen} --fcov 20 --out art_fastSimBac
     """
     // go with single end reads initially to make things easier
     // mflen should be around 500, sdev around 50-60
@@ -353,24 +353,6 @@ process PAIRWISE_BIALLELIC_TABLE{
 }
 
 
-process WATTERSON_ESTIMATE {
-    maxForks 1
-
-    input:
-        val sample_size
-        val genome_size
-        path variants_in_fasta_csv
-
-    output:
-        stdout emit: theta
-
-    script:
-    """
-    watterson_estimate.py variants_in_fasta.csv ${genome_size} ${sample_size}
-    """
-}
-
-
 process LOOKUP_TABLE_LDPOP {
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
 
@@ -392,7 +374,26 @@ process LOOKUP_TABLE_LDPOP {
 }
 
 
-process PYRHO_HAP_SETS_AND_MERGE {
+process PAIRWISE_LOOKUP_FORMAT {
+    publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+
+    maxForks 1
+
+    input:
+        path pairwise_biallelic_table_csv
+        val path_fn_modifier
+
+    output:
+        path "lookup_format.csv", emit: lookup_format_csv
+
+    script:
+    """
+    pairwise_lookup_format_pyrho.py pairwise_biallelic_table.csv
+    """
+}
+
+
+process CUSTOM_HAP_SETS_AND_MERGE {
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
 
     maxForks 1
@@ -400,8 +401,7 @@ process PYRHO_HAP_SETS_AND_MERGE {
     input:
         path lookup_table_txt
         path pairwise_biallelic_table_csv
-        path seqgenOut
-        val genome_size
+        path lookup_format_csv
         val path_fn_modifier
 
     output:
@@ -410,8 +410,138 @@ process PYRHO_HAP_SETS_AND_MERGE {
 
     script:
     """
-    pyrho_hap_sets_and_merge.py lookupTable.txt pairwise_biallelic_table.csv seqgenOut.fa ${params.ldpop_rho_range} ${genome_size} > table_ids_for_eq3.csv
+    custom_hap_sets_and_merge.py lookupTable.txt pairwise_biallelic_table.csv lookup_format.csv ${params.ldpop_rho_range} > table_ids_for_eq3.csv
     """
+}
+
+
+process WATTERSON_ESTIMATE {
+    maxForks 1
+
+    input:
+        path lofreqOut_vcf
+        val sample_size
+        val genome_size
+
+    output:
+        stdout emit: theta
+
+    script:
+    """
+    watterson_estimate.py lofreqOut.vcf ${genome_size} ${sample_size}
+    """
+}
+
+
+process P_IJ_GRID {
+    publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+
+    maxForks 1
+
+    input:
+        path eq3_csv
+        val genome_size
+        val path_fn_modifier
+
+    output:
+        path "p_ij_grid.csv", emit: p_ij_grid_csv
+
+    script:
+    """
+    pij_grid_vectorised.py ${genome_size} ${params.recom_tract_len} ${params.ldpop_rho_range} eq3.csv
+    """
+}
+
+
+process PAIRWISE_ESTIMATOR {
+    publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+
+    // errorStrategy 'ignore'
+
+    // echo true
+    
+    maxForks 1
+    
+    input:
+        path eq3_csv
+        path p_ij_grid_csv
+        path table_ids_for_eq3_csv
+        path lookup_table
+        val path_fn_modifier
+
+    output:
+        path "collected_likelihoods.csv", emit: collected_likelihoods_csv
+    
+    script:
+    """
+    pairwise_rho_estimator_intp_rect_biv.py eq3.csv table_ids_for_eq3.csv p_ij_grid.csv lookupTable.txt ${params.ldpop_rho_range}
+    """
+
+}
+
+
+process FINAL_RESULTS {
+    publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+
+    // echo true
+
+    maxForks 1
+
+    input:
+        path collectedFile
+        val theta
+        val path_fn_modifier
+
+    output:
+        path "final_results.txt", emit: final_results_txt
+
+    script:
+    """
+    final_results.py collected_likelihoods.csv ${theta}
+    """
+}
+
+
+process PROCESS_OUTPUT{
+    publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+
+    maxForks 1
+
+    input:
+        path final_results_txt
+        val rho_rate
+        val sample_size
+        val genome_size
+        val path_fn_modifier
+
+    output:
+        path "processed_results.csv", emit: processed_results_csv
+
+    script:
+        """
+        custom_est_process_output.py final_results.txt ${rho_rate} ${sample_size} ${genome_size}
+        """
+
+}
+
+process PLOT_RESULTS{
+    publishDir "Output/Results", mode: "copy"
+
+    maxForks 1
+
+    input:
+        path collectedFile
+
+
+    output:
+        path "rho_comparision.png", emit: rho_comparision_png
+        path "max_lk_comparision.png", emit: max_lk_comparision_png
+
+    script:
+        """
+        plot_results.py collected_results.csv
+        """
+
 }
 
 
@@ -433,9 +563,9 @@ workflow {
     
     trees = Channel.fromPath("$baseDir/trees.txt")
     
-    rho_rates = Channel.from(15) // For fastsimbac use this for recom rate (it doesn't accept rho)
-    sample_sizes = Channel.from(10)
-    genome_sizes = Channel.from(20000)
+    rho_rates = Channel.from(30) // For fastsimbac use this for recom rate (it doesn't accept rho)
+    sample_sizes = Channel.from(20)
+    genome_sizes = Channel.from(30000)
     
     RATE_SELECTOR(rho_rates, sample_sizes, genome_sizes)
 
@@ -471,11 +601,24 @@ workflow {
 
     PAIRWISE_BIALLELIC_TABLE(PAIRWISE_RESAMPLE.out.pairwise_resampled_csv, RATE_SELECTOR.out.path_fn_modifier)
 
-    // WATTERSON_ESTIMATE()
+    LOOKUP_TABLE_LDPOP(RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
 
-    // LOOKUP_TABLE_LDPOP(RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
+    PAIRWISE_LOOKUP_FORMAT(PAIRWISE_BIALLELIC_TABLE.out.pairwise_biallelic_table_csv, RATE_SELECTOR.out.path_fn_modifier)
 
-    // PYRHO_HAP_SETS_AND_MERGE(LOOKUP_TABLE_LDPOP.out.lookupTable_txt, PAIRWISE_BIALLELIC_TABLE.out.pairwise_biallelic_table_csv,
-    //  SEQ_GEN.out.seqgenout_fa,RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
+    CUSTOM_HAP_SETS_AND_MERGE(LOOKUP_TABLE_LDPOP.out.lookupTable_txt, PAIRWISE_BIALLELIC_TABLE.out.pairwise_biallelic_table_csv, PAIRWISE_LOOKUP_FORMAT.out.lookup_format_csv, RATE_SELECTOR.out.path_fn_modifier)
+
+    WATTERSON_ESTIMATE(LOFREQ.out.lofreqOut_vcf, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size)
+
+    P_IJ_GRID(CUSTOM_HAP_SETS_AND_MERGE.out.eq3_csv, RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
+
+    PAIRWISE_ESTIMATOR(CUSTOM_HAP_SETS_AND_MERGE.out.eq3_csv, CUSTOM_HAP_SETS_AND_MERGE.out.table_ids_for_eq3_csv, P_IJ_GRID.out.p_ij_grid_csv, LOOKUP_TABLE_LDPOP.out.lookupTable_txt, RATE_SELECTOR.out.path_fn_modifier)
+
+    FINAL_RESULTS(PAIRWISE_ESTIMATOR.out.collected_likelihoods_csv, WATTERSON_ESTIMATE.out.theta, RATE_SELECTOR.out.path_fn_modifier)
+
+    PROCESS_OUTPUT(FINAL_RESULTS.out.final_results_txt, RATE_SELECTOR.out.p_val, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
+
+    collectedFile = PROCESS_OUTPUT.out.processed_results_csv.collectFile(name:"collected_results.csv",storeDir:"Output/Results", keepHeader:true)
+
+    PLOT_RESULTS(collectedFile)
 
 }
