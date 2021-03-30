@@ -97,6 +97,7 @@ process MS_PRIME {
 
 process CLEAN_TREES {
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+
     maxForks 1
 
     input:
@@ -416,6 +417,7 @@ process CUSTOM_HAP_SETS_AND_MERGE {
 
 
 process WATTERSON_ESTIMATE {
+    
     maxForks 1
 
     input:

@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
-import pandas as pd
-import pysam
 import sys
+
+import pandas as pd
+import numpy as np
+import pysam
 
 
 def loadAlignmentFile(bamfile):
@@ -21,16 +23,35 @@ def get_var_pos_from_vcf(vcf_file):
 
 
 def get_final_ref_pos_list(var_pos, maxFragmentLen):
+    """ All var pos vs all var pos """
+    var_pos1 = np.array(var_pos, dtype='int32')
+    var_pos2 = np.array(var_pos, dtype='int32')
 
-    final_ref_pos_list = []
-    while var_pos:  # while list not empty
-        start = var_pos.pop(0)
-        for i in var_pos:  # once last item is popped this will stop
-            difference = i - start
-            if difference <= maxFragmentLen:
-                final_ref_pos_list.append((start, i))
+    m1, m2 = np.meshgrid(var_pos1, var_pos2)
+
+    m1 = m1.flatten()
+    m2 = m2.flatten()
+
+    m3 = np.stack((m2, m1), axis=1)  # Similar to zip
+
+    m3 = m3[m2 != m1]  # remove [1,1], [2,2] etc
+
+    final_ref_pos_list = list(map(tuple, m3))  # reformat to list of tuples, how it was before
 
     return final_ref_pos_list
+
+
+# def get_final_ref_pos_list(var_pos, maxFragmentLen):
+#
+#     final_ref_pos_list = []
+#     while var_pos:  # while list not empty
+#         start = var_pos.pop(0)
+#         for i in var_pos:  # once last item is popped this will stop
+#             difference = i - start
+#             if difference <= maxFragmentLen:
+#                 final_ref_pos_list.append((start, i))
+#
+#     return final_ref_pos_list
 
 
 def get_init_df(final_ref_pos_list, baseCombinations):
@@ -76,6 +97,10 @@ if __name__ == "__main__":
     maxFragmentLen = int(sys.argv[1])
     bam = sys.argv[2]
     vcf_file = sys.argv[3]
+
+    # maxFragmentLen = 150
+    # bam = "../Output/rho_30_sam_20_gen_30000/rho_30_sam_20_gen_30000_Aligned.csorted_fm_md.bam"
+    # vcf_file = "../Output/rho_30_sam_20_gen_30000/rho_30_sam_20_gen_30000_lofreqOut.vcf"
 
     samFile = loadAlignmentFile(bam)
     genomeSize = int(samFile.header.get("SQ")[0].get("LN"))  # Header information can be accessed like a dictionary
