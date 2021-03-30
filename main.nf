@@ -190,7 +190,7 @@ process ART_ILLUMINA {
     script:
     """
     art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN \
-    --in reformatted.fa --len ${params.meanFragmentLen} --fcov 20 --out art_fastSimBac
+    --in reformatted.fa --len ${params.meanFragmentLen} --fcov 3 --out art_fastSimBac
     """
     // go with single end reads initially to make things easier
     // mflen should be around 500, sdev around 50-60
