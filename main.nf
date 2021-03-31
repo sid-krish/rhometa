@@ -188,9 +188,11 @@ process ART_ILLUMINA {
         path "art_fastSimBac.fq", emit: art_fastSimBac_fq // only file we are interested in
 
     script:
+    // can try --rcount as an alternative to --fcov
+    // number of reads/read pairs to be generated per sequence/amplicon (not be used together with -f/--fcov)
     """
     art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN \
-    --in reformatted.fa --len ${params.meanFragmentLen} --fcov 3 --out art_fastSimBac
+    --in reformatted.fa --len ${params.meanFragmentLen} --fcov 5 --out art_fastSimBac
     """
     // go with single end reads initially to make things easier
     // mflen should be around 500, sdev around 50-60
@@ -563,8 +565,8 @@ workflow {
     
     trees = Channel.fromPath("$baseDir/trees.txt")
     
-    rho_rates = Channel.from(30) // For fastsimbac use this for recom rate (it doesn't accept rho)
-    sample_sizes = Channel.from(20)
+    rho_rates = Channel.from(20) // For fastsimbac use this for recom rate (it doesn't accept rho)
+    sample_sizes = Channel.from(30)
     genome_sizes = Channel.from(30000)
     
     RATE_SELECTOR(rho_rates, sample_sizes, genome_sizes)

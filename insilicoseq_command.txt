@@ -1,0 +1,1 @@
+iss generate --cpus 4 --genomes rho_45_sam_30_gen_70000_reformatted.fa --n_reads 1000000 --model HiSeq -o iss_out.fastq
