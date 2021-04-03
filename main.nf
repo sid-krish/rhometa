@@ -186,15 +186,16 @@ process ART_ILLUMINA {
 
     output:
         path "art_fastSimBac.fq", emit: art_fastSimBac_fq // only file we are interested in
+        // path "*.aln" // for testing
 
     script:
     // can try --rcount as an alternative to --fcov
     // number of reads/read pairs to be generated per sequence/amplicon (not be used together with -f/--fcov)
     """
-    #art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN \
-    #--in reformatted.fa --len ${params.meanFragmentLen} --fcov 5 --out art_fastSimBac
-    art_illumina --rndSeed ${params.seed} --noALN \
-    --in reformatted.fa --len ${params.meanFragmentLen} --fcov 10 --out art_fastSimBac
+    art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN \
+    --in reformatted.fa --len ${params.meanFragmentLen} --fcov 30 --maxIndel 0 --out art_fastSimBac
+    #art_illumina --rndSeed ${params.seed} --noALN \
+    #--in reformatted.fa --len ${params.meanFragmentLen} --fcov 20 --out art_fastSimBac
     """
     // go with single end reads initially to make things easier
     // mflen should be around 500, sdev around 50-60
@@ -288,7 +289,7 @@ process LOFREQ{
     script:
     """
     #lofreq call -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted_fm_md.bam
-    lofreq call -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted.bam
+    lofreq call --no-default-filter -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted.bam
     """
 }
 
@@ -315,7 +316,7 @@ process PAIRWISE_TABLE{
 
     """
     #!/bin/bash
-    #max_read_len=\$(grep "maximum length" bam_stats.txt | cut -f 3)
+    max_read_len=\$(grep "maximum length" bam_stats.txt | cut -f 3)
     pairwise_table.py \$max_read_len ${bam_file} ${lofreqOut_vcf}
     """
 }

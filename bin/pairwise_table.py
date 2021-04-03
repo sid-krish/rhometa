@@ -74,7 +74,7 @@ def export_final_df(final_df):
 
 
 if __name__ == "__main__":
-    max_read_len = sys.argv[1]
+    max_read_len = int(sys.argv[1])
     bam = sys.argv[2]
     vcf_file = sys.argv[3]
 
