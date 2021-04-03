@@ -191,8 +191,10 @@ process ART_ILLUMINA {
     // can try --rcount as an alternative to --fcov
     // number of reads/read pairs to be generated per sequence/amplicon (not be used together with -f/--fcov)
     """
-    art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN \
-    --in reformatted.fa --len ${params.meanFragmentLen} --fcov 5 --out art_fastSimBac
+    #art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN \
+    #--in reformatted.fa --len ${params.meanFragmentLen} --fcov 5 --out art_fastSimBac
+    art_illumina --rndSeed ${params.seed} --noALN \
+    --in reformatted.fa --len ${params.meanFragmentLen} --fcov 10 --out art_fastSimBac
     """
     // go with single end reads initially to make things easier
     // mflen should be around 500, sdev around 50-60
@@ -235,8 +237,10 @@ process PROCESS_SORT_INDEX{
         val path_fn_modifier
 
     output:
-        path "Aligned.csorted_fm_md.bam", emit: processed_bam
-        path "Aligned.csorted_fm_md.bam.bai", emit: processed_index
+        // path "Aligned.csorted_fm_md.bam", emit: processed_bam
+        // path "Aligned.csorted_fm_md.bam.bai", emit: processed_index
+        path "Aligned.csorted.bam", emit: processed_bam
+        path "Aligned.csorted.bam.bai", emit: processed_index
         path "bam_stats.txt", emit: bam_stats_txt
 
     script:
@@ -252,14 +256,17 @@ process PROCESS_SORT_INDEX{
     bam_file_name=\$(echo ${aligned_bam} | cut -d. -f1)
 
     samtools stats --threads 4 "\$bam_file_name".bam  > bam_stats.txt
-    max_read_len=\$(grep "maximum length" bam_stats.txt | cut -f 3)
+    #max_read_len=\$(grep "maximum length" bam_stats.txt | cut -f 3)
 
-    samtools fixmate --threads 4 -r -m  "\$bam_file_name".bam "\$bam_file_name".qsorted_fm.bam
+    #samtools fixmate --threads 4 -r -m  "\$bam_file_name".bam "\$bam_file_name".qsorted_fm.bam
 
-    samtools sort --threads 4 "\$bam_file_name".qsorted_fm.bam -o "\$bam_file_name".csorted_fm.bam
-    samtools markdup --threads 4 -r -l \$max_read_len "\$bam_file_name".csorted_fm.bam "\$bam_file_name".csorted_fm_md.bam
+    #samtools sort --threads 4 "\$bam_file_name".qsorted_fm.bam -o "\$bam_file_name".csorted_fm.bam
+    #samtools markdup --threads 4 -r -l \$max_read_len "\$bam_file_name".csorted_fm.bam "\$bam_file_name".csorted_fm_md.bam
 
-    samtools index -@ 4 "\$bam_file_name".csorted_fm_md.bam
+    #samtools index -@ 4 "\$bam_file_name".csorted_fm_md.bam
+
+    samtools sort --threads 4 "\$bam_file_name".bam -o "\$bam_file_name".csorted.bam
+    samtools index -@ 4 "\$bam_file_name".csorted.bam
     """
 }
 
@@ -280,7 +287,8 @@ process LOFREQ{
 
     script:
     """
-    lofreq call -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted_fm_md.bam
+    #lofreq call -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted_fm_md.bam
+    lofreq call -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted.bam
     """
 }
 
@@ -307,7 +315,7 @@ process PAIRWISE_TABLE{
 
     """
     #!/bin/bash
-    max_read_len=\$(grep "maximum length" bam_stats.txt | cut -f 3)
+    #max_read_len=\$(grep "maximum length" bam_stats.txt | cut -f 3)
     pairwise_table.py \$max_read_len ${bam_file} ${lofreqOut_vcf}
     """
 }
@@ -565,21 +573,21 @@ workflow {
     
     trees = Channel.fromPath("$baseDir/trees.txt")
     
-    rho_rates = Channel.from(20) // For fastsimbac use this for recom rate (it doesn't accept rho)
+    rho_rates = Channel.from(0.05) // For fastsimbac use this for recom rate (it doesn't accept rho)
     sample_sizes = Channel.from(30)
     genome_sizes = Channel.from(30000)
     
     RATE_SELECTOR(rho_rates, sample_sizes, genome_sizes)
 
-    MS(RATE_SELECTOR.out.p_val, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
+    // MS(RATE_SELECTOR.out.p_val, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
 
-    // FAST_SIM_BAC(RATE_SELECTOR.out.p_val, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
+    FAST_SIM_BAC(RATE_SELECTOR.out.p_val, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
 
     // MS_PRIME(RATE_SELECTOR.out.p_val, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
 
-    CLEAN_TREES(MS.out.trees_txt, RATE_SELECTOR.out.path_fn_modifier)
+    // CLEAN_TREES(MS.out.trees_txt, RATE_SELECTOR.out.path_fn_modifier)
 
-    // CLEAN_TREES(FAST_SIM_BAC.out.trees_txt, RATE_SELECTOR.out.path_fn_modifier)
+    CLEAN_TREES(FAST_SIM_BAC.out.trees_txt, RATE_SELECTOR.out.path_fn_modifier)
 
     // CLEAN_TREES(trees, RATE_SELECTOR.out.path_fn_modifier)
 

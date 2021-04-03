@@ -20,15 +20,16 @@ def get_var_pos_from_vcf(vcf_file):
     return var_pos
 
 
-def get_final_ref_pos_list(var_pos, maxFragmentLen):
+def get_final_ref_pos_list(var_pos, max_read_len):
 
     final_ref_pos_list = []
     while var_pos:  # while list not empty
         start = var_pos.pop(0)
         for i in var_pos:  # once last item is popped this will stop
             difference = i - start
-            if difference <= maxFragmentLen:
-                final_ref_pos_list.append((start, i))
+            if difference <= max_read_len:
+                # final_ref_pos_list.append((start, i))
+                final_ref_pos_list.append((start - 1, i - 1)) # pysam uses 0-based index. Above line used earlier is wrong.
 
     return final_ref_pos_list
 
@@ -73,7 +74,7 @@ def export_final_df(final_df):
 
 
 if __name__ == "__main__":
-    maxFragmentLen = int(sys.argv[1])
+    max_read_len = sys.argv[1]
     bam = sys.argv[2]
     vcf_file = sys.argv[3]
 
@@ -85,7 +86,7 @@ if __name__ == "__main__":
 
     variant_positions = get_var_pos_from_vcf(vcf_file)
 
-    final_ref_pos_list = get_final_ref_pos_list(variant_positions, maxFragmentLen)
+    final_ref_pos_list = get_final_ref_pos_list(variant_positions, max_read_len)
 
     init_df = get_init_df(final_ref_pos_list, baseCombinations)
 
