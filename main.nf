@@ -327,6 +327,8 @@ process PAIRWISE_RESAMPLE{
 
     maxForks 1
 
+    echo true
+
     input:
         path pairwise_table_csv
         val sample_size
@@ -574,9 +576,13 @@ workflow {
     
     // trees = Channel.fromPath("$baseDir/trees.txt")
     
-    rho_rates = Channel.from(15, 30, 45) // For fastsimbac use this for recom rate (it doesn't accept rho)
-    sample_sizes = Channel.from(10, 20, 30)
-    genome_sizes = Channel.from(30000,40000)
+    // rho_rates = Channel.from(15, 30, 45) // For fastsimbac use this for recom rate (it doesn't accept rho)
+    // sample_sizes = Channel.from(10, 20, 30)
+    // genome_sizes = Channel.from(30000,40000)
+
+    rho_rates = Channel.from(45) // For fastsimbac use this for recom rate (it doesn't accept rho)
+    sample_sizes = Channel.from(30)
+    genome_sizes = Channel.from(40000)
     
     RATE_SELECTOR(rho_rates, sample_sizes, genome_sizes)
 
