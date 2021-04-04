@@ -572,23 +572,23 @@ workflow {
     // precomputed likelihood table
     // lookup_Table = Channel.fromPath("$baseDir/lookupTable.txt")
     
-    trees = Channel.fromPath("$baseDir/trees.txt")
+    // trees = Channel.fromPath("$baseDir/trees.txt")
     
-    rho_rates = Channel.from(0.05) // For fastsimbac use this for recom rate (it doesn't accept rho)
-    sample_sizes = Channel.from(30)
-    genome_sizes = Channel.from(30000)
+    rho_rates = Channel.from(15, 30, 45) // For fastsimbac use this for recom rate (it doesn't accept rho)
+    sample_sizes = Channel.from(10, 20, 30)
+    genome_sizes = Channel.from(30000,40000)
     
     RATE_SELECTOR(rho_rates, sample_sizes, genome_sizes)
 
-    // MS(RATE_SELECTOR.out.p_val, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
+    MS(RATE_SELECTOR.out.p_val, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
 
-    FAST_SIM_BAC(RATE_SELECTOR.out.p_val, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
+    // FAST_SIM_BAC(RATE_SELECTOR.out.p_val, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
 
     // MS_PRIME(RATE_SELECTOR.out.p_val, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
 
-    // CLEAN_TREES(MS.out.trees_txt, RATE_SELECTOR.out.path_fn_modifier)
+    CLEAN_TREES(MS.out.trees_txt, RATE_SELECTOR.out.path_fn_modifier)
 
-    CLEAN_TREES(FAST_SIM_BAC.out.trees_txt, RATE_SELECTOR.out.path_fn_modifier)
+    // CLEAN_TREES(FAST_SIM_BAC.out.trees_txt, RATE_SELECTOR.out.path_fn_modifier)
 
     // CLEAN_TREES(trees, RATE_SELECTOR.out.path_fn_modifier)
 

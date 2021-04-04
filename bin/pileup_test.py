@@ -5,7 +5,7 @@ import pysam
 
 
 bamfile = pysam.AlignmentFile("ex1.bam", "rb" )
-for pileupcolumn in bamfile.pileup("chr1", 100, 120):
+for pileupcolumn in bamfile.pileup():
     print ("\ncoverage at base %s = %s" %
            (pileupcolumn.pos, pileupcolumn.n))
     for pileupread in pileupcolumn.pileups:
@@ -15,4 +15,4 @@ for pileupcolumn in bamfile.pileup("chr1", 100, 120):
                   (pileupread.alignment.query_name,
                    pileupread.alignment.query_sequence[pileupread.query_position]))
 
-samfile.close()
+bamfile.close()
