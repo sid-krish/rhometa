@@ -238,10 +238,10 @@ process PROCESS_SORT_INDEX{
         val path_fn_modifier
 
     output:
-        // path "Aligned.csorted_fm_md.bam", emit: processed_bam
-        // path "Aligned.csorted_fm_md.bam.bai", emit: processed_index
-        path "Aligned.csorted.bam", emit: processed_bam
-        path "Aligned.csorted.bam.bai", emit: processed_index
+        path "Aligned.csorted_fm_md.bam", emit: processed_bam
+        path "Aligned.csorted_fm_md.bam.bai", emit: processed_index
+        // path "Aligned.csorted.bam", emit: processed_bam
+        // path "Aligned.csorted.bam.bai", emit: processed_index
         path "bam_stats.txt", emit: bam_stats_txt
 
     script:
@@ -257,17 +257,17 @@ process PROCESS_SORT_INDEX{
     bam_file_name=\$(echo ${aligned_bam} | cut -d. -f1)
 
     samtools stats --threads 4 "\$bam_file_name".bam  > bam_stats.txt
-    #max_read_len=\$(grep "maximum length" bam_stats.txt | cut -f 3)
+    max_read_len=\$(grep "maximum length" bam_stats.txt | cut -f 3)
 
-    #samtools fixmate --threads 4 -r -m  "\$bam_file_name".bam "\$bam_file_name".qsorted_fm.bam
+    samtools fixmate --threads 4 -r -m  "\$bam_file_name".bam "\$bam_file_name".qsorted_fm.bam
 
-    #samtools sort --threads 4 "\$bam_file_name".qsorted_fm.bam -o "\$bam_file_name".csorted_fm.bam
-    #samtools markdup --threads 4 -r -l \$max_read_len "\$bam_file_name".csorted_fm.bam "\$bam_file_name".csorted_fm_md.bam
+    samtools sort --threads 4 "\$bam_file_name".qsorted_fm.bam -o "\$bam_file_name".csorted_fm.bam
+    samtools markdup --threads 4 -r -l \$max_read_len "\$bam_file_name".csorted_fm.bam "\$bam_file_name".csorted_fm_md.bam
 
-    #samtools index -@ 4 "\$bam_file_name".csorted_fm_md.bam
+    samtools index -@ 4 "\$bam_file_name".csorted_fm_md.bam
 
-    samtools sort --threads 4 "\$bam_file_name".bam -o "\$bam_file_name".csorted.bam
-    samtools index -@ 4 "\$bam_file_name".csorted.bam
+    #samtools sort --threads 4 "\$bam_file_name".bam -o "\$bam_file_name".csorted.bam
+    #samtools index -@ 4 "\$bam_file_name".csorted.bam
     """
 }
 
@@ -289,7 +289,7 @@ process LOFREQ{
     script:
     """
     #lofreq call -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted_fm_md.bam
-    lofreq call --no-default-filter -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted.bam
+    lofreq call --no-default-filter -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted_fm_md.bam
     """
 }
 
