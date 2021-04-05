@@ -288,8 +288,9 @@ process LOFREQ{
 
     script:
     """
+    samtools faidx firstGenome.fa
     #lofreq call -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted_fm_md.bam
-    lofreq call --no-default-filter -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted_fm_md.bam
+    lofreq call-parallel --pp-threads 4 --no-default-filter -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted_fm_md.bam
     """
 }
 
@@ -310,10 +311,6 @@ process PAIRWISE_TABLE{
         path "pairwise_table.csv", emit: pairwise_table_csv
 
     script:
-    // Some more work can be done to handle pairing info
-    // It could be that one read made it through but not the other for discarding reads, both must be removed.
-    // Check with Aaron if this is to do with secondary reads, if so that is handled with samtools now.
-
     """
     #!/bin/bash
     max_read_len=\$(grep "maximum length" bam_stats.txt | cut -f 3)
@@ -537,6 +534,7 @@ process PROCESS_OUTPUT{
 
 }
 
+
 process PLOT_RESULTS{
     publishDir "Output/Results", mode: "copy"
 
@@ -580,9 +578,9 @@ workflow {
     // sample_sizes = Channel.from(10, 20, 30)
     // genome_sizes = Channel.from(30000,40000)
 
-    rho_rates = Channel.from(45) // For fastsimbac use this for recom rate (it doesn't accept rho)
-    sample_sizes = Channel.from(30)
-    genome_sizes = Channel.from(40000)
+    rho_rates = Channel.from(15, 30, 45) // For fastsimbac use this for recom rate (it doesn't accept rho)
+    sample_sizes = Channel.from(10, 20, 30)
+    genome_sizes = Channel.from(30000,40000)
     
     RATE_SELECTOR(rho_rates, sample_sizes, genome_sizes)
 
