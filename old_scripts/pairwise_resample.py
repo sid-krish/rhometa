@@ -21,7 +21,12 @@ def resample(row, seed, numSamples):
     site_pair_counts = np.log1p(np.array(row.values, dtype="int32")) # smooth values with log
 
     # draw up to numSamples using the observed probabilities
-    random_draw = rng.choice(site_pairs, numSamples, p=site_pair_counts / site_pair_counts.sum()) # ISSUE: I want 1 to stay 1 not upscaled and it can't be done with replace
+    random_draw = rng.choice(site_pairs, numSamples, p=site_pair_counts / site_pair_counts.sum())
+    # ISSUE 1: all pairwise entries have to be greater than numSamples or else replace = false won't work
+    # it shouldn't work like this, as long as all pairwise values sum to numSamples it should work.
+    # will need to find another solution
+
+    # ISSUE 2: I want 1 to stay 1 not upscaled and it can't be done with replace
 
     # count them up
     final = collections.Counter(random_draw)

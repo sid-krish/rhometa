@@ -339,7 +339,7 @@ process PAIRWISE_RESAMPLE{
 
     script:
     """
-    pairwise_resample.py pairwise_table.csv ${params.seed} ${sample_size}
+    pairwise_resample_v2.py pairwise_table.csv ${params.seed} ${sample_size}
     """
 }
 
