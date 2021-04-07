@@ -2,11 +2,7 @@
 
 import csv
 
-import numpy as np
 import pysam
-
-# TODO: do a all pos version and ref pos version
-
 
 samfile = pysam.AlignmentFile("Aligned.sorted.sam")
 
@@ -22,6 +18,6 @@ with open('pileup_table.csv', 'w', newline='') as csvfile:
         alleles = set(bases_upper)
         allele_counts = len(alleles)
 
-        csv_writer.writerow([ref_pos, num_aligned_bases,alleles,allele_counts, bases_upper])
+        csv_writer.writerow([ref_pos, num_aligned_bases, alleles, allele_counts, bases_upper])
 
     samfile.close()
