@@ -19,9 +19,9 @@ def get_resampled_values(row, seed, numSamples):
 
     samples = np.repeat(row_idx, row_vals, axis=0)
 
-    # Stratify to retain under represented samples, seems to work better in some cases than other, but overall
-    # good to leave in
-    resampled = resample(samples, replace=False, n_samples=numSamples, random_state=seed, stratify=samples)
+    # Stratify to retain under represented samples, seems to work better in some cases than others
+    # better to leave out for this particular issue
+    resampled = resample(samples, replace=False, n_samples=numSamples, random_state=seed)
 
     # count them up
     final = collections.Counter(resampled)
