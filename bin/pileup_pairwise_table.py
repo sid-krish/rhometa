@@ -15,17 +15,15 @@ def get_var_pos_from_vcf(vcf_file):
     return var_pos
 
 
-def get_var_pos_pairs(var_pos):
-    """
-    No need to adjust var pos pairs to be within read len since full genomes are being used
-    There is a significant increase in data that needs to be processed as a result
-    """
+def get_var_pos_pairs(var_pos, max_read_len):
 
     pos1 = []
     pos2 = []
     while var_pos:  # while list not empty
         start = var_pos.pop(0)
         for i in var_pos:  # once last item is popped this will stop
+            # difference = i - start
+            # if difference <= max_read_len: # the fasta input version of program doesn't do this, I will maintain same style
             pos1.append(start-1)  # -1 because pysam uses 0-based indexing
             pos2.append(i-1)
 
@@ -70,8 +68,9 @@ def export_final_df(final_df):
 
 
 if __name__ == "__main__":
-    variants_file = sys.argv[1]
-    vcf_file = sys.argv[2]
+    max_read_len = int(sys.argv[1])
+    variants_file = sys.argv[2]
+    vcf_file = sys.argv[3]
 
     # variants_file = "variants_from_pileup.csv"
     # vcf_file = "lofreqOut.vcf"
@@ -80,7 +79,7 @@ if __name__ == "__main__":
 
     variant_positions = get_var_pos_from_vcf(vcf_file) # better to do it this way to avoid false positives from manual checking pileups
 
-    pos1, pos2 = get_var_pos_pairs(variant_positions)
+    pos1, pos2 = get_var_pos_pairs(variant_positions, max_read_len)
 
     var_pos_pairs = list(zip(pos1,pos2))
 

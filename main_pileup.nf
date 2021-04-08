@@ -194,7 +194,7 @@ process ART_ILLUMINA {
     // number of reads/read pairs to be generated per sequence/amplicon (not be used together with -f/--fcov)
     """
     art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN \
-    --in reformatted.fa --len ${params.meanFragmentLen} --fcov 20 --maxIndel 0 --out art_fastSimBac
+    --in reformatted.fa --len ${params.meanFragmentLen} --fcov 10 --maxIndel 0 --out art_fastSimBac
     #art_illumina --rndSeed ${params.seed} --noALN \
     #--in reformatted.fa --len ${params.meanFragmentLen} --fcov 20 --out art_fastSimBac
     """
@@ -315,7 +315,7 @@ process PILEUP_PAIRWISE_TABLE{
     samtools view -h Aligned.csorted_fm_md.bam > Aligned.csorted_fm_md.sam
     pileup_table.py Aligned.csorted_fm_md.sam
     pileup_table_var_sites.py pileup_table.csv
-    pileup_pairwise_table.py variants_from_pileup.csv ${lofreqOut_vcf}
+    pileup_pairwise_table.py ${params.meanFragmentLen} variants_from_pileup.csv ${lofreqOut_vcf}
     """
 }
 
@@ -562,8 +562,6 @@ workflow {
     // Note: Channels can be called unlimited number of times in DSL2
     // A process component can be invoked only once in the same workflow context
 
-   
-    // params.meanFragmentLen = 150
     params.seed = 123
     params.mutation_rate = 0.01
     params.recom_tract_len = 500
@@ -576,7 +574,7 @@ workflow {
     
     // trees = Channel.fromPath("$baseDir/trees.txt")
 
-    rho_rates = Channel.from(30) // For fastsimbac use this for recom rate (it doesn't accept rho)
+    rho_rates = Channel.from(10) // For fastsimbac use this for recom rate (it doesn't accept rho)
     sample_sizes = Channel.from(10)
     genome_sizes = Channel.from(10000)
     

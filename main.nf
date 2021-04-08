@@ -576,7 +576,7 @@ workflow {
     
     // trees = Channel.fromPath("$baseDir/trees.txt")
 
-    rho_rates = Channel.from(30) // For fastsimbac use this for recom rate (it doesn't accept rho)
+    rho_rates = Channel.from(10) // For fastsimbac use this for recom rate (it doesn't accept rho)
     sample_sizes = Channel.from(10)
     genome_sizes = Channel.from(10000)
     
