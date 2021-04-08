@@ -193,7 +193,7 @@ process ART_ILLUMINA {
     // number of reads/read pairs to be generated per sequence/amplicon (not be used together with -f/--fcov)
     """
     art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN \
-    --in reformatted.fa --len ${params.meanFragmentLen} --fcov 30 --maxIndel 0 --out art_fastSimBac
+    --in reformatted.fa --len ${params.meanFragmentLen} --fcov 5 --maxIndel 0 --out art_fastSimBac
     #art_illumina --rndSeed ${params.seed} --noALN \
     #--in reformatted.fa --len ${params.meanFragmentLen} --fcov 20 --out art_fastSimBac
     """
@@ -574,9 +574,9 @@ workflow {
     
     // trees = Channel.fromPath("$baseDir/trees.txt")
 
-    rho_rates = Channel.from(15, 30, 45) // For fastsimbac use this for recom rate (it doesn't accept rho)
-    sample_sizes = Channel.from(20,30,40)
-    genome_sizes = Channel.from(30000,40000)
+    rho_rates = Channel.from(30) // For fastsimbac use this for recom rate (it doesn't accept rho)
+    sample_sizes = Channel.from(10)
+    genome_sizes = Channel.from(10000)
     
     RATE_SELECTOR(rho_rates, sample_sizes, genome_sizes)
 
