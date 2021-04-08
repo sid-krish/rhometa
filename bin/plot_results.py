@@ -16,7 +16,7 @@ df = df.sort_values(by=["sample_size,genome_size"])
 
 df["abs_max_lk"] = df["max_lk"].abs()
 
-sns.set_theme(style="whitegrid", palette="crest")
+sns.set_theme(style="whitegrid", palette="Blues_r")
 # Flare and crest palettes are nice
 
 g = sns.FacetGrid(df, col="rho")

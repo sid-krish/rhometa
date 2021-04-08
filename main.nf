@@ -187,11 +187,16 @@ process ART_ILLUMINA {
 
     output:
         path "art_fastSimBac.fq", emit: art_fastSimBac_fq // only file we are interested in
+        // path "*.aln" // for testing
 
     script:
+    // can try --rcount as an alternative to --fcov
+    // number of reads/read pairs to be generated per sequence/amplicon (not be used together with -f/--fcov)
     """
     art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN \
-    --in reformatted.fa --len ${params.meanFragmentLen} --fcov 3 --out art_fastSimBac
+    --in reformatted.fa --len ${params.meanFragmentLen} --fcov 5 --maxIndel 0 --out art_fastSimBac
+    #art_illumina --rndSeed ${params.seed} --noALN \
+    #--in reformatted.fa --len ${params.meanFragmentLen} --fcov 20 --out art_fastSimBac
     """
     // go with single end reads initially to make things easier
     // mflen should be around 500, sdev around 50-60
@@ -236,6 +241,8 @@ process PROCESS_SORT_INDEX{
     output:
         path "Aligned.csorted_fm_md.bam", emit: processed_bam
         path "Aligned.csorted_fm_md.bam.bai", emit: processed_index
+        // path "Aligned.csorted.bam", emit: processed_bam
+        // path "Aligned.csorted.bam.bai", emit: processed_index
         path "bam_stats.txt", emit: bam_stats_txt
 
     script:
@@ -259,6 +266,9 @@ process PROCESS_SORT_INDEX{
     samtools markdup --threads 4 -r -l \$max_read_len "\$bam_file_name".csorted_fm.bam "\$bam_file_name".csorted_fm_md.bam
 
     samtools index -@ 4 "\$bam_file_name".csorted_fm_md.bam
+
+    #samtools sort --threads 4 "\$bam_file_name".bam -o "\$bam_file_name".csorted.bam
+    #samtools index -@ 4 "\$bam_file_name".csorted.bam
     """
 }
 
@@ -279,7 +289,9 @@ process LOFREQ{
 
     script:
     """
-    lofreq call -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted_fm_md.bam
+    samtools faidx firstGenome.fa
+    #lofreq call -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted_fm_md.bam
+    lofreq call-parallel --pp-threads 4 --no-default-filter -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted_fm_md.bam
     """
 }
 
@@ -300,10 +312,6 @@ process PAIRWISE_TABLE{
         path "pairwise_table.csv", emit: pairwise_table_csv
 
     script:
-    // Some more work can be done to handle pairing info
-    // It could be that one read made it through but not the other for discarding reads, both must be removed.
-    // Check with Aaron if this is to do with secondary reads, if so that is handled with samtools now.
-
     """
     #!/bin/bash
     max_read_len=\$(grep "maximum length" bam_stats.txt | cut -f 3)
@@ -317,6 +325,8 @@ process PAIRWISE_RESAMPLE{
 
     maxForks 1
 
+    echo true
+
     input:
         path pairwise_table_csv
         val sample_size
@@ -327,7 +337,7 @@ process PAIRWISE_RESAMPLE{
 
     script:
     """
-    pairwise_resample.py pairwise_table.csv ${params.seed} ${sample_size}
+    pairwise_resample_v2.py pairwise_table.csv ${params.seed} ${sample_size}
     """
 }
 
@@ -526,6 +536,7 @@ process PROCESS_OUTPUT{
 
 }
 
+
 process PLOT_RESULTS{
     publishDir "Output/Results", mode: "copy"
 
@@ -563,11 +574,11 @@ workflow {
     // precomputed likelihood table
     // lookup_Table = Channel.fromPath("$baseDir/lookupTable.txt")
     
-    trees = Channel.fromPath("$baseDir/trees.txt")
-    
+    // trees = Channel.fromPath("$baseDir/trees.txt")
+
     rho_rates = Channel.from(30) // For fastsimbac use this for recom rate (it doesn't accept rho)
-    sample_sizes = Channel.from(20)
-    genome_sizes = Channel.from(30000)
+    sample_sizes = Channel.from(10)
+    genome_sizes = Channel.from(10000)
     
     RATE_SELECTOR(rho_rates, sample_sizes, genome_sizes)
 

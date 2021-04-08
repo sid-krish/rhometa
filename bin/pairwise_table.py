@@ -22,21 +22,16 @@ def get_var_pos_from_vcf(vcf_file):
     return var_pos
 
 
-def get_final_ref_pos_list(var_pos, maxFragmentLen):
-    """ All var pos vs all var pos """
-    var_pos1 = np.array(var_pos, dtype='int32')
-    var_pos2 = np.array(var_pos, dtype='int32')
+def get_final_ref_pos_list(var_pos, max_read_len):
 
-    m1, m2 = np.meshgrid(var_pos1, var_pos2)
-
-    m1 = m1.flatten()
-    m2 = m2.flatten()
-
-    m3 = np.stack((m2, m1), axis=1)  # Similar to zip
-
-    m3 = m3[m2 != m1]  # remove [1,1], [2,2] etc
-
-    final_ref_pos_list = list(map(tuple, m3))  # reformat to list of tuples, how it was before
+    final_ref_pos_list = []
+    while var_pos:  # while list not empty
+        start = var_pos.pop(0)
+        for i in var_pos:  # once last item is popped this will stop
+            difference = i - start
+            if difference <= max_read_len:
+                # final_ref_pos_list.append((start, i))
+                final_ref_pos_list.append((start - 1, i - 1)) # pysam uses 0-based index. Above line used earlier is wrong.
 
     return final_ref_pos_list
 
@@ -94,7 +89,7 @@ def export_final_df(final_df):
 
 
 if __name__ == "__main__":
-    maxFragmentLen = int(sys.argv[1])
+    max_read_len = int(sys.argv[1])
     bam = sys.argv[2]
     vcf_file = sys.argv[3]
 
@@ -110,7 +105,7 @@ if __name__ == "__main__":
 
     variant_positions = get_var_pos_from_vcf(vcf_file)
 
-    final_ref_pos_list = get_final_ref_pos_list(variant_positions, maxFragmentLen)
+    final_ref_pos_list = get_final_ref_pos_list(variant_positions, max_read_len)
 
     init_df = get_init_df(final_ref_pos_list, baseCombinations)
 
