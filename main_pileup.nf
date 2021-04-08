@@ -194,7 +194,7 @@ process ART_ILLUMINA {
     // number of reads/read pairs to be generated per sequence/amplicon (not be used together with -f/--fcov)
     """
     art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN \
-    --in reformatted.fa --len ${params.meanFragmentLen} --fcov 10 --maxIndel 0 --out art_fastSimBac
+    --in reformatted.fa --len ${params.meanFragmentLen} --fcov 20 --maxIndel 0 --out art_fastSimBac
     #art_illumina --rndSeed ${params.seed} --noALN \
     #--in reformatted.fa --len ${params.meanFragmentLen} --fcov 20 --out art_fastSimBac
     """
@@ -296,14 +296,13 @@ process LOFREQ{
 }
 
 
-process PAIRWISE_TABLE{
+process PILEUP_PAIRWISE_TABLE{
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
 
     maxForks 1
 
     input:
         path lofreqOut_vcf 
-        path bam_stats_txt
         path bam_file
         path bam_index
         val path_fn_modifier
@@ -313,9 +312,10 @@ process PAIRWISE_TABLE{
 
     script:
     """
-    #!/bin/bash
-    max_read_len=\$(grep "maximum length" bam_stats.txt | cut -f 3)
-    pairwise_table.py \$max_read_len ${bam_file} ${lofreqOut_vcf}
+    samtools view -h Aligned.csorted_fm_md.bam > Aligned.csorted_fm_md.sam
+    pileup_table.py Aligned.csorted_fm_md.sam
+    pileup_table_var_sites.py pileup_table.csv
+    pileup_pairwise_table.py variants_from_pileup.csv ${lofreqOut_vcf}
     """
 }
 
@@ -608,9 +608,9 @@ workflow {
 
     LOFREQ(ISOLATE_GENOME.out.firstGenome_fa, PROCESS_SORT_INDEX.out.processed_bam, PROCESS_SORT_INDEX.out.processed_index, RATE_SELECTOR.out.path_fn_modifier)
 
-    PAIRWISE_TABLE(LOFREQ.out.lofreqOut_vcf,PROCESS_SORT_INDEX.out.bam_stats_txt,PROCESS_SORT_INDEX.out.processed_bam,PROCESS_SORT_INDEX.out.processed_index, RATE_SELECTOR.out.path_fn_modifier)
+    PILEUP_PAIRWISE_TABLE(LOFREQ.out.lofreqOut_vcf,PROCESS_SORT_INDEX.out.processed_bam,PROCESS_SORT_INDEX.out.processed_index, RATE_SELECTOR.out.path_fn_modifier)
 
-    PAIRWISE_RESAMPLE(PAIRWISE_TABLE.out.pairwise_table_csv, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
+    PAIRWISE_RESAMPLE(PILEUP_PAIRWISE_TABLE.out.pairwise_table_csv, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
 
     PAIRWISE_BIALLELIC_TABLE(PAIRWISE_RESAMPLE.out.pairwise_resampled_csv, RATE_SELECTOR.out.path_fn_modifier)
 

@@ -3,6 +3,17 @@ import sys
 
 import numpy as np
 import pandas as pd
+import pysam
+
+
+def get_var_pos_from_vcf(vcf_file):
+    f = pysam.VariantFile(vcf_file)
+
+    var_pos = list({i.pos for i in f.fetch()})  # set comprehension to remove duplicates, then back to list
+    var_pos.sort()
+
+    return var_pos
+
 
 def get_var_pos_pairs(var_pos):
     """
@@ -15,8 +26,8 @@ def get_var_pos_pairs(var_pos):
     while var_pos:  # while list not empty
         start = var_pos.pop(0)
         for i in var_pos:  # once last item is popped this will stop
-            pos1.append(start)
-            pos2.append(i)
+            pos1.append(start-1)  # -1 because pysam uses 0-based indexing
+            pos2.append(i-1)
 
     return pos1, pos2
 
@@ -52,20 +63,22 @@ def pattern_match(var_pos_pairs, df, init_df):
 
 
 def export_final_df(final_df):
-    final_df.index.name = "RefPos_0-based"
+    final_df.index.name = "RefPos"
     final_df.to_csv("pairwise_table.csv")
 
     return None
 
 
 if __name__ == "__main__":
-    # variants_file = sys.argv[1]
+    variants_file = sys.argv[1]
+    vcf_file = sys.argv[2]
 
-    variants_file = "variants_from_pileup.csv"
+    # variants_file = "variants_from_pileup.csv"
+    # vcf_file = "lofreqOut.vcf"
 
     df = pd.read_csv(variants_file, index_col="RefPos_0-based")
 
-    variant_positions = df.index.to_list()
+    variant_positions = get_var_pos_from_vcf(vcf_file) # better to do it this way to avoid false positives from manual checking pileups
 
     pos1, pos2 = get_var_pos_pairs(variant_positions)
 
@@ -78,8 +91,8 @@ if __name__ == "__main__":
 
     final_df = pattern_match(var_pos_pairs, df, init_df)
 
-    d_ij = np.array(pos2, dtype="int32") - np.array(pos1, dtype="int32")  # will be needed later
+    # d_ij = np.array(pos2, dtype="int32") - np.array(pos1, dtype="int32")  # will be needed later
 
-    final_df["d_ij"] = d_ij
+    # final_df["d_ij"] = d_ij
 
     export_final_df(final_df)

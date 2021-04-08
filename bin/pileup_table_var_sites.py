@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
+import sys
+
 import pandas as pd
 
-pileup_table = "pileup_table.csv"
+pileup_table = sys.argv[1]
 
 df = pd.read_csv(pileup_table, index_col="RefPos_0-based")
 

@@ -2,9 +2,13 @@
 
 import csv
 
+import sys
+
 import pysam
 
-samfile = pysam.AlignmentFile("Aligned.sorted.sam")
+samfile_name = sys.argv[1]
+
+samfile = pysam.AlignmentFile(samfile_name)
 
 with open('pileup_table.csv', 'w', newline='') as csvfile:
     csv_writer = csv.writer(csvfile, delimiter=',')
