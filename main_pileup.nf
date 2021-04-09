@@ -291,7 +291,8 @@ process LOFREQ{
     """
     samtools faidx firstGenome.fa
     #lofreq call -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted_fm_md.bam
-    lofreq call-parallel --pp-threads 4 --no-default-filter -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted_fm_md.bam
+    #lofreq call-parallel --pp-threads 4 --no-default-filter -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted_fm_md.bam
+    lofreq call-parallel --pp-threads 4 -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted_fm_md.bam
     """
 }
 
@@ -308,6 +309,8 @@ process PILEUP_PAIRWISE_TABLE{
         val path_fn_modifier
 
     output:
+        path "pileup_table.csv", emit: pileup_table_csv
+        path "variants_from_pileup.csv", emit: variants_from_pileup_csv
         path "pairwise_table.csv", emit: pairwise_table_csv
 
     script:
