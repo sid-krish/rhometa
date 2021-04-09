@@ -3,12 +3,11 @@
 import sys
 
 import pandas as pd
-import numpy as np
 import pysam
 
 
 def loadAlignmentFile(bamfile):
-    samfile = pysam.AlignmentFile(bamfile, "rb")
+    samfile = pysam.AlignmentFile(bamfile, "rb", threads=4)  # threads for decompression
 
     return samfile
 
@@ -23,30 +22,19 @@ def get_var_pos_from_vcf(vcf_file):
 
 
 def get_final_ref_pos_list(var_pos, max_read_len):
-
     final_ref_pos_list = []
     while var_pos:  # while list not empty
         start = var_pos.pop(0)
         for i in var_pos:  # once last item is popped this will stop
             difference = i - start
+            # this version of the program is limited to looking at positions within reads as such if the distance
+            # between position pairs are beyond read length it won't find anything
             if difference <= max_read_len:
                 # final_ref_pos_list.append((start, i))
-                final_ref_pos_list.append((start - 1, i - 1)) # pysam uses 0-based index. Above line used earlier is wrong.
+                # pysam uses 0-based index. Above line used earlier is wrong.
+                final_ref_pos_list.append((start - 1, i - 1))
 
     return final_ref_pos_list
-
-
-# def get_final_ref_pos_list(var_pos, maxFragmentLen):
-#
-#     final_ref_pos_list = []
-#     while var_pos:  # while list not empty
-#         start = var_pos.pop(0)
-#         for i in var_pos:  # once last item is popped this will stop
-#             difference = i - start
-#             if difference <= maxFragmentLen:
-#                 final_ref_pos_list.append((start, i))
-#
-#     return final_ref_pos_list
 
 
 def get_init_df(final_ref_pos_list, baseCombinations):
@@ -66,7 +54,6 @@ def patternMatch(samFile, final_ref_pos_list, df):
         alnPairs = read.get_aligned_pairs(matches_only=True)
         # ^ a list of aligned read (query) and reference positions.
         # ^ Query position values will always be within the range of 0 to readLength - 1
-        # ^ Reference position values can go from 1 to genomeSize
         alnPairsReverseDict = {refPos: queryPos for queryPos, refPos in
                                alnPairs}  # reverse and convert to dictionary, key is refPos and values are queryPos
         readRefPosSet = alnPairsReverseDict.keys()  # Keys views are set-like since their entries are unique and hashable
@@ -74,10 +61,14 @@ def patternMatch(samFile, final_ref_pos_list, df):
         for pos1, pos2 in final_ref_pos_list:
             if pos1 in readRefPosSet and pos2 in readRefPosSet:
                 queryPos1, queryPos2 = alnPairsReverseDict.get(pos1), alnPairsReverseDict.get(pos2)
-                baseAtPos1, baseAtPos2 = read.query_sequence[queryPos1], read.query_sequence[queryPos2]
-                if baseAtPos1 != 'N' and baseAtPos2 != 'N':
-                    pair = str(baseAtPos1 + baseAtPos2)
-                    df.at[(pos1, pos2), pair] += 1  # identify value by index and column
+                # baseAtPos1, baseAtPos2 = read.query_sequence[queryPos1], read.query_sequence[queryPos2]
+                # This version doesn't have soft clipped bases, above does
+                if queryPos1 <= (read.query_alignment_length - 1) and queryPos2 <= (read.query_alignment_length - 1):
+                    baseAtPos1 = read.query_alignment_sequence[queryPos1]
+                    baseAtPos2 = read.query_alignment_sequence[queryPos2]
+                    if baseAtPos1 != 'N' and baseAtPos2 != 'N':
+                        pair = str(baseAtPos1 + baseAtPos2)
+                        df.at[(pos1, pos2), pair] += 1  # identify value by index and column
     return df
 
 
