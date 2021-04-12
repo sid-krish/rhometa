@@ -61,13 +61,13 @@ def patternMatch(samFile, final_ref_pos_list, df):
         for pos1, pos2 in final_ref_pos_list:
             if pos1 in readRefPosSet and pos2 in readRefPosSet:
                 queryPos1, queryPos2 = alnPairsReverseDict.get(pos1), alnPairsReverseDict.get(pos2)
-                # baseAtPos1, baseAtPos2 = read.query_sequence[queryPos1], read.query_sequence[queryPos2]
+                baseAtPos1, baseAtPos2 = read.query_sequence[queryPos1], read.query_sequence[queryPos2]
                 # This version doesn't have soft clipped bases, above does
                 if queryPos1 <= (read.query_alignment_length - 1) and queryPos2 <= (read.query_alignment_length - 1):
                     # this is incorrect I mistakenly only considered the softclipped happening at 5' end
                     # maybe just keep soft clipped for now
-                    baseAtPos1 = read.query_alignment_sequence[queryPos1]
-                    baseAtPos2 = read.query_alignment_sequence[queryPos2]
+                    # baseAtPos1 = read.query_alignment_sequence[queryPos1]
+                    # baseAtPos2 = read.query_alignment_sequence[queryPos2]
                     if baseAtPos1 != 'N' and baseAtPos2 != 'N':
                         pair = str(baseAtPos1 + baseAtPos2)
                         df.at[(pos1, pos2), pair] += 1  # identify value by index and column

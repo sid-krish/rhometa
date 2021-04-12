@@ -194,13 +194,13 @@ process ART_ILLUMINA {
     // number of reads/read pairs to be generated per sequence/amplicon (not be used together with -f/--fcov)
     """
     #Single end
-    #art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN --quiet \
-    #--in reformatted.fa --len ${params.read_len} --fcov 10 --out art_out
+    art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN --quiet \
+    --in reformatted.fa --len ${params.read_len} --fcov 10 --out art_out
 
     #Paired end
-    art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN --quiet \
-    --in reformatted.fa -p --len ${params.read_len} --sdev ${params.paired_end_std_dev} \
-    -m ${params.paired_end_mean_frag_len} --fcov 10 --out art_out
+    #art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN --quiet \
+    #--in reformatted.fa -p --len ${params.read_len} --sdev ${params.paired_end_std_dev} \
+    #-m ${params.paired_end_mean_frag_len} --fcov 10 --out art_out
 
     #Mate pair
     #art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN --quiet \
@@ -604,7 +604,7 @@ workflow {
     params.ldpop_rho_range = "101,100"
     params.effective_pop_size = 1
 
-    params.read_len = 150
+    params.read_len = 500
 
     params.paired_end_mean_frag_len = 500
     params.paired_end_std_dev = 50 // +- mean frag len
@@ -649,13 +649,13 @@ workflow {
 
     LOFREQ(ISOLATE_GENOME.out.firstGenome_fa, PROCESS_SORT_INDEX.out.processed_bam, PROCESS_SORT_INDEX.out.processed_index, RATE_SELECTOR.out.path_fn_modifier)
 
-    //PAIRWISE_TABLE_SINGLE_END(LOFREQ.out.lofreqOut_vcf,PROCESS_SORT_INDEX.out.bam_stats_txt,PROCESS_SORT_INDEX.out.processed_bam,PROCESS_SORT_INDEX.out.processed_index, RATE_SELECTOR.out.path_fn_modifier)
+    PAIRWISE_TABLE_SINGLE_END(LOFREQ.out.lofreqOut_vcf,PROCESS_SORT_INDEX.out.bam_stats_txt,PROCESS_SORT_INDEX.out.processed_bam,PROCESS_SORT_INDEX.out.processed_index, RATE_SELECTOR.out.path_fn_modifier)
 
-    //PAIRWISE_RESAMPLE(PAIRWISE_TABLE_SINGLE_END.out.pairwise_table_csv, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
+    PAIRWISE_RESAMPLE(PAIRWISE_TABLE_SINGLE_END.out.pairwise_table_csv, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
 
-    PAIRWISE_TABLE_PAIRED_END(LOFREQ.out.lofreqOut_vcf,PROCESS_SORT_INDEX.out.bam_stats_txt,BWA_MEM.out.aligned_bam, RATE_SELECTOR.out.path_fn_modifier)
+    // PAIRWISE_TABLE_PAIRED_END(LOFREQ.out.lofreqOut_vcf,PROCESS_SORT_INDEX.out.bam_stats_txt,BWA_MEM.out.aligned_bam, RATE_SELECTOR.out.path_fn_modifier)
 
-    PAIRWISE_RESAMPLE(PAIRWISE_TABLE_PAIRED_END.out.pairwise_table_csv, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
+    // PAIRWISE_RESAMPLE(PAIRWISE_TABLE_PAIRED_END.out.pairwise_table_csv, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
 
     PAIRWISE_BIALLELIC_TABLE(PAIRWISE_RESAMPLE.out.pairwise_resampled_csv, RATE_SELECTOR.out.path_fn_modifier)
 
