@@ -20,13 +20,13 @@ def get_final_ref_pos_list(var_pos, windows_size):
     while var_pos:  # while list not empty
         start = var_pos.pop(0)
         for i in var_pos:  # once last item is popped this will stop
-            # difference = i - start
+            difference = i - start
             # this version of the program is limited to looking at positions within reads as such if the distance
             # between position pairs are beyond read length it won't find anything
-            # if difference <= windows_size:
+            if difference <= windows_size:
                 # final_ref_pos_list.append((start, i))
                 # pysam uses 0-based index. Above line used earlier is wrong.
-            final_ref_pos_list.append((start - 1, i - 1))
+                final_ref_pos_list.append((start - 1, i - 1))
 
     return final_ref_pos_list
 
