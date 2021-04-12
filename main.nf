@@ -186,20 +186,27 @@ process ART_ILLUMINA {
         val path_fn_modifier
 
     output:
-        path "art_fastSimBac.fq", emit: art_fastSimBac_fq // only file we are interested in
+        path "*.fq", emit: art_out_fq // only files we are interested in
         // path "*.aln" // for testing
 
     script:
     // can try --rcount as an alternative to --fcov
     // number of reads/read pairs to be generated per sequence/amplicon (not be used together with -f/--fcov)
     """
-    art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN \
-    --in reformatted.fa --len ${params.meanFragmentLen} --fcov 10 --maxIndel 0 --out art_fastSimBac
-    #art_illumina --rndSeed ${params.seed} --noALN \
-    #--in reformatted.fa --len ${params.meanFragmentLen} --fcov 20 --out art_fastSimBac
+    #Single end
+    #art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN --quiet \
+    #--in reformatted.fa --len ${params.read_len} --fcov 10 --out art_out
+
+    #Paired end
+    art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN --quiet \
+    --in reformatted.fa -p --len ${params.read_len} --sdev ${params.paired_end_std_dev} \
+    -m ${params.paired_end_mean_frag_len} --fcov 10 --out art_out
+
+    #Mate pair
+    #art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN --quiet \
+    #--in reformatted.fa -mp --len ${params.read_len} --sdev ${params.mate_pair_std_dev} \
+    #-m ${params.mate_pair_mean_frag_len} --fcov 10 --out art_out
     """
-    // go with single end reads initially to make things easier
-    // mflen should be around 500, sdev around 50-60
 }
 
 
@@ -212,7 +219,7 @@ process BWA_MEM {
 
     input:
         path firstGenome_fa
-        path art_fastSimBac_fq
+        path art_out_fq
         val path_fn_modifier
 
     output:
@@ -222,10 +229,15 @@ process BWA_MEM {
     // using first fa entry only (one genome)
     """
     bwa index firstGenome.fa
-    bwa mem -t 4 firstGenome.fa art_fastSimBac.fq > Aligned.sam
+
+    #Single end
+    #bwa mem -t 4 firstGenome.fa art_out.fq > Aligned.sam
+
+    #Paired end & mate pair
+    bwa mem -t 4 firstGenome.fa art_out1.fq art_out2.fq > Aligned.sam
+
     samtools view -bS Aligned.sam > Aligned.bam
     """
-    // HPC will consider this to be using 8 threads
 }
 
 
@@ -296,7 +308,7 @@ process LOFREQ{
 }
 
 
-process PAIRWISE_TABLE{
+process PAIRWISE_TABLE_SINGLE_END{
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
 
     maxForks 1
@@ -316,6 +328,29 @@ process PAIRWISE_TABLE{
     #!/bin/bash
     max_read_len=\$(grep "maximum length" bam_stats.txt | cut -f 3)
     pairwise_table.py \$max_read_len ${bam_file} ${lofreqOut_vcf}
+    """
+}
+
+
+process PAIRWISE_TABLE_PAIRED_END{
+    publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+
+    maxForks 1
+
+    input:
+        path lofreqOut_vcf 
+        path bam_stats_txt
+        path bam_file
+        val path_fn_modifier
+
+    output:
+        path "pairwise_table.csv", emit: pairwise_table_csv
+
+    script:
+    """
+    #!/bin/bash
+    max_read_len=\$(grep "maximum length" bam_stats.txt | cut -f 3)
+    pairwise_table_paired_end.py \$max_read_len ${bam_file} ${lofreqOut_vcf}
     """
 }
 
@@ -563,13 +598,19 @@ workflow {
     // A process component can be invoked only once in the same workflow context
 
    
-    // params.meanFragmentLen = 150
     params.seed = 123
     params.mutation_rate = 0.01
     params.recom_tract_len = 500
     params.ldpop_rho_range = "101,100"
     params.effective_pop_size = 1
-    params.meanFragmentLen = 150
+
+    params.read_len = 150
+
+    params.paired_end_mean_frag_len = 500
+    params.paired_end_std_dev = 50 // +- mean frag len
+
+    params.mate_pair_mean_frag_len = 2500
+    params.mate_pair_std_dev = 250 // +- mean frag len
     
     // precomputed likelihood table
     // lookup_Table = Channel.fromPath("$baseDir/lookupTable.txt")
@@ -602,15 +643,19 @@ workflow {
 
     ART_ILLUMINA(REFORMAT_FASTA.out.reformatted_fa, RATE_SELECTOR.out.path_fn_modifier)
 
-    BWA_MEM(ISOLATE_GENOME.out.firstGenome_fa, ART_ILLUMINA.out.art_fastSimBac_fq, RATE_SELECTOR.out.path_fn_modifier)
+    BWA_MEM(ISOLATE_GENOME.out.firstGenome_fa, ART_ILLUMINA.out.art_out_fq, RATE_SELECTOR.out.path_fn_modifier)
 
     PROCESS_SORT_INDEX(BWA_MEM.out.aligned_bam, RATE_SELECTOR.out.path_fn_modifier)
 
     LOFREQ(ISOLATE_GENOME.out.firstGenome_fa, PROCESS_SORT_INDEX.out.processed_bam, PROCESS_SORT_INDEX.out.processed_index, RATE_SELECTOR.out.path_fn_modifier)
 
-    PAIRWISE_TABLE(LOFREQ.out.lofreqOut_vcf,PROCESS_SORT_INDEX.out.bam_stats_txt,PROCESS_SORT_INDEX.out.processed_bam,PROCESS_SORT_INDEX.out.processed_index, RATE_SELECTOR.out.path_fn_modifier)
+    //PAIRWISE_TABLE_SINGLE_END(LOFREQ.out.lofreqOut_vcf,PROCESS_SORT_INDEX.out.bam_stats_txt,PROCESS_SORT_INDEX.out.processed_bam,PROCESS_SORT_INDEX.out.processed_index, RATE_SELECTOR.out.path_fn_modifier)
 
-    PAIRWISE_RESAMPLE(PAIRWISE_TABLE.out.pairwise_table_csv, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
+    //PAIRWISE_RESAMPLE(PAIRWISE_TABLE_SINGLE_END.out.pairwise_table_csv, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
+
+    PAIRWISE_TABLE_PAIRED_END(LOFREQ.out.lofreqOut_vcf,PROCESS_SORT_INDEX.out.bam_stats_txt,BWA_MEM.out.aligned_bam, RATE_SELECTOR.out.path_fn_modifier)
+
+    PAIRWISE_RESAMPLE(PAIRWISE_TABLE_PAIRED_END.out.pairwise_table_csv, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
 
     PAIRWISE_BIALLELIC_TABLE(PAIRWISE_RESAMPLE.out.pairwise_resampled_csv, RATE_SELECTOR.out.path_fn_modifier)
 

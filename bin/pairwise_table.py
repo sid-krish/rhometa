@@ -64,6 +64,8 @@ def patternMatch(samFile, final_ref_pos_list, df):
                 # baseAtPos1, baseAtPos2 = read.query_sequence[queryPos1], read.query_sequence[queryPos2]
                 # This version doesn't have soft clipped bases, above does
                 if queryPos1 <= (read.query_alignment_length - 1) and queryPos2 <= (read.query_alignment_length - 1):
+                    # this is incorrect I mistakenly only considered the softclipped happening at 5' end
+                    # maybe just keep soft clipped for now
                     baseAtPos1 = read.query_alignment_sequence[queryPos1]
                     baseAtPos2 = read.query_alignment_sequence[queryPos2]
                     if baseAtPos1 != 'N' and baseAtPos2 != 'N':
