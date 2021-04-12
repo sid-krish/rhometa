@@ -39,6 +39,7 @@ def get_init_df(final_ref_pos_list, baseCombinations):
 
 
 def pattern_match(bam_File, final_ref_pos_list, df):
+    # count = 1
     read_1 = read_2 = None  # initialise before loop
 
     # until_eof=True, also includes unmapped. Perhaps these should be filtered before hand?
@@ -51,10 +52,19 @@ def pattern_match(bam_File, final_ref_pos_list, df):
             read_1_ref_positions = read_1.positions
             read_1_query_seq = read_1.query_sequence  # using query seq for now, includes soft clipped
 
+            # print(count)
+            # print(read_1.query_name)
+            # print('\n')
+
         elif read.is_read2:
             read_2 = read
             read_2_ref_positions = read_2.positions
             read_2_query_seq = read_2.query_sequence  # using query seq for now, includes soft clipped
+
+            # print(count)
+            # print(read_2.query_name)
+            # print('\n')
+
 
         if read_1 and read_2:
             # Combine and process
@@ -80,6 +90,8 @@ def pattern_match(bam_File, final_ref_pos_list, df):
             # Reset for next pair of reads
             read_1 = read_2 = None
 
+        # count += 1
+
     bam_File.close()
 
     return df
@@ -97,7 +109,7 @@ if __name__ == "__main__":
     bam = sys.argv[2]
     vcf_file = sys.argv[3]
 
-    window_size = 900  # read_len * 2 + mean_frag_len + std_dv * 2. Hard cored for testing
+    window_size = 500  # mean frag length
     # bam = "Aligned.bam"  # untouched bwa output
     # vcf_file = "lofreqOut.vcf"
 
