@@ -43,7 +43,7 @@ if __name__ == '__main__':
     # seed = 123
     # numSamples = 30
 
-    pt_df = pd.read_csv(pairwise_table, index_col="RefPos")
+    pt_df = pd.read_csv(pairwise_table, index_col="RefPos_0-based")
 
     site_pairs = pt_df.columns.values
 

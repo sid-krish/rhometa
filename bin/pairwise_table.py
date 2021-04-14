@@ -75,7 +75,7 @@ def patternMatch(samFile, final_ref_pos_list, df):
 
 
 def export_final_df(final_df):
-    final_df.index.name = "RefPos"
+    final_df.index.name = "RefPos_0-based"
     final_df.to_csv("pairwise_table.csv")
 
     return None

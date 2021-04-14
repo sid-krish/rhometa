@@ -98,7 +98,7 @@ def pattern_match(bam_File, final_ref_pos_list, df):
 
 
 def export_final_df(final_df):
-    final_df.index.name = "RefPos"
+    final_df.index.name = "RefPos_0-based"
     final_df.to_csv("pairwise_table.csv")
 
     return None
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     bam = sys.argv[2]
     vcf_file = sys.argv[3]
 
-    window_size = 500  # mean frag length
+    window_size = 300  # mean frag length
     # bam = "Aligned.bam"  # untouched bwa output
     # vcf_file = "lofreqOut.vcf"
 

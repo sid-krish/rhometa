@@ -607,7 +607,7 @@ workflow {
 
     params.read_len = 150
 
-    params.paired_end_mean_frag_len = 500
+    params.paired_end_mean_frag_len = 300
     params.paired_end_std_dev = 50 // +- mean frag len
 
     params.mate_pair_mean_frag_len = 2500
@@ -617,6 +617,8 @@ workflow {
     // lookup_Table = Channel.fromPath("$baseDir/lookupTable.txt")
     
     // trees = Channel.fromPath("$baseDir/trees.txt")
+    custom_pairwise_pairwise_table = Channel.fromPath("$baseDir/pairwise_table.csv") // for testing
+    custom_pairwise_pairwise_biallelic_table = Channel.fromPath("$baseDir/pairwise_biallelic_table.txt") // for testing
 
     rho_rates = Channel.from(10) // For fastsimbac use this for recom rate (it doesn't accept rho)
     sample_sizes = Channel.from(10)
