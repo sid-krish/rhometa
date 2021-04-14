@@ -45,7 +45,7 @@ if __name__ == '__main__':
     # pairwise_table = "../Output/rho_15_sam_10_gen_20000/rho_15_sam_10_gen_20000_pairwise_biallelic_table.csv"
     # allele_frequencies_file = "../Output/rho_15_sam_10_gen_20000/rho_15_sam_10_gen_20000_allele_frequencies.txt"
 
-    df = pd.read_csv(pairwise_table, index_col="RefPos")
+    df = pd.read_csv(pairwise_table, index_col="RefPos_0-based")
     df = df.replace(to_replace=0, value=np.nan)
 
     # df.drop(columns=["d_ij"], inplace=True)

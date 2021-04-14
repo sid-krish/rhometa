@@ -53,7 +53,7 @@ if __name__ == '__main__':
 
     # pairwise_table = "pairwise_table.csv"
 
-    df = pd.read_csv(pairwise_table, index_col="RefPos")
+    df = pd.read_csv(pairwise_table, index_col="RefPos_0-based")
 
     df_filtered = filter_bi_allelic(df)
 

@@ -19,7 +19,7 @@ if __name__ == '__main__':
     lookup_format_csv = sys.argv[3]
     lookup_table_rho_range = sys.argv[4]
 
-    df_lookup_format = pd.read_csv(lookup_format_csv, index_col="RefPos")
+    df_lookup_format = pd.read_csv(lookup_format_csv, index_col="RefPos_0-based")
 
     # Convert to config
     # Optimised for ploidy = 1, refer to _get_configs in haplotype reader for full logic
@@ -60,6 +60,6 @@ if __name__ == '__main__':
 
     # d_ij = df_pairwise_biallelic["d_ij"].tolist()
 
-    df_likelihoods["d_ij"] = df_pairwise_biallelic["RefPos"].apply(lambda x: d_ij(x))
+    df_likelihoods["d_ij"] = df_pairwise_biallelic["RefPos_0-based"].apply(lambda x: d_ij(x))
 
     df_likelihoods.to_csv("eq3.csv", index=None)

@@ -63,4 +63,4 @@ if __name__ == '__main__':
 
     # resampled_df.to_csv("referenceDownSampled.csv")
 
-    resampled_df.to_csv("pairwise_resampled.csv", index_label="RefPos")
+    resampled_df.to_csv("pairwise_resampled.csv", index_label="RefPos_0-based")

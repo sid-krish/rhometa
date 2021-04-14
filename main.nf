@@ -618,7 +618,7 @@ workflow {
     
     // trees = Channel.fromPath("$baseDir/trees.txt")
     custom_pairwise_pairwise_table = Channel.fromPath("$baseDir/pairwise_table.csv") // for testing
-    custom_pairwise_pairwise_biallelic_table = Channel.fromPath("$baseDir/pairwise_biallelic_table.txt") // for testing
+    custom_pairwise_pairwise_biallelic_table = Channel.fromPath("$baseDir/pairwise_biallelic_table.csv") // for testing
 
     rho_rates = Channel.from(10) // For fastsimbac use this for recom rate (it doesn't accept rho)
     sample_sizes = Channel.from(10)
@@ -665,6 +665,8 @@ workflow {
     LOOKUP_TABLE_LDPOP(RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
 
     PAIRWISE_LOOKUP_FORMAT(PAIRWISE_BIALLELIC_TABLE.out.pairwise_biallelic_table_csv, RATE_SELECTOR.out.path_fn_modifier)
+
+    // PAIRWISE_LOOKUP_FORMAT(custom_pairwise_pairwise_biallelic_table, RATE_SELECTOR.out.path_fn_modifier)
 
     CUSTOM_HAP_SETS_AND_MERGE(LOOKUP_TABLE_LDPOP.out.lookupTable_txt, PAIRWISE_BIALLELIC_TABLE.out.pairwise_biallelic_table_csv, PAIRWISE_LOOKUP_FORMAT.out.lookup_format_csv, RATE_SELECTOR.out.path_fn_modifier)
 
