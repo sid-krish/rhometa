@@ -373,6 +373,7 @@ process PAIRWISE_RESAMPLE{
     script:
     """
     pairwise_resample_v2.py pairwise_table.csv ${params.seed} ${sample_size}
+    #pairwise_resample_v2.py pairwise_table.csv ${params.seed} 90
     """
 }
 
@@ -416,6 +417,7 @@ process LOOKUP_TABLE_LDPOP {
     // also they mention twice muation and recom rate, for the mutation and recom parameters which I am unsure how to interpret
     """
     ldtable.py --cores 4 -n ${sample_size} -th ${params.mutation_rate} -rh ${params.ldpop_rho_range} --approx > lookupTable.txt
+    #ldtable.py --cores 4 -n 90 -th ${params.mutation_rate} -rh ${params.ldpop_rho_range} --approx > lookupTable.txt
     """
 }
 
@@ -669,6 +671,8 @@ workflow {
     // PAIRWISE_LOOKUP_FORMAT(custom_pairwise_pairwise_biallelic_table, RATE_SELECTOR.out.path_fn_modifier)
 
     CUSTOM_HAP_SETS_AND_MERGE(LOOKUP_TABLE_LDPOP.out.lookupTable_txt, PAIRWISE_BIALLELIC_TABLE.out.pairwise_biallelic_table_csv, PAIRWISE_LOOKUP_FORMAT.out.lookup_format_csv, RATE_SELECTOR.out.path_fn_modifier)
+
+    // CUSTOM_HAP_SETS_AND_MERGE(LOOKUP_TABLE_LDPOP.out.lookupTable_txt, custom_pairwise_pairwise_biallelic_table, PAIRWISE_LOOKUP_FORMAT.out.lookup_format_csv, RATE_SELECTOR.out.path_fn_modifier)
 
     WATTERSON_ESTIMATE(LOFREQ.out.lofreqOut_vcf, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size)
 
