@@ -4,7 +4,7 @@ import sys
 
 import pandas as pd
 import pysam
-
+import seaborn as sns
 
 def get_var_pos_from_vcf(vcf_file):
     f = pysam.VariantFile(vcf_file)
@@ -110,8 +110,8 @@ if __name__ == "__main__":
     vcf_file = sys.argv[3]
 
     window_size = 300  # mean frag length
-    # bam = "Aligned.bam"  # untouched bwa output
-    # vcf_file = "lofreqOut.vcf"
+    # bam = "../Output(ref)/rho_10_sam_10_gen_10000/rho_10_sam_10_gen_10000_Aligned.bam"  # untouched bwa output
+    # vcf_file = "../Output(ref)/rho_10_sam_10_gen_10000/rho_10_sam_10_gen_10000_lofreqOut.vcf"
 
     bam_file = pysam.AlignmentFile(bam, "rb", threads=4)
 
@@ -127,5 +127,12 @@ if __name__ == "__main__":
     init_df = get_init_df(final_ref_pos_list, base_combinations)
 
     final_df = pattern_match(bam_file, final_ref_pos_list, init_df)
+
+    # final_df["Total"] = final_df.sum(axis=1)
+    # final_df.sort_values(by="Total", inplace=True)
+    #
+    # ax = sns.lineplot(x=final_df["Total"].unique(), y=final_df["Total"].value_counts().sort_index())
+    #
+    # ax.figure.savefig("depth_distribution.png", dpi=500)
 
     export_final_df(final_df)
