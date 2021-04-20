@@ -194,18 +194,18 @@ process ART_ILLUMINA {
     // number of reads/read pairs to be generated per sequence/amplicon (not be used together with -f/--fcov)
     """
     #Single end
-    #art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN --quiet \
-    #--in reformatted.fa --len ${params.read_len} --fcov 10 --out art_out
+    art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN --quiet \
+    --in reformatted.fa --len ${params.read_len} --fcov 20 --out art_out
 
     #Paired end
-    art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN --quiet \
-    --in reformatted.fa -p --len ${params.read_len} --sdev ${params.paired_end_std_dev} \
-    -m ${params.paired_end_mean_frag_len} --fcov 30 --out art_out
+    #art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN --quiet \
+    #--in reformatted.fa -p --len ${params.read_len} --sdev ${params.paired_end_std_dev} \
+    #-m ${params.paired_end_mean_frag_len} --fcov 20 --out art_out
 
     #Mate pair
     #art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN --quiet \
     #--in reformatted.fa -mp --len ${params.read_len} --sdev ${params.mate_pair_std_dev} \
-    #-m ${params.mate_pair_mean_frag_len} --fcov 10 --out art_out
+    #-m ${params.mate_pair_mean_frag_len} --fcov 20 --out art_out
     """
 }
 
@@ -231,10 +231,10 @@ process BWA_MEM {
     bwa index firstGenome.fa
 
     #Single end
-    #bwa mem -t 4 firstGenome.fa art_out.fq > Aligned.sam
+    bwa mem -t 4 firstGenome.fa art_out.fq > Aligned.sam
 
     #Paired end & mate pair
-    bwa mem -t 4 firstGenome.fa art_out1.fq art_out2.fq > Aligned.sam
+    #bwa mem -t 4 firstGenome.fa art_out1.fq art_out2.fq > Aligned.sam
 
     samtools view -bS Aligned.sam > Aligned.bam
     """
@@ -253,8 +253,6 @@ process PROCESS_SORT_INDEX{
     output:
         path "Aligned.csorted_fm_md.bam", emit: processed_bam
         path "Aligned.csorted_fm_md.bam.bai", emit: processed_index
-        // path "Aligned.csorted.bam", emit: processed_bam
-        // path "Aligned.csorted.bam.bai", emit: processed_index
         path "bam_stats.txt", emit: bam_stats_txt
 
     script:
@@ -278,9 +276,6 @@ process PROCESS_SORT_INDEX{
     samtools markdup --threads 4 -r -l \$max_read_len "\$bam_file_name".csorted_fm.bam "\$bam_file_name".csorted_fm_md.bam
 
     samtools index -@ 4 "\$bam_file_name".csorted_fm_md.bam
-
-    #samtools sort --threads 4 "\$bam_file_name".bam -o "\$bam_file_name".csorted.bam
-    #samtools index -@ 4 "\$bam_file_name".csorted.bam
     """
 }
 
@@ -373,7 +368,7 @@ process PAIRWISE_RESAMPLE{
     script:
     """
     pairwise_resample_v2.py pairwise_table.csv ${params.seed} ${sample_size}
-    #pairwise_resample_v2.py pairwise_table.csv ${params.seed} 90
+    #pairwise_resample_v2.py pairwise_table.csv ${params.seed} 86
     """
 }
 
@@ -417,7 +412,7 @@ process LOOKUP_TABLE_LDPOP {
     // also they mention twice muation and recom rate, for the mutation and recom parameters which I am unsure how to interpret
     """
     ldtable.py --cores 4 -n ${sample_size} -th ${params.mutation_rate} -rh ${params.ldpop_rho_range} --approx > lookupTable.txt
-    #ldtable.py --cores 4 -n 90 -th ${params.mutation_rate} -rh ${params.ldpop_rho_range} --approx > lookupTable.txt
+    #ldtable.py --cores 4 -n 86 -th ${params.mutation_rate} -rh ${params.ldpop_rho_range} --approx > lookupTable.txt
     """
 }
 
@@ -609,11 +604,11 @@ workflow {
 
     params.read_len = 150
 
-    params.paired_end_mean_frag_len = 300
-    params.paired_end_std_dev = 50 // +- mean frag len
+    // params.paired_end_mean_frag_len = 300
+    // params.paired_end_std_dev = 50 // +- mean frag len
 
-    params.mate_pair_mean_frag_len = 2500
-    params.mate_pair_std_dev = 250 // +- mean frag len
+    // params.mate_pair_mean_frag_len = 2500
+    // params.mate_pair_std_dev = 250 // +- mean frag len
     
     // precomputed likelihood table
     // lookup_Table = Channel.fromPath("$baseDir/lookupTable.txt")
@@ -622,9 +617,9 @@ workflow {
     custom_pairwise_pairwise_table = Channel.fromPath("$baseDir/pairwise_table.csv") // for testing
     custom_pairwise_pairwise_biallelic_table = Channel.fromPath("$baseDir/pairwise_biallelic_table.csv") // for testing
 
-    rho_rates = Channel.from(10) // For fastsimbac use this for recom rate (it doesn't accept rho)
-    sample_sizes = Channel.from(10)
-    genome_sizes = Channel.from(10000)
+    rho_rates = Channel.from(20) // For fastsimbac use this for recom rate (it doesn't accept rho)
+    sample_sizes = Channel.from(20)
+    genome_sizes = Channel.from(20000)
     
     RATE_SELECTOR(rho_rates, sample_sizes, genome_sizes)
 
@@ -654,13 +649,13 @@ workflow {
 
     LOFREQ(ISOLATE_GENOME.out.firstGenome_fa, PROCESS_SORT_INDEX.out.processed_bam, PROCESS_SORT_INDEX.out.processed_index, RATE_SELECTOR.out.path_fn_modifier)
 
-    // PAIRWISE_TABLE_SINGLE_END(LOFREQ.out.lofreqOut_vcf,PROCESS_SORT_INDEX.out.bam_stats_txt,PROCESS_SORT_INDEX.out.processed_bam,PROCESS_SORT_INDEX.out.processed_index, RATE_SELECTOR.out.path_fn_modifier)
+    PAIRWISE_TABLE_SINGLE_END(LOFREQ.out.lofreqOut_vcf,PROCESS_SORT_INDEX.out.bam_stats_txt,PROCESS_SORT_INDEX.out.processed_bam,PROCESS_SORT_INDEX.out.processed_index, RATE_SELECTOR.out.path_fn_modifier)
 
-    // PAIRWISE_RESAMPLE(PAIRWISE_TABLE_SINGLE_END.out.pairwise_table_csv, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
+    PAIRWISE_RESAMPLE(PAIRWISE_TABLE_SINGLE_END.out.pairwise_table_csv, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
 
-    PAIRWISE_TABLE_PAIRED_END(LOFREQ.out.lofreqOut_vcf,PROCESS_SORT_INDEX.out.bam_stats_txt,BWA_MEM.out.aligned_bam, RATE_SELECTOR.out.path_fn_modifier)
+    // PAIRWISE_TABLE_PAIRED_END(LOFREQ.out.lofreqOut_vcf,PROCESS_SORT_INDEX.out.bam_stats_txt,BWA_MEM.out.aligned_bam, RATE_SELECTOR.out.path_fn_modifier)
 
-    PAIRWISE_RESAMPLE(PAIRWISE_TABLE_PAIRED_END.out.pairwise_table_csv, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
+    // PAIRWISE_RESAMPLE(PAIRWISE_TABLE_PAIRED_END.out.pairwise_table_csv, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
 
     PAIRWISE_BIALLELIC_TABLE(PAIRWISE_RESAMPLE.out.pairwise_resampled_csv, RATE_SELECTOR.out.path_fn_modifier)
 
@@ -668,9 +663,9 @@ workflow {
 
     PAIRWISE_LOOKUP_FORMAT(PAIRWISE_BIALLELIC_TABLE.out.pairwise_biallelic_table_csv, RATE_SELECTOR.out.path_fn_modifier)
 
-    // PAIRWISE_LOOKUP_FORMAT(custom_pairwise_pairwise_biallelic_table, RATE_SELECTOR.out.path_fn_modifier)
-
     CUSTOM_HAP_SETS_AND_MERGE(LOOKUP_TABLE_LDPOP.out.lookupTable_txt, PAIRWISE_BIALLELIC_TABLE.out.pairwise_biallelic_table_csv, PAIRWISE_LOOKUP_FORMAT.out.lookup_format_csv, RATE_SELECTOR.out.path_fn_modifier)
+
+    // PAIRWISE_LOOKUP_FORMAT(custom_pairwise_pairwise_biallelic_table, RATE_SELECTOR.out.path_fn_modifier)
 
     // CUSTOM_HAP_SETS_AND_MERGE(LOOKUP_TABLE_LDPOP.out.lookupTable_txt, custom_pairwise_pairwise_biallelic_table, PAIRWISE_LOOKUP_FORMAT.out.lookup_format_csv, RATE_SELECTOR.out.path_fn_modifier)
 

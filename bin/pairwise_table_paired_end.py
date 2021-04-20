@@ -109,9 +109,9 @@ if __name__ == "__main__":
     bam = sys.argv[2]
     vcf_file = sys.argv[3]
 
-    window_size = 300  # mean frag length
-    # bam = "../Output(ref)/rho_10_sam_10_gen_10000/rho_10_sam_10_gen_10000_Aligned.bam"  # untouched bwa output
-    # vcf_file = "../Output(ref)/rho_10_sam_10_gen_10000/rho_10_sam_10_gen_10000_lofreqOut.vcf"
+    # window_size = 300  # mean frag length
+    # bam = "../Output/rho_12_sam_12_gen_20000/rho_12_sam_12_gen_20000_Aligned.bam"
+    # vcf_file = "../Output/rho_12_sam_12_gen_20000/rho_12_sam_12_gen_20000_lofreqOut.vcf"
 
     bam_file = pysam.AlignmentFile(bam, "rb", threads=4)
 

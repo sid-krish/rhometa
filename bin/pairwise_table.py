@@ -4,6 +4,7 @@ import sys
 
 import pandas as pd
 import pysam
+import seaborn as sns
 
 
 def loadAlignmentFile(bamfile):
@@ -63,14 +64,14 @@ def patternMatch(samFile, final_ref_pos_list, df):
                 queryPos1, queryPos2 = alnPairsReverseDict.get(pos1), alnPairsReverseDict.get(pos2)
                 baseAtPos1, baseAtPos2 = read.query_sequence[queryPos1], read.query_sequence[queryPos2]
                 # This version doesn't have soft clipped bases, above does
-                if queryPos1 <= (read.query_alignment_length - 1) and queryPos2 <= (read.query_alignment_length - 1):
+                # if queryPos1 <= (read.query_alignment_length - 1) and queryPos2 <= (read.query_alignment_length - 1):
                     # this is incorrect I mistakenly only considered the softclipped happening at 5' end
                     # maybe just keep soft clipped for now
                     # baseAtPos1 = read.query_alignment_sequence[queryPos1]
                     # baseAtPos2 = read.query_alignment_sequence[queryPos2]
-                    if baseAtPos1 != 'N' and baseAtPos2 != 'N':
-                        pair = str(baseAtPos1 + baseAtPos2)
-                        df.at[(pos1, pos2), pair] += 1  # identify value by index and column
+                if baseAtPos1 != 'N' and baseAtPos2 != 'N':
+                    pair = str(baseAtPos1 + baseAtPos2)
+                    df.at[(pos1, pos2), pair] += 1  # identify value by index and column
     return df
 
 
@@ -103,5 +104,13 @@ if __name__ == "__main__":
     init_df = get_init_df(final_ref_pos_list, baseCombinations)
 
     final_df = patternMatch(samFile, final_ref_pos_list, init_df)
+
+    final_df["Total"] = final_df.sum(axis=1)
+
+    final_df.sort_values(by="Total", inplace=True)
+    
+    ax = sns.lineplot(x=final_df["Total"].unique(), y=final_df["Total"].value_counts().sort_index())
+    
+    ax.figure.savefig("depth_distribution.png", dpi=500)
 
     export_final_df(final_df)
