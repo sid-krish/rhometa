@@ -109,9 +109,9 @@ if __name__ == "__main__":
     bam = sys.argv[2]
     vcf_file = sys.argv[3]
 
-    # window_size = 300  # mean frag length
-    # bam = "../Output/rho_12_sam_12_gen_20000/rho_12_sam_12_gen_20000_Aligned.bam"
-    # vcf_file = "../Output/rho_12_sam_12_gen_20000/rho_12_sam_12_gen_20000_lofreqOut.vcf"
+    window_size = 300  # mean frag length
+    # bam = "../Output/rho_11_sam_11_gen_10000/rho_11_sam_11_gen_10000_Aligned.bam"
+    # vcf_file = "../Output/rho_11_sam_11_gen_10000/rho_11_sam_11_gen_10000_lofreqOut.vcf"
 
     bam_file = pysam.AlignmentFile(bam, "rb", threads=4)
 
@@ -130,9 +130,9 @@ if __name__ == "__main__":
 
     # final_df["Total"] = final_df.sum(axis=1)
     # final_df.sort_values(by="Total", inplace=True)
-    #
+
     # ax = sns.lineplot(x=final_df["Total"].unique(), y=final_df["Total"].value_counts().sort_index())
-    #
+
     # ax.figure.savefig("depth_distribution.png", dpi=500)
 
     export_final_df(final_df)

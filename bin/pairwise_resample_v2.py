@@ -52,6 +52,9 @@ if __name__ == '__main__':
     # select rows where row sum is >= numSamples to down sample to other wise its up sampling
     pt_df = pt_df[pt_df.sum(axis=1) >= numSamples]
 
+    # Remove outlier rows, this and the above line can be used to essentialy slice out entries that fall within a certain range
+    pt_df = pt_df[pt_df.sum(axis=1) <= 150]
+
     pt_df = pt_df.replace(to_replace=0, value=np.nan)
 
     resampled_df = pd.DataFrame(index=pt_df.index.values, columns=site_pairs)

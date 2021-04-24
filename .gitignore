@@ -32,3 +32,5 @@ Output/
 bin/__pycache__/
 
 Output(ref)/
+
+hpc_version/bin/__pycache__/

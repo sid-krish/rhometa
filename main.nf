@@ -194,13 +194,13 @@ process ART_ILLUMINA {
     // number of reads/read pairs to be generated per sequence/amplicon (not be used together with -f/--fcov)
     """
     #Single end
-    art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN --quiet \
-    --in reformatted.fa --len ${params.read_len} --fcov 20 --out art_out
+    #art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN --quiet \
+    #--in reformatted.fa --len ${params.read_len} --fcov 20 --out art_out
 
     #Paired end
-    #art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN --quiet \
-    #--in reformatted.fa -p --len ${params.read_len} --sdev ${params.paired_end_std_dev} \
-    #-m ${params.paired_end_mean_frag_len} --fcov 20 --out art_out
+    art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN --quiet \
+    --in reformatted.fa -p --len ${params.read_len} --sdev ${params.paired_end_std_dev} \
+    -m ${params.paired_end_mean_frag_len} --fcov 20 --out art_out
 
     #Mate pair
     #art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN --quiet \
@@ -212,8 +212,6 @@ process ART_ILLUMINA {
 
 process BWA_MEM {
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
-
-    // cpus 8
 
     maxForks 1
 
@@ -231,10 +229,10 @@ process BWA_MEM {
     bwa index firstGenome.fa
 
     #Single end
-    bwa mem -t 4 firstGenome.fa art_out.fq > Aligned.sam
+    #bwa mem -t 4 firstGenome.fa art_out.fq > Aligned.sam
 
     #Paired end & mate pair
-    #bwa mem -t 4 firstGenome.fa art_out1.fq art_out2.fq > Aligned.sam
+    bwa mem -t 4 firstGenome.fa art_out1.fq art_out2.fq > Aligned.sam
 
     samtools view -bS Aligned.sam > Aligned.bam
     """
@@ -355,8 +353,6 @@ process PAIRWISE_RESAMPLE{
 
     maxForks 1
 
-    echo true
-
     input:
         path pairwise_table_csv
         val sample_size
@@ -367,8 +363,8 @@ process PAIRWISE_RESAMPLE{
 
     script:
     """
-    pairwise_resample_v2.py pairwise_table.csv ${params.seed} ${sample_size}
-    #pairwise_resample_v2.py pairwise_table.csv ${params.seed} 86
+    #pairwise_resample_v2.py pairwise_table.csv ${params.seed} ${sample_size}
+    pairwise_resample_v2.py pairwise_table.csv ${params.seed} 100
     """
 }
 
@@ -411,8 +407,8 @@ process LOOKUP_TABLE_LDPOP {
     // There are other parameters that can be adjusted, I've left them out for the time being
     // also they mention twice muation and recom rate, for the mutation and recom parameters which I am unsure how to interpret
     """
-    ldtable.py --cores 4 -n ${sample_size} -th ${params.mutation_rate} -rh ${params.ldpop_rho_range} --approx > lookupTable.txt
-    #ldtable.py --cores 4 -n 86 -th ${params.mutation_rate} -rh ${params.ldpop_rho_range} --approx > lookupTable.txt
+    #ldtable.py --cores 4 -n ${sample_size} -th ${params.mutation_rate} -rh ${params.ldpop_rho_range} --approx > lookupTable.txt
+    ldtable.py --cores 4 -n 100 -th ${params.mutation_rate} -rh ${params.ldpop_rho_range} --approx > lookupTable.txt
     """
 }
 
@@ -499,10 +495,6 @@ process P_IJ_GRID {
 
 process PAIRWISE_ESTIMATOR {
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
-
-    // errorStrategy 'ignore'
-
-    // echo true
     
     maxForks 1
     
@@ -604,22 +596,22 @@ workflow {
 
     params.read_len = 150
 
-    // params.paired_end_mean_frag_len = 300
-    // params.paired_end_std_dev = 50 // +- mean frag len
+    params.paired_end_mean_frag_len = 300
+    params.paired_end_std_dev = 50 // +- mean frag len
 
-    // params.mate_pair_mean_frag_len = 2500
-    // params.mate_pair_std_dev = 250 // +- mean frag len
+    params.mate_pair_mean_frag_len = 2500
+    params.mate_pair_std_dev = 250 // +- mean frag len
     
     // precomputed likelihood table
-    // lookup_Table = Channel.fromPath("$baseDir/lookupTable.txt")
+    lookup_Table = Channel.fromPath("$baseDir/lookupTable.txt")
     
     // trees = Channel.fromPath("$baseDir/trees.txt")
     custom_pairwise_pairwise_table = Channel.fromPath("$baseDir/pairwise_table.csv") // for testing
     custom_pairwise_pairwise_biallelic_table = Channel.fromPath("$baseDir/pairwise_biallelic_table.csv") // for testing
 
-    rho_rates = Channel.from(20) // For fastsimbac use this for recom rate (it doesn't accept rho)
-    sample_sizes = Channel.from(20)
-    genome_sizes = Channel.from(20000)
+    rho_rates = Channel.from(10) // For fastsimbac use this for recom rate (it doesn't accept rho)
+    sample_sizes = Channel.from(10)
+    genome_sizes = Channel.from(10000)
     
     RATE_SELECTOR(rho_rates, sample_sizes, genome_sizes)
 
@@ -649,13 +641,13 @@ workflow {
 
     LOFREQ(ISOLATE_GENOME.out.firstGenome_fa, PROCESS_SORT_INDEX.out.processed_bam, PROCESS_SORT_INDEX.out.processed_index, RATE_SELECTOR.out.path_fn_modifier)
 
-    PAIRWISE_TABLE_SINGLE_END(LOFREQ.out.lofreqOut_vcf,PROCESS_SORT_INDEX.out.bam_stats_txt,PROCESS_SORT_INDEX.out.processed_bam,PROCESS_SORT_INDEX.out.processed_index, RATE_SELECTOR.out.path_fn_modifier)
+    // PAIRWISE_TABLE_SINGLE_END(LOFREQ.out.lofreqOut_vcf,PROCESS_SORT_INDEX.out.bam_stats_txt,PROCESS_SORT_INDEX.out.processed_bam,PROCESS_SORT_INDEX.out.processed_index, RATE_SELECTOR.out.path_fn_modifier)
 
-    PAIRWISE_RESAMPLE(PAIRWISE_TABLE_SINGLE_END.out.pairwise_table_csv, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
+    // PAIRWISE_RESAMPLE(PAIRWISE_TABLE_SINGLE_END.out.pairwise_table_csv, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
 
-    // PAIRWISE_TABLE_PAIRED_END(LOFREQ.out.lofreqOut_vcf,PROCESS_SORT_INDEX.out.bam_stats_txt,BWA_MEM.out.aligned_bam, RATE_SELECTOR.out.path_fn_modifier)
+    PAIRWISE_TABLE_PAIRED_END(LOFREQ.out.lofreqOut_vcf,PROCESS_SORT_INDEX.out.bam_stats_txt,BWA_MEM.out.aligned_bam, RATE_SELECTOR.out.path_fn_modifier)
 
-    // PAIRWISE_RESAMPLE(PAIRWISE_TABLE_PAIRED_END.out.pairwise_table_csv, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
+    PAIRWISE_RESAMPLE(PAIRWISE_TABLE_PAIRED_END.out.pairwise_table_csv, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
 
     PAIRWISE_BIALLELIC_TABLE(PAIRWISE_RESAMPLE.out.pairwise_resampled_csv, RATE_SELECTOR.out.path_fn_modifier)
 

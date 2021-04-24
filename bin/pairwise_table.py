@@ -87,9 +87,9 @@ if __name__ == "__main__":
     bam = sys.argv[2]
     vcf_file = sys.argv[3]
 
-    # maxFragmentLen = 150
-    # bam = "../Output/rho_30_sam_20_gen_30000/rho_30_sam_20_gen_30000_Aligned.csorted_fm_md.bam"
-    # vcf_file = "../Output/rho_30_sam_20_gen_30000/rho_30_sam_20_gen_30000_lofreqOut.vcf"
+    # max_read_len = 150
+    # bam = "../Output/rho_12_sam_12_gen_10000/rho_12_sam_12_gen_10000_Aligned.csorted_fm_md.bam"
+    # vcf_file = "../Output/rho_12_sam_12_gen_10000/rho_12_sam_12_gen_10000_lofreqOut.vcf"
 
     samFile = loadAlignmentFile(bam)
     genomeSize = int(samFile.header.get("SQ")[0].get("LN"))  # Header information can be accessed like a dictionary
@@ -105,12 +105,12 @@ if __name__ == "__main__":
 
     final_df = patternMatch(samFile, final_ref_pos_list, init_df)
 
-    final_df["Total"] = final_df.sum(axis=1)
-
-    final_df.sort_values(by="Total", inplace=True)
-    
-    ax = sns.lineplot(x=final_df["Total"].unique(), y=final_df["Total"].value_counts().sort_index())
-    
-    ax.figure.savefig("depth_distribution.png", dpi=500)
+    # final_df["Total"] = final_df.sum(axis=1)
+    #
+    # final_df.sort_values(by="Total", inplace=True)
+    #
+    # ax = sns.lineplot(x=final_df["Total"].unique(), y=final_df["Total"].value_counts().sort_index())
+    #
+    # ax.figure.savefig("depth_distribution.png", dpi=500)
 
     export_final_df(final_df)

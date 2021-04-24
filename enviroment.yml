@@ -1,0 +1,21 @@
+name: mprr-env
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - pandas
+  - seaborn
+  - scikit-learn
+  - scipy
+  - future
+  - biopython
+  - numba
+  - plotly
+  - fastsimbac
+  - seq-gen
+  - bwa
+  - lofreq
+  - cyvcf2
+  - samtools
+  - pysam
+  - pyarrow
