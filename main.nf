@@ -363,8 +363,8 @@ process PAIRWISE_RESAMPLE{
 
     script:
     """
-    #pairwise_resample_v2.py pairwise_table.csv ${params.seed} ${sample_size}
-    pairwise_resample_v2.py pairwise_table.csv ${params.seed} 100
+    pairwise_resample_v2.py pairwise_table.csv ${params.seed} ${sample_size}
+    #pairwise_resample_v2.py pairwise_table.csv ${params.seed} 100
     """
 }
 
@@ -407,8 +407,8 @@ process LOOKUP_TABLE_LDPOP {
     // There are other parameters that can be adjusted, I've left them out for the time being
     // also they mention twice muation and recom rate, for the mutation and recom parameters which I am unsure how to interpret
     """
-    #ldtable.py --cores 4 -n ${sample_size} -th ${params.mutation_rate} -rh ${params.ldpop_rho_range} --approx > lookupTable.txt
-    ldtable.py --cores 4 -n 100 -th ${params.mutation_rate} -rh ${params.ldpop_rho_range} --approx > lookupTable.txt
+    ldtable.py --cores 4 -n ${sample_size} -th ${params.mutation_rate} -rh ${params.ldpop_rho_range} --approx > lookupTable.txt
+    #ldtable.py --cores 4 -n 100 -th ${params.mutation_rate} -rh ${params.ldpop_rho_range} --approx > lookupTable.txt
     """
 }
 
@@ -610,7 +610,7 @@ workflow {
     custom_pairwise_pairwise_biallelic_table = Channel.fromPath("$baseDir/pairwise_biallelic_table.csv") // for testing
 
     rho_rates = Channel.from(10) // For fastsimbac use this for recom rate (it doesn't accept rho)
-    sample_sizes = Channel.from(10)
+    sample_sizes = Channel.from(50)
     genome_sizes = Channel.from(10000)
     
     RATE_SELECTOR(rho_rates, sample_sizes, genome_sizes)
