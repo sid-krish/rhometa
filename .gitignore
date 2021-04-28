@@ -34,3 +34,6 @@ bin/__pycache__/
 Output(ref)/
 
 hpc_version/bin/__pycache__/
+*.pyc
+*.csv
+hpc_make_table_and_downsample/downsampled_tables/lk_m_0.01_s_200.txt

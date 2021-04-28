@@ -603,11 +603,11 @@ workflow {
     params.mate_pair_std_dev = 250 // +- mean frag len
     
     // precomputed likelihood table
-    lookup_Table = Channel.fromPath("$baseDir/lookupTable.txt")
+    // ranged_lookup_Table = Channel.fromPath("$baseDir/lookupTable.txt")
     
     // trees = Channel.fromPath("$baseDir/trees.txt")
-    custom_pairwise_pairwise_table = Channel.fromPath("$baseDir/pairwise_table.csv") // for testing
-    custom_pairwise_pairwise_biallelic_table = Channel.fromPath("$baseDir/pairwise_biallelic_table.csv") // for testing
+    // custom_pairwise_pairwise_table = Channel.fromPath("$baseDir/pairwise_table.csv") // for testing
+    // custom_pairwise_pairwise_biallelic_table = Channel.fromPath("$baseDir/pairwise_biallelic_table.csv") // for testing
 
     rho_rates = Channel.from(10) // For fastsimbac use this for recom rate (it doesn't accept rho)
     sample_sizes = Channel.from(50)
