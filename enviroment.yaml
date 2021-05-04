@@ -1,22 +1,19 @@
-name: mprr-env
+name: mprr
 channels:
+  - defaults
   - bioconda
   - conda-forge
 dependencies:
   - python
   - pandas
-  - seaborn
   - scikit-learn
   - scipy
   - future
   - biopython
   - numba
-  - plotly
   - fastsimbac
   - seq-gen
   - bwa
   - lofreq
-  - cyvcf2
   - samtools
   - pysam
-  - pyarrow

@@ -609,8 +609,8 @@ workflow {
     // custom_pairwise_pairwise_table = Channel.fromPath("$baseDir/pairwise_table.csv") // for testing
     // custom_pairwise_pairwise_biallelic_table = Channel.fromPath("$baseDir/pairwise_biallelic_table.csv") // for testing
 
-    rho_rates = Channel.from(10) // For fastsimbac use this for recom rate (it doesn't accept rho)
-    sample_sizes = Channel.from(50)
+    rho_rates = Channel.from(15) // For fastsimbac use this for recom rate (it doesn't accept rho)
+    sample_sizes = Channel.from(15)
     genome_sizes = Channel.from(10000)
     
     RATE_SELECTOR(rho_rates, sample_sizes, genome_sizes)
@@ -671,8 +671,8 @@ workflow {
 
     PROCESS_OUTPUT(FINAL_RESULTS.out.final_results_txt, RATE_SELECTOR.out.p_val, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
 
-    collectedFile = PROCESS_OUTPUT.out.processed_results_csv.collectFile(name:"collected_results.csv",storeDir:"Output/Results", keepHeader:true)
+    // collectedFile = PROCESS_OUTPUT.out.processed_results_csv.collectFile(name:"collected_results.csv",storeDir:"Output/Results", keepHeader:true)
 
-    PLOT_RESULTS(collectedFile)
+    // PLOT_RESULTS(collectedFile)
 
 }
