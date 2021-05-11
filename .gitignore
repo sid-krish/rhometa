@@ -17,3 +17,9 @@
 /bin/__pycache__/
 
 /bin/ldpop/__pycache__/
+
+/edge_*/
+
+Actinobacteria.txt
+*.bam
+*.fa
