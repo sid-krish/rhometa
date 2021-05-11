@@ -4,7 +4,8 @@ import sys
 import pandas as pd
 
 collected_likelihoods_csv = sys.argv[1]
-theta = sys.argv[2]
+depth = int(sys.argv[2])
+theta = sys.argv[3]
 
 # collected_likelihoods_csv = "../Output/Results/collected_likelihoods.csv"
 # theta = 0.01
@@ -28,7 +29,7 @@ df.sort_values(by="rho_for_estimator", inplace=True)
 # with open(theta_txt, 'r') as file:
 #     theta = file.readline()
 
-with open("final_results.txt", 'w') as file:  # open in write mode (create new file)
+with open(f"final_results_depth_{depth}.txt", 'w') as file:  # open in write mode (create new file)
     file.write(f"Custom Metagenome Pairwise Recombination Rate Estimator\n")
     file.write(f"\n")
 

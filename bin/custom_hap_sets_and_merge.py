@@ -14,10 +14,12 @@ def d_ij(values):
 
 
 if __name__ == '__main__':
-    lookup_table = sys.argv[1]
-    pairwise_biallelic_table = sys.argv[2]
-    lookup_format_csv = sys.argv[3]
-    lookup_table_rho_range = sys.argv[4]
+    # lookup_table = sys.argv[1]
+    pairwise_biallelic_table = sys.argv[1]
+    lookup_format_csv = sys.argv[2]
+    lookup_table_rho_range = sys.argv[3]
+    depth = int(sys.argv[4])
+    lookup_table = sys.argv[5]
 
     df_lookup_format = pd.read_csv(lookup_format_csv, index_col="RefPos_0-based")
 
@@ -36,17 +38,7 @@ if __name__ == '__main__':
     # df2 = pd.DataFrame(data=configs)
     # df2.to_csv("lk_configs.csv")
 
-    lookup_table_cols = ["Type", "#", "00", "01", "10", "11", "Rho"] + rhos_from_string(lookup_table_rho_range)
-    df_lookup_table = pd.read_table(lookup_table, sep='\s+', skiprows=5, names=lookup_table_cols)
-
-    df_lookup_table["00 01 10 11"] = df_lookup_table["00"].astype(str) + ' ' + \
-                                     df_lookup_table["01"].astype(str) + ' ' + \
-                                     df_lookup_table["10"].astype(str) + ' ' + \
-                                     df_lookup_table["11"].astype(str)
-
-    df_lookup_table.drop(columns=["Type", "#", "00", "01", "10", "11", "Rho"], inplace=True)
-
-    df_lookup_table.set_index("00 01 10 11", inplace=True)
+    df_lookup_table = pd.read_csv(lookup_table, index_col="00 01 10 11")
 
     likelihood_table_for_configs = compute_splines(configs, df_lookup_table)
 
@@ -62,4 +54,4 @@ if __name__ == '__main__':
 
     df_likelihoods["d_ij"] = df_pairwise_biallelic["RefPos_0-based"].apply(lambda x: d_ij(x))
 
-    df_likelihoods.to_csv("eq3.csv", index=None)
+    df_likelihoods.to_csv(f"eq3_depth_{depth}.csv", index=None)

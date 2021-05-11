@@ -40,10 +40,8 @@ def allele_distribution(row, allele_freqs):
 
 if __name__ == '__main__':
     pairwise_table = sys.argv[1]
-    # allele_frequencies_file = sys.argv[2]
-
-    # pairwise_table = "../Output/rho_15_sam_10_gen_20000/rho_15_sam_10_gen_20000_pairwise_biallelic_table.csv"
-    # allele_frequencies_file = "../Output/rho_15_sam_10_gen_20000/rho_15_sam_10_gen_20000_allele_frequencies.txt"
+    depth = int(sys.argv[2])
+    # pairwise_table = "../Output/rho_10_sam_10_gen_10000/rho_10_sam_10_gen_10000_pairwise_biallelic_table.csv"
 
     df = pd.read_csv(pairwise_table, index_col="RefPos_0-based")
     df = df.replace(to_replace=0, value=np.nan)
@@ -67,4 +65,6 @@ if __name__ == '__main__':
 
     df.drop(columns=cols_to_drop, inplace=True)
 
-    df.to_csv("lookup_format.csv")
+    # depth = pairwise_table[:-4].split("_")[4]
+
+    df.to_csv(f"lookup_format_depth_{depth}.csv")

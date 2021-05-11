@@ -4,7 +4,7 @@ import sys
 
 import pandas as pd
 import pysam
-import seaborn as sns
+# import seaborn as sns
 
 
 def loadAlignmentFile(bamfile):
@@ -63,12 +63,8 @@ def patternMatch(samFile, final_ref_pos_list, df):
             if pos1 in readRefPosSet and pos2 in readRefPosSet:
                 queryPos1, queryPos2 = alnPairsReverseDict.get(pos1), alnPairsReverseDict.get(pos2)
                 baseAtPos1, baseAtPos2 = read.query_sequence[queryPos1], read.query_sequence[queryPos2]
-                # This version doesn't have soft clipped bases, above does
-                # if queryPos1 <= (read.query_alignment_length - 1) and queryPos2 <= (read.query_alignment_length - 1):
-                    # this is incorrect I mistakenly only considered the softclipped happening at 5' end
-                    # maybe just keep soft clipped for now
-                    # baseAtPos1 = read.query_alignment_sequence[queryPos1]
-                    # baseAtPos2 = read.query_alignment_sequence[queryPos2]
+                # The positions being accessed here are already aligned positions. There should be no further need to
+                # do anything for soft-clipped removal, etc
                 if baseAtPos1 != 'N' and baseAtPos2 != 'N':
                     pair = str(baseAtPos1 + baseAtPos2)
                     df.at[(pos1, pos2), pair] += 1  # identify value by index and column
@@ -88,8 +84,8 @@ if __name__ == "__main__":
     vcf_file = sys.argv[3]
 
     # max_read_len = 150
-    # bam = "../Output/rho_12_sam_12_gen_10000/rho_12_sam_12_gen_10000_Aligned.csorted_fm_md.bam"
-    # vcf_file = "../Output/rho_12_sam_12_gen_10000/rho_12_sam_12_gen_10000_lofreqOut.vcf"
+    # bam = "../Output/rho_15_sam_15_gen_10000/rho_15_sam_15_gen_10000_Aligned.csorted_fm_md.bam"
+    # vcf_file = "../Output/rho_15_sam_15_gen_10000/rho_15_sam_15_gen_10000_lofreqOut.vcf"
 
     samFile = loadAlignmentFile(bam)
     genomeSize = int(samFile.header.get("SQ")[0].get("LN"))  # Header information can be accessed like a dictionary

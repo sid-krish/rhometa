@@ -6,10 +6,8 @@ channels:
 dependencies:
   - python
   - pandas
-  - scikit-learn
   - scipy
   - future
-  - biopython
   - numba
   - fastsimbac
   - seq-gen

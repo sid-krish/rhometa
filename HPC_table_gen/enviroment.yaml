@@ -1,0 +1,17 @@
+name: mp_rmap
+channels:
+  - defaults
+  - bioconda
+  - conda-forge
+dependencies:
+  - python
+  - pandas
+  - scipy
+  - future
+  - numba
+  - fastsimbac
+  - seq-gen
+  - bwa
+  - lofreq
+  - samtools
+  - pysam

@@ -1,39 +1,13 @@
-
-.idea/
-
 .DS_Store
 
-.nextflow.log
+/Lookup_tables/
 
-.nextflow.log.1
+/Output
 
-.nextflow.log.2
+nextflow.log
 
-.nextflow.log.3
+nextflow.log.*
 
-.nextflow.log.4
+/bin/__pycache__/
 
-.nextflow.log.5
-
-.nextflow.log.6
-
-.nextflow.log.7
-
-.nextflow.log.8
-
-.nextflow.log.9
-
-.nextflow/
-
-work/
-
-Output/
-
-bin/__pycache__/
-
-Output(ref)/
-
-hpc_version/bin/__pycache__/
-*.pyc
-*.csv
-hpc_make_table_and_downsample/downsampled_tables/lk_m_0.01_s_200.txt
+/bin/ldpop/__pycache__/

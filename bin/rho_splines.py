@@ -1,5 +1,6 @@
 """
 SK: small modification to print out table_id for hap_configs
+
 Tools to tailor a lookup table to a particular dataset.
 
 Functions:

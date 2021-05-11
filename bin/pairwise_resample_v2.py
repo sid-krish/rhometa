@@ -15,7 +15,7 @@ def get_resampled_values(row, seed, numSamples):
     row_vals = np.array(row.values, dtype='int32')  # perhaps log smoothing can done here to reduce impact of outliers?
 
     # In [151]: np.repeat(['a','b','c'], [1,2,3], axis=0)
-    # Out[151]: array(['a', 'b', 'b', 'c', 'c', 'c'], dtype='<U1')
+    # Out[151]: array(['`a', 'b', 'b', 'c', 'c', 'c'], dtype='<U1')
 
     samples = np.repeat(row_idx, row_vals, axis=0)
 
@@ -53,7 +53,7 @@ if __name__ == '__main__':
     pt_df = pt_df[pt_df.sum(axis=1) >= numSamples]
 
     # Remove outlier rows, this and the above line can be used to essentialy slice out entries that fall within a certain range
-    # pt_df = pt_df[pt_df.sum(axis=1) <= 150]
+    pt_df = pt_df[pt_df.sum(axis=1) <= 150]
 
     pt_df = pt_df.replace(to_replace=0, value=np.nan)
 

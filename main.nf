@@ -8,10 +8,18 @@ process RATE_SELECTOR {
     
     maxForks 1 // Run sequentially
 
+    // cpus 1
+    // memory '100 MB'
+
+    // executor 'pbspro'
+    // time '5m'
+    // scratch true
+    // queue 'i3q'
+
     input:
-        each rho_rate
-        each sample_size
-        each genome_size
+        val rho_rate
+        val sample_size
+        val genome_size
 
     output:
         val "${rho_rate}", emit: p_val
@@ -30,7 +38,15 @@ process RATE_SELECTOR {
 process MS {
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
 
-    maxForks 1 
+    maxForks 1
+
+    cpus 1
+    memory '128 MB'
+
+    executor 'pbspro'
+    time '15m'
+    scratch true
+    // queue 'i3q'
 
     input:
         val rho_rate
@@ -52,7 +68,15 @@ process MS {
 process FAST_SIM_BAC {
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
 
-    maxForks 1 
+    maxForks 1
+
+    cpus 1
+    memory '128 MB'
+
+    executor 'pbspro'
+    time '1h'
+    scratch true
+    // queue 'i3q'
     
     input:
         val rho_rate
@@ -75,7 +99,15 @@ process FAST_SIM_BAC {
 process MS_PRIME {
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
 
-    maxForks 1 
+    maxForks 1
+
+    cpus 1
+    memory '128 MB'
+
+    executor 'pbspro'
+    time '1h'
+    scratch true
+    // queue 'i3q'
     
     input:
         val rho_rate
@@ -100,6 +132,14 @@ process CLEAN_TREES {
 
     maxForks 1
 
+    cpus 1
+    memory '128 MB'
+
+    executor 'pbspro'
+    time '10m'
+    scratch true
+    // queue 'i3q'
+
     input:
         path trees
         val path_fn_modifier
@@ -119,6 +159,14 @@ process SEQ_GEN {
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
 
     maxForks 1
+
+    cpus 1
+    memory '128 MB'
+
+    executor 'pbspro'
+    time '10m'
+    scratch true
+    // queue 'i3q'
 
     input:
         path cleanTrees
@@ -143,6 +191,14 @@ process REFORMAT_FASTA {
 
     maxForks 1
 
+    cpus 1
+    memory '128 MB'
+
+    executor 'pbspro'
+    time '10m'
+    scratch true
+    // queue 'i3q'
+
     input:
         path seqgenOut
         val path_fn_modifier
@@ -152,7 +208,8 @@ process REFORMAT_FASTA {
 
     script:
     """
-    reformat_fasta.py seqgenOut.fa
+    samtools faidx seqgenOut.fa
+    reformat_fasta_pysam.py seqgenOut.fa
     """
 }
 
@@ -161,6 +218,14 @@ process ISOLATE_GENOME {
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
 
     maxForks 1
+
+    cpus 1
+    memory '128 MB'
+
+    executor 'pbspro'
+    time '5m'
+    scratch true
+    // queue 'i3q'
 
     input:
         path reformatted_fa
@@ -171,7 +236,8 @@ process ISOLATE_GENOME {
 
     script:
     """
-    isolateGenome.py reformatted.fa
+    #!/bin/bash
+    head -2 reformatted.fa > firstGenome.fa
     """
 }
 
@@ -180,6 +246,14 @@ process ART_ILLUMINA {
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
 
     maxForks 1
+
+    cpus 1
+    memory '128 MB'
+
+    executor 'pbspro'
+    time '1h'
+    scratch true
+    // queue 'i3q'
 
     input:
         path reformatted_fa
@@ -201,11 +275,6 @@ process ART_ILLUMINA {
     art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN --quiet \
     --in reformatted.fa -p --len ${params.read_len} --sdev ${params.paired_end_std_dev} \
     -m ${params.paired_end_mean_frag_len} --fcov 20 --out art_out
-
-    #Mate pair
-    #art_illumina --seqSys HSXt --rndSeed ${params.seed} --noALN --quiet \
-    #--in reformatted.fa -mp --len ${params.read_len} --sdev ${params.mate_pair_std_dev} \
-    #-m ${params.mate_pair_mean_frag_len} --fcov 20 --out art_out
     """
 }
 
@@ -214,6 +283,14 @@ process BWA_MEM {
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
 
     maxForks 1
+
+    cpus 4
+    memory '1 GB'
+
+    executor 'pbspro'
+    time '30m'
+    scratch true
+    // queue 'i3q'
 
     input:
         path firstGenome_fa
@@ -231,7 +308,7 @@ process BWA_MEM {
     #Single end
     #bwa mem -t 4 firstGenome.fa art_out.fq > Aligned.sam
 
-    #Paired end & mate pair
+    #Paired end
     bwa mem -t 4 firstGenome.fa art_out1.fq art_out2.fq > Aligned.sam
 
     samtools view -bS Aligned.sam > Aligned.bam
@@ -243,6 +320,14 @@ process PROCESS_SORT_INDEX{
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
 
     maxForks 1
+
+    cpus 4
+    memory '10 GB'
+
+    executor 'pbspro'
+    time '30m'
+    scratch true
+    // queue 'i3q'
     
     input:
         path aligned_bam
@@ -283,10 +368,17 @@ process LOFREQ{
 
     maxForks 1
 
+    cpus 4
+    memory '1 GB'
+
+    executor 'pbspro'
+    time '30m'
+    scratch true
+    // queue 'i3q'
+
     input:
         path firstGenome_fa
-        path processed_bam
-        path processed_index
+        path bam
         val path_fn_modifier
 
     output:
@@ -295,8 +387,11 @@ process LOFREQ{
     script:
     """
     samtools faidx firstGenome.fa
-    #lofreq call -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted_fm_md.bam
-    lofreq call-parallel --pp-threads 4 --no-default-filter -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted_fm_md.bam
+    samtools sort --threads 4 Aligned.bam -o Aligned.csorted.bam
+    samtools index -@ 4 Aligned.csorted.bam
+
+    #lofreq call -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted.bam
+    lofreq call-parallel --pp-threads 4 --no-default-filter -f firstGenome.fa -o lofreqOut.vcf Aligned.csorted.bam
     """
 }
 
@@ -305,6 +400,14 @@ process PAIRWISE_TABLE_SINGLE_END{
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
 
     maxForks 1
+
+    cpus 1
+    memory '1 GB'
+
+    executor 'pbspro'
+    time '30m'
+    scratch true
+    // queue 'i3q'
 
     input:
         path lofreqOut_vcf 
@@ -330,9 +433,16 @@ process PAIRWISE_TABLE_PAIRED_END{
 
     maxForks 1
 
+    cpus 1
+    memory '1 GB'
+
+    executor 'pbspro'
+    time '30m'
+    scratch true
+    // queue 'i3q'
+
     input:
         path lofreqOut_vcf 
-        path bam_stats_txt
         path bam_file
         val path_fn_modifier
 
@@ -341,30 +451,7 @@ process PAIRWISE_TABLE_PAIRED_END{
 
     script:
     """
-    #!/bin/bash
-    max_read_len=\$(grep "maximum length" bam_stats.txt | cut -f 3)
-    pairwise_table_paired_end.py \$max_read_len ${bam_file} ${lofreqOut_vcf}
-    """
-}
-
-
-process PAIRWISE_RESAMPLE{
-    publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
-
-    maxForks 1
-
-    input:
-        path pairwise_table_csv
-        val sample_size
-        val path_fn_modifier
-
-    output:
-        path "pairwise_resampled.csv", emit: pairwise_resampled_csv
-
-    script:
-    """
-    pairwise_resample_v2.py pairwise_table.csv ${params.seed} ${sample_size}
-    #pairwise_resample_v2.py pairwise_table.csv ${params.seed} 100
+    pairwise_table_paired_end.py ${bam_file} ${lofreqOut_vcf}
     """
 }
 
@@ -372,43 +459,30 @@ process PAIRWISE_RESAMPLE{
 process PAIRWISE_BIALLELIC_TABLE{
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
 
-    maxForks 1
+    // maxForks 4
+
+    cpus 1
+    memory '1 GB'
+
+    executor 'pbspro'
+    time '30m'
+    scratch true
+    // queue 'i3q'
 
     input:
-        path pairwise_resampled_csv
+        path pairwise_table_csv
+        each depth
         val path_fn_modifier
 
     output:
-        path "pairwise_biallelic_table.csv", emit: pairwise_biallelic_table_csv
+        path 'pairwise_biallelic_table_depth_*.csv', optional: true, emit: pairwise_biallelic_table_csv // after filtering some files will be empty
 
     script:
     // NOTE
     // There was serious error which prevented it from working properly, but is now fixed.
     // Need to fix in other projects that use this also
     """
-    biallelic_filter.py pairwise_resampled.csv
-    """
-}
-
-
-process LOOKUP_TABLE_LDPOP {
-    publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
-
-    maxForks 1 
-    
-    input:
-        val sample_size
-        val path_fn_modifier
-
-    output:
-        path "lookupTable.txt", emit: lookupTable_txt
-
-    script:
-    // There are other parameters that can be adjusted, I've left them out for the time being
-    // also they mention twice muation and recom rate, for the mutation and recom parameters which I am unsure how to interpret
-    """
-    ldtable.py --cores 4 -n ${sample_size} -th ${params.mutation_rate} -rh ${params.ldpop_rho_range} --approx > lookupTable.txt
-    #ldtable.py --cores 4 -n 100 -th ${params.mutation_rate} -rh ${params.ldpop_rho_range} --approx > lookupTable.txt
+    biallelic_filter.py pairwise_table.csv ${depth}
     """
 }
 
@@ -416,18 +490,28 @@ process LOOKUP_TABLE_LDPOP {
 process PAIRWISE_LOOKUP_FORMAT {
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
 
-    maxForks 1
+    // maxForks 4
+
+    cpus 1
+    memory '1 GB'
+
+    executor 'pbspro'
+    time '30m'
+    scratch true
+    // queue 'i3q'
 
     input:
         path pairwise_biallelic_table_csv
         val path_fn_modifier
 
     output:
-        path "lookup_format.csv", emit: lookup_format_csv
+        path "lookup_format_depth_*.csv", emit: lookup_format_csv
+        path pairwise_biallelic_table_csv, emit: pairwise_biallelic_table_csv // just resending file
 
     script:
     """
-    pairwise_lookup_format_pyrho.py pairwise_biallelic_table.csv
+    depth=\$(echo ${pairwise_biallelic_table_csv} | cut -d. -f1 | cut -d_ -f5)
+    pairwise_lookup_format_pyrho.py ${pairwise_biallelic_table_csv} "\$depth"
     """
 }
 
@@ -435,21 +519,30 @@ process PAIRWISE_LOOKUP_FORMAT {
 process CUSTOM_HAP_SETS_AND_MERGE {
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
 
-    maxForks 1
+    // maxForks 1
+
+    cpus 1
+    memory '4 GB'
+
+    executor 'pbspro'
+    time '1h'
+    scratch true
+    // queue 'i3q'
 
     input:
-        path lookup_table_txt
         path pairwise_biallelic_table_csv
         path lookup_format_csv
         val path_fn_modifier
 
     output:
-        path "table_ids_for_eq3.csv", emit: table_ids_for_eq3_csv
-        path "eq3.csv", emit: eq3_csv
+        path "table_ids_for_eq3_depth_*.csv", emit: table_ids_for_eq3_csv
+        path "eq3_depth_*.csv", emit: eq3_csv
 
     script:
+    // lookup table location hard coded. Need to fix
     """
-    custom_hap_sets_and_merge.py lookupTable.txt pairwise_biallelic_table.csv lookup_format.csv ${params.ldpop_rho_range} > table_ids_for_eq3.csv
+    depth=\$(echo ${pairwise_biallelic_table_csv} | cut -d. -f1 | cut -d_ -f5)
+    custom_hap_sets_and_merge.py ${pairwise_biallelic_table_csv} ${lookup_format_csv} ${params.ldpop_rho_range} "\$depth" $PWD/Lookup_tables/lk_downsampled_"\$depth".csv  > table_ids_for_eq3_depth_"\$depth".csv
     """
 }
 
@@ -457,6 +550,14 @@ process CUSTOM_HAP_SETS_AND_MERGE {
 process WATTERSON_ESTIMATE {
     
     maxForks 1
+
+    cpus 1
+    memory '512 MB'
+
+    executor 'pbspro'
+    time '10m'
+    scratch true
+    // queue 'i3q'
 
     input:
         path lofreqOut_vcf
@@ -476,19 +577,31 @@ process WATTERSON_ESTIMATE {
 process P_IJ_GRID {
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
 
-    maxForks 1
+    // maxForks 4
+
+    cpus 1
+    memory '1 GB'
+
+    executor 'pbspro'
+    time '30m'
+    scratch true
+    // queue 'i3q'
 
     input:
         path eq3_csv
+        path table_ids_for_eq3_csv
         val genome_size
         val path_fn_modifier
 
     output:
-        path "p_ij_grid.csv", emit: p_ij_grid_csv
+        path "p_ij_grid_depth_*.csv", emit: p_ij_grid_csv
+        path table_ids_for_eq3_csv, emit: table_ids_for_eq3_csv // just resending file
+        path eq3_csv, emit: eq3_csv // just resending file
 
     script:
     """
-    pij_grid_vectorised.py ${genome_size} ${params.recom_tract_len} ${params.ldpop_rho_range} eq3.csv
+    depth=\$(echo ${eq3_csv} | cut -d. -f1 | cut -d_ -f3)
+    pij_grid_vectorised.py ${genome_size} ${params.recom_tract_len} ${params.ldpop_rho_range} ${eq3_csv} "\$depth"
     """
 }
 
@@ -496,21 +609,29 @@ process P_IJ_GRID {
 process PAIRWISE_ESTIMATOR {
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
     
-    maxForks 1
+    // maxForks 4
+
+    cpus 1
+    memory '4 GB'
+
+    executor 'pbspro'
+    time '30m'
+    scratch true
+    // queue 'i3q'
     
     input:
         path eq3_csv
-        path p_ij_grid_csv
         path table_ids_for_eq3_csv
-        path lookup_table
+        path p_ij_grid_csv
         val path_fn_modifier
 
     output:
-        path "collected_likelihoods.csv", emit: collected_likelihoods_csv
+        path "collected_likelihoods_depth_*.csv", emit: collected_likelihoods_csv
     
     script:
     """
-    pairwise_rho_estimator_intp_rect_biv.py eq3.csv table_ids_for_eq3.csv p_ij_grid.csv lookupTable.txt ${params.ldpop_rho_range}
+    depth=\$(echo ${eq3_csv} | cut -d. -f1 | cut -d_ -f3)
+    pairwise_rho_estimator_intp_rect_biv.py ${eq3_csv} ${table_ids_for_eq3_csv} ${p_ij_grid_csv} ${params.ldpop_rho_range} "\$depth" $PWD/Lookup_tables/lk_downsampled_"\$depth".csv
     """
 
 }
@@ -519,9 +640,15 @@ process PAIRWISE_ESTIMATOR {
 process FINAL_RESULTS {
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
 
-    // echo true
+    // maxForks 4
 
-    maxForks 1
+    cpus 1
+    memory '256 MB'
+
+    executor 'pbspro'
+    time '10m'
+    scratch true
+    // queue 'i3q'
 
     input:
         path collectedFile
@@ -529,55 +656,40 @@ process FINAL_RESULTS {
         val path_fn_modifier
 
     output:
-        path "final_results.txt", emit: final_results_txt
+        path "final_results_depth_*.txt", emit: final_results_txt
 
     script:
     """
-    final_results.py collected_likelihoods.csv ${theta}
+    depth=\$(echo ${collectedFile} | cut -d. -f1 | cut -d_ -f4)
+    final_results.py ${collectedFile} "\$depth" ${theta}
     """
 }
 
 
-process PROCESS_OUTPUT{
+process AGGREGATE_RESULTS{
     publishDir "Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
 
     maxForks 1
 
+    cpus 1
+    memory '256 MB'
+
+    executor 'pbspro'
+    time '10m'
+    scratch true
+    // queue 'i3q'
+
     input:
-        path final_results_txt
-        val rho_rate
-        val sample_size
-        val genome_size
+        path collected_results
+        val theta
         val path_fn_modifier
 
     output:
-        path "processed_results.csv", emit: processed_results_csv
-
+        path "Aggregate_results_for_full_dataset.out"
+        
     script:
         """
-        custom_est_process_output.py final_results.txt ${rho_rate} ${sample_size} ${genome_size}
-        """
-
-}
-
-
-
-process PLOT_RESULTS{
-    publishDir "Output/Results", mode: "copy"
-
-    maxForks 1
-
-    input:
-        path collectedFile
-
-
-    output:
-        path "rho_comparision.png", emit: rho_comparision_png
-        path "max_lk_comparision.png", emit: max_lk_comparision_png
-
-    script:
-        """
-        plot_results.py collected_results.csv
+        merge_and_get_final_result.py ${theta}
         """
 
 }
@@ -598,22 +710,18 @@ workflow {
 
     params.paired_end_mean_frag_len = 300
     params.paired_end_std_dev = 50 // +- mean frag len
-
-    params.mate_pair_mean_frag_len = 2500
-    params.mate_pair_std_dev = 250 // +- mean frag len
     
-    // precomputed likelihood table
-    // ranged_lookup_Table = Channel.fromPath("$baseDir/lookupTable.txt")
+    depth = Channel.from(10..200)
     
     // trees = Channel.fromPath("$baseDir/trees.txt")
     // custom_pairwise_pairwise_table = Channel.fromPath("$baseDir/pairwise_table.csv") // for testing
     // custom_pairwise_pairwise_biallelic_table = Channel.fromPath("$baseDir/pairwise_biallelic_table.csv") // for testing
 
-    rho_rates = Channel.from(15) // For fastsimbac use this for recom rate (it doesn't accept rho)
-    sample_sizes = Channel.from(15)
-    genome_sizes = Channel.from(10000)
+    params.rho_rates = 15  // Using each multiple times, causes nextflow to work improperly so removed it here for use with depth
+    params.sample_sizes = 15
+    params.genome_sizes = 10000
     
-    RATE_SELECTOR(rho_rates, sample_sizes, genome_sizes)
+    RATE_SELECTOR(params.rho_rates, params.sample_sizes, params.genome_sizes)
 
     MS(RATE_SELECTOR.out.p_val, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
 
@@ -625,8 +733,6 @@ workflow {
 
     // CLEAN_TREES(FAST_SIM_BAC.out.trees_txt, RATE_SELECTOR.out.path_fn_modifier)
 
-    // CLEAN_TREES(trees, RATE_SELECTOR.out.path_fn_modifier)
-
     SEQ_GEN(CLEAN_TREES.out.cleanTrees_txt, RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
 
     REFORMAT_FASTA(SEQ_GEN.out.seqgenout_fa, RATE_SELECTOR.out.path_fn_modifier)
@@ -637,42 +743,32 @@ workflow {
 
     BWA_MEM(ISOLATE_GENOME.out.firstGenome_fa, ART_ILLUMINA.out.art_out_fq, RATE_SELECTOR.out.path_fn_modifier)
 
-    PROCESS_SORT_INDEX(BWA_MEM.out.aligned_bam, RATE_SELECTOR.out.path_fn_modifier)
+    // PROCESS_SORT_INDEX(BWA_MEM.out.aligned_bam, RATE_SELECTOR.out.path_fn_modifier)
 
-    LOFREQ(ISOLATE_GENOME.out.firstGenome_fa, PROCESS_SORT_INDEX.out.processed_bam, PROCESS_SORT_INDEX.out.processed_index, RATE_SELECTOR.out.path_fn_modifier)
+    LOFREQ(ISOLATE_GENOME.out.firstGenome_fa, BWA_MEM.out.aligned_bam, RATE_SELECTOR.out.path_fn_modifier)
 
     // PAIRWISE_TABLE_SINGLE_END(LOFREQ.out.lofreqOut_vcf,PROCESS_SORT_INDEX.out.bam_stats_txt,PROCESS_SORT_INDEX.out.processed_bam,PROCESS_SORT_INDEX.out.processed_index, RATE_SELECTOR.out.path_fn_modifier)
 
-    // PAIRWISE_RESAMPLE(PAIRWISE_TABLE_SINGLE_END.out.pairwise_table_csv, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
+    // PAIRWISE_BIALLELIC_TABLE(PAIRWISE_TABLE_SINGLE_END.out.pairwise_table_csv, depth, RATE_SELECTOR.out.path_fn_modifier)
 
-    PAIRWISE_TABLE_PAIRED_END(LOFREQ.out.lofreqOut_vcf,PROCESS_SORT_INDEX.out.bam_stats_txt,BWA_MEM.out.aligned_bam, RATE_SELECTOR.out.path_fn_modifier)
+    PAIRWISE_TABLE_PAIRED_END(LOFREQ.out.lofreqOut_vcf, BWA_MEM.out.aligned_bam, RATE_SELECTOR.out.path_fn_modifier)
 
-    PAIRWISE_RESAMPLE(PAIRWISE_TABLE_PAIRED_END.out.pairwise_table_csv, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
-
-    PAIRWISE_BIALLELIC_TABLE(PAIRWISE_RESAMPLE.out.pairwise_resampled_csv, RATE_SELECTOR.out.path_fn_modifier)
-
-    LOOKUP_TABLE_LDPOP(RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.path_fn_modifier)
+    PAIRWISE_BIALLELIC_TABLE(PAIRWISE_TABLE_PAIRED_END.out.pairwise_table_csv, depth, RATE_SELECTOR.out.path_fn_modifier)
 
     PAIRWISE_LOOKUP_FORMAT(PAIRWISE_BIALLELIC_TABLE.out.pairwise_biallelic_table_csv, RATE_SELECTOR.out.path_fn_modifier)
 
-    CUSTOM_HAP_SETS_AND_MERGE(LOOKUP_TABLE_LDPOP.out.lookupTable_txt, PAIRWISE_BIALLELIC_TABLE.out.pairwise_biallelic_table_csv, PAIRWISE_LOOKUP_FORMAT.out.lookup_format_csv, RATE_SELECTOR.out.path_fn_modifier)
-
-    // PAIRWISE_LOOKUP_FORMAT(custom_pairwise_pairwise_biallelic_table, RATE_SELECTOR.out.path_fn_modifier)
-
-    // CUSTOM_HAP_SETS_AND_MERGE(LOOKUP_TABLE_LDPOP.out.lookupTable_txt, custom_pairwise_pairwise_biallelic_table, PAIRWISE_LOOKUP_FORMAT.out.lookup_format_csv, RATE_SELECTOR.out.path_fn_modifier)
+    CUSTOM_HAP_SETS_AND_MERGE(PAIRWISE_LOOKUP_FORMAT.out.pairwise_biallelic_table_csv, PAIRWISE_LOOKUP_FORMAT.out.lookup_format_csv, RATE_SELECTOR.out.path_fn_modifier)
 
     WATTERSON_ESTIMATE(LOFREQ.out.lofreqOut_vcf, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size)
 
-    P_IJ_GRID(CUSTOM_HAP_SETS_AND_MERGE.out.eq3_csv, RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
+    P_IJ_GRID(CUSTOM_HAP_SETS_AND_MERGE.out.eq3_csv, CUSTOM_HAP_SETS_AND_MERGE.out.table_ids_for_eq3_csv, RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
 
-    PAIRWISE_ESTIMATOR(CUSTOM_HAP_SETS_AND_MERGE.out.eq3_csv, CUSTOM_HAP_SETS_AND_MERGE.out.table_ids_for_eq3_csv, P_IJ_GRID.out.p_ij_grid_csv, LOOKUP_TABLE_LDPOP.out.lookupTable_txt, RATE_SELECTOR.out.path_fn_modifier)
+    PAIRWISE_ESTIMATOR(P_IJ_GRID.out.eq3_csv, P_IJ_GRID.out.table_ids_for_eq3_csv, P_IJ_GRID.out.p_ij_grid_csv, RATE_SELECTOR.out.path_fn_modifier)
 
     FINAL_RESULTS(PAIRWISE_ESTIMATOR.out.collected_likelihoods_csv, WATTERSON_ESTIMATE.out.theta, RATE_SELECTOR.out.path_fn_modifier)
 
-    PROCESS_OUTPUT(FINAL_RESULTS.out.final_results_txt, RATE_SELECTOR.out.p_val, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
+    collected_results = FINAL_RESULTS.out.final_results_txt.collect()
 
-    // collectedFile = PROCESS_OUTPUT.out.processed_results_csv.collectFile(name:"collected_results.csv",storeDir:"Output/Results", keepHeader:true)
-
-    // PLOT_RESULTS(collectedFile)
+    AGGREGATE_RESULTS(collected_results, WATTERSON_ESTIMATE.out.theta, RATE_SELECTOR.out.path_fn_modifier)
 
 }

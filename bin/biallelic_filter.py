@@ -40,9 +40,9 @@ def filter_bi_allelic(df):
     return filtered_df
 
 
-def export_final_df(final_df):
+def export_final_df(final_df, depth):
 
-    final_df.to_csv("pairwise_biallelic_table.csv")
+    final_df.to_csv(f"pairwise_biallelic_table_depth_{depth}.csv")
 
     return None
 
@@ -50,11 +50,17 @@ def export_final_df(final_df):
 if __name__ == '__main__':
 
     pairwise_table = sys.argv[1]
+    
+    depth = int(sys.argv[2])
 
     # pairwise_table = "pairwise_table.csv"
 
     df = pd.read_csv(pairwise_table, index_col="RefPos_0-based")
 
+    # Isolate slice of data based on depth
+    df = df[df.sum(axis=1) == depth]
+
     df_filtered = filter_bi_allelic(df)
 
-    export_final_df(df_filtered)
+    if not df_filtered.empty:
+        export_final_df(df_filtered, depth)

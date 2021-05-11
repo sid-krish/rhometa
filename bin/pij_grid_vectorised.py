@@ -12,6 +12,7 @@ if __name__ == '__main__':
     recom_tract_len = int(sys.argv[2])
     ldpop_rho_range = sys.argv[3]
     merged_pairwise_and_lookup_table = sys.argv[4]
+    depth = int(sys.argv[5])
 
     # genome_len = int(20000)
     # recom_tract_len = int(500)
@@ -36,4 +37,4 @@ if __name__ == '__main__':
     p_ij_reshape = p_ij.reshape(rho_vals_to_test.shape[0], d_ij.shape[0]).T
 
     p_ij_df = pd.DataFrame(data=p_ij_reshape, columns=rho_vals_to_test)
-    p_ij_df.to_csv("p_ij_grid.csv", index=False)
+    p_ij_df.to_csv(f"p_ij_grid_depth_{depth}.csv", index=False)

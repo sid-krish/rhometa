@@ -39,7 +39,6 @@ def get_init_df(final_ref_pos_list, baseCombinations):
 
 
 def pattern_match(bam_File, final_ref_pos_list, df):
-    # count = 1
     read_1 = read_2 = None  # initialise before loop
 
     # until_eof=True, also includes unmapped. Perhaps these should be filtered before hand?
@@ -49,22 +48,18 @@ def pattern_match(bam_File, final_ref_pos_list, df):
 
         if read.is_read1:
             read_1 = read
-            read_1_ref_positions = read_1.positions
-            read_1_query_seq = read_1.query_sequence  # using query seq for now, includes soft clipped
+            read_1_ref_positions = read_1.get_reference_positions()
+            # By default, this method only returns positions in the reference that are within the alignment.
+            # If full_length is set, None values will be included for any soft-clipped or unaligned positions
+            # within the read. The returned list will thus be of the same length as the read.
 
-            # print(count)
-            # print(read_1.query_name)
-            # print('\n')
+            # positions that are being looked at will be non soft-clipped
+            read_1_query_seq = read_1.query_sequence
 
         elif read.is_read2:
             read_2 = read
-            read_2_ref_positions = read_2.positions
-            read_2_query_seq = read_2.query_sequence  # using query seq for now, includes soft clipped
-
-            # print(count)
-            # print(read_2.query_name)
-            # print('\n')
-
+            read_2_ref_positions = read_2.get_reference_positions()
+            read_2_query_seq = read_2.query_sequence
 
         if read_1 and read_2:
             # Combine and process
@@ -74,7 +69,7 @@ def pattern_match(bam_File, final_ref_pos_list, df):
             combined_ref_positions_set = set(combined_ref_positions)  # for searching
             combined_query_sequences = read_1_query_seq + read_2_query_seq
 
-            zip_ref_pos_and_query_seq = list(zip(combined_ref_positions, combined_query_sequences))
+            zip_ref_pos_and_query_seq = zip(combined_ref_positions, combined_query_sequences)
 
             req_pos_and_query_seq_dict = {ref_pos: query_seq for ref_pos, query_seq in zip_ref_pos_and_query_seq}
 
@@ -90,8 +85,6 @@ def pattern_match(bam_File, final_ref_pos_list, df):
             # Reset for next pair of reads
             read_1 = read_2 = None
 
-        # count += 1
-
     bam_File.close()
 
     return df
@@ -105,13 +98,12 @@ def export_final_df(final_df):
 
 
 if __name__ == "__main__":
-    window_size = int(sys.argv[1]) # read_len * 2 + mean_frag_len + std_dv * 2.
-    bam = sys.argv[2]
-    vcf_file = sys.argv[3]
+    bam = sys.argv[1]
+    vcf_file = sys.argv[2]
 
-    window_size = 300  # mean frag length
-    # bam = "../Output/rho_11_sam_11_gen_10000/rho_11_sam_11_gen_10000_Aligned.bam"
-    # vcf_file = "../Output/rho_11_sam_11_gen_10000/rho_11_sam_11_gen_10000_lofreqOut.vcf"
+    window_size = 1000  # upper limit
+    # bam = "../Output(ref)/Output_mflen_300_r_15_s_15_g_10000/rho_15_sam_15_gen_10000_Aligned.bam"
+    # vcf_file = "../Output(ref)/Output_mflen_300_r_15_s_15_g_10000/rho_15_sam_15_gen_10000_lofreqOut.vcf"
 
     bam_file = pysam.AlignmentFile(bam, "rb", threads=4)
 
@@ -130,9 +122,9 @@ if __name__ == "__main__":
 
     # final_df["Total"] = final_df.sum(axis=1)
     # final_df.sort_values(by="Total", inplace=True)
-
+    #
     # ax = sns.lineplot(x=final_df["Total"].unique(), y=final_df["Total"].value_counts().sort_index())
-
+    #
     # ax.figure.savefig("depth_distribution.png", dpi=500)
 
     export_final_df(final_df)
