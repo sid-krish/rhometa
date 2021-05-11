@@ -1,12 +1,18 @@
 .DS_Store
 
+/.nextflow/
+
+/.vscode/
+
 /Lookup_tables/
 
-/Output
+/Output/
 
-nextflow.log
+/Work/
 
-nextflow.log.*
+.nextflow.log
+
+.nextflow.log.*
 
 /bin/__pycache__/
 

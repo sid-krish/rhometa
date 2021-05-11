@@ -11,7 +11,7 @@ process RATE_SELECTOR {
     // cpus 1
     // memory '100 MB'
 
-    // executor 'pbspro'
+    // executor 'local'
     // time '5m'
     // scratch true
     // queue 'i3q'
@@ -43,7 +43,7 @@ process MS {
     cpus 1
     memory '128 MB'
 
-    executor 'pbspro'
+    executor 'local'
     time '15m'
     scratch true
     // queue 'i3q'
@@ -73,7 +73,7 @@ process FAST_SIM_BAC {
     cpus 1
     memory '128 MB'
 
-    executor 'pbspro'
+    executor 'local'
     time '1h'
     scratch true
     // queue 'i3q'
@@ -104,7 +104,7 @@ process MS_PRIME {
     cpus 1
     memory '128 MB'
 
-    executor 'pbspro'
+    executor 'local'
     time '1h'
     scratch true
     // queue 'i3q'
@@ -135,7 +135,7 @@ process CLEAN_TREES {
     cpus 1
     memory '128 MB'
 
-    executor 'pbspro'
+    executor 'local'
     time '10m'
     scratch true
     // queue 'i3q'
@@ -163,7 +163,7 @@ process SEQ_GEN {
     cpus 1
     memory '128 MB'
 
-    executor 'pbspro'
+    executor 'local'
     time '10m'
     scratch true
     // queue 'i3q'
@@ -194,7 +194,7 @@ process REFORMAT_FASTA {
     cpus 1
     memory '128 MB'
 
-    executor 'pbspro'
+    executor 'local'
     time '10m'
     scratch true
     // queue 'i3q'
@@ -222,7 +222,7 @@ process ISOLATE_GENOME {
     cpus 1
     memory '128 MB'
 
-    executor 'pbspro'
+    executor 'local'
     time '5m'
     scratch true
     // queue 'i3q'
@@ -250,7 +250,7 @@ process ART_ILLUMINA {
     cpus 1
     memory '128 MB'
 
-    executor 'pbspro'
+    executor 'local'
     time '1h'
     scratch true
     // queue 'i3q'
@@ -287,7 +287,7 @@ process BWA_MEM {
     cpus 4
     memory '1 GB'
 
-    executor 'pbspro'
+    executor 'local'
     time '30m'
     scratch true
     // queue 'i3q'
@@ -324,7 +324,7 @@ process PROCESS_SORT_INDEX{
     cpus 4
     memory '10 GB'
 
-    executor 'pbspro'
+    executor 'local'
     time '30m'
     scratch true
     // queue 'i3q'
@@ -371,7 +371,7 @@ process LOFREQ{
     cpus 4
     memory '1 GB'
 
-    executor 'pbspro'
+    executor 'local'
     time '30m'
     scratch true
     // queue 'i3q'
@@ -404,7 +404,7 @@ process PAIRWISE_TABLE_SINGLE_END{
     cpus 1
     memory '1 GB'
 
-    executor 'pbspro'
+    executor 'local'
     time '30m'
     scratch true
     // queue 'i3q'
@@ -436,7 +436,7 @@ process PAIRWISE_TABLE_PAIRED_END{
     cpus 1
     memory '1 GB'
 
-    executor 'pbspro'
+    executor 'local'
     time '30m'
     scratch true
     // queue 'i3q'
@@ -464,7 +464,7 @@ process PAIRWISE_BIALLELIC_TABLE{
     cpus 1
     memory '1 GB'
 
-    executor 'pbspro'
+    executor 'local'
     time '30m'
     scratch true
     // queue 'i3q'
@@ -495,7 +495,7 @@ process PAIRWISE_LOOKUP_FORMAT {
     cpus 1
     memory '1 GB'
 
-    executor 'pbspro'
+    executor 'local'
     time '30m'
     scratch true
     // queue 'i3q'
@@ -524,7 +524,7 @@ process CUSTOM_HAP_SETS_AND_MERGE {
     cpus 1
     memory '4 GB'
 
-    executor 'pbspro'
+    executor 'local'
     time '1h'
     scratch true
     // queue 'i3q'
@@ -554,7 +554,7 @@ process WATTERSON_ESTIMATE {
     cpus 1
     memory '512 MB'
 
-    executor 'pbspro'
+    executor 'local'
     time '10m'
     scratch true
     // queue 'i3q'
@@ -582,7 +582,7 @@ process P_IJ_GRID {
     cpus 1
     memory '1 GB'
 
-    executor 'pbspro'
+    executor 'local'
     time '30m'
     scratch true
     // queue 'i3q'
@@ -614,7 +614,7 @@ process PAIRWISE_ESTIMATOR {
     cpus 1
     memory '4 GB'
 
-    executor 'pbspro'
+    executor 'local'
     time '30m'
     scratch true
     // queue 'i3q'
@@ -645,7 +645,7 @@ process FINAL_RESULTS {
     cpus 1
     memory '256 MB'
 
-    executor 'pbspro'
+    executor 'local'
     time '10m'
     scratch true
     // queue 'i3q'
@@ -674,7 +674,7 @@ process AGGREGATE_RESULTS{
     cpus 1
     memory '256 MB'
 
-    executor 'pbspro'
+    executor 'local'
     time '10m'
     scratch true
     // queue 'i3q'
