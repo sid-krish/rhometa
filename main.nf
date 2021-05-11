@@ -33,33 +33,6 @@ process LOFREQ{
 }
 
 
-process WATTERSON_ESTIMATE {
-    
-    maxForks 1
-
-    cpus 1
-    memory '512 MB'
-
-    executor 'local'
-    time '10m'
-    scratch true
-    // queue 'i3q'
-
-    input:
-        path lofreqOut_vcf
-        val sample_size
-        val genome_size
-
-    output:
-        stdout emit: theta
-
-    script:
-    """
-    watterson_estimate.py lofreqOut.vcf ${genome_size} ${sample_size}
-    """
-}
-
-
 process PAIRWISE_TABLE_SINGLE_END{
     publishDir "Output", mode: "copy"
 
@@ -126,7 +99,7 @@ process PAIRWISE_BIALLELIC_TABLE{
     // maxForks 4
 
     cpus 1
-    memory '1 GB'
+    memory '2 GB'
 
     executor 'local'
     time '30m'
@@ -286,7 +259,6 @@ process FINAL_RESULTS {
 
     input:
         path collectedFile
-        val theta
         
 
     output:
@@ -295,7 +267,7 @@ process FINAL_RESULTS {
     script:
     """
     depth=\$(echo ${collectedFile} | cut -d. -f1 | cut -d_ -f4)
-    final_results.py ${collectedFile} "\$depth" ${theta}
+    final_results.py ${collectedFile} "\$depth" ${params.theta}
     """
 }
 
@@ -315,7 +287,6 @@ process AGGREGATE_RESULTS{
 
     input:
         path collected_results
-        val theta
         
 
     output:
@@ -323,7 +294,7 @@ process AGGREGATE_RESULTS{
         
     script:
         """
-        merge_and_get_final_result.py ${theta}
+        merge_and_get_final_result.py ${params.theta}
         """
 
 }
@@ -335,6 +306,7 @@ workflow {
 
     params.bam_file = ""
     params.reference_genome = ""
+    params.theta = 0.01
 
     bam_file_channel = Channel.fromPath( params.bam_file )
     reference_genome_channel = Channel.fromPath( params.reference_genome )
@@ -350,8 +322,6 @@ workflow {
     // Feature idea: automatic single end / paired end read detection
 
     LOFREQ(reference_genome_channel, bam_file_channel)
-
-    WATTERSON_ESTIMATE(LOFREQ.out.lofreqOut_vcf, params.sample_size, params.genome_size)
 
     // PAIRWISE_TABLE_SINGLE_END(LOFREQ.out.lofreqOut_vcf,PROCESS_SORT_INDEX.out.bam_stats_txt,PROCESS_SORT_INDEX.out.processed_bam,PROCESS_SORT_INDEX.out.processed_index)
 
@@ -369,10 +339,10 @@ workflow {
 
     PAIRWISE_ESTIMATOR(P_IJ_GRID.out.eq3_csv, P_IJ_GRID.out.table_ids_for_eq3_csv, P_IJ_GRID.out.p_ij_grid_csv)
 
-    FINAL_RESULTS(PAIRWISE_ESTIMATOR.out.collected_likelihoods_csv, WATTERSON_ESTIMATE.out.theta)
+    FINAL_RESULTS(PAIRWISE_ESTIMATOR.out.collected_likelihoods_csv)
 
     collected_results = FINAL_RESULTS.out.final_results_txt.collect()
 
-    AGGREGATE_RESULTS(collected_results, WATTERSON_ESTIMATE.out.theta)
+    AGGREGATE_RESULTS(collected_results)
 
 }
