@@ -306,18 +306,17 @@ workflow {
 
     params.bam_file = ""
     params.reference_genome = ""
-    params.theta = 0.01
+    params.theta = 0.005415942381893097
 
     bam_file_channel = Channel.fromPath( params.bam_file )
     reference_genome_channel = Channel.fromPath( params.reference_genome )
 
-    params.sample_size = 15 // Needs to programatically determied
-    params.genome_size = 10000 // Needs to programatically determied
+    params.genome_size = 810781 // Needs to programatically determied
+    params.recom_tract_len = 500 // Needs to programatically determied
 
-    params.recom_tract_len = 500 // Need to be identified in a different way
     params.ldpop_rho_range = "101,100"
     
-    depth = Channel.from(10..200) // Needs to be determined based on min and max depth and used in the pipeline accordingly, should be $min..$max, for example
+    depth = Channel.from(2..180) // Needs to be determined based on min and max depth and used in the pipeline accordingly, should be $min..$max, for example
 
     // Feature idea: automatic single end / paired end read detection
 
