@@ -3,11 +3,11 @@ import pandas as pd
 from ldpop import rhos_from_string
 from utility import downsample
 
-lookup_table = "lk_m_0.01_s_200.txt"
-lookup_table_rho_range = "101,100"
+lookup_table = "lk_m_0.005_rho_0-1_s200.txt"
+lookup_table_rho_range = "101,1"
 # downsample_value = 100
 
-for i in range(10,int(200 + 1)): # plus 1, so that the final val is processed
+for i in range(2,int(200 + 1)): # plus 1, so that the final val is processed
     downsample_value = i
 
     lookup_table_cols = ["Type", "#", "00", "01", "10", "11", "Rho"] + rhos_from_string(lookup_table_rho_range)

@@ -6,12 +6,12 @@ process LOFREQ{
 
     maxForks 1
 
-    cpus 4
-    memory '1 GB'
+    // cpus 4
+    // memory '5 GB'
 
-    executor 'local'
-    time '30m'
-    scratch true
+    // executor 'pbspro'
+    // time '30m'
+    // scratch true
     // queue 'i3q'
 
     input:
@@ -38,12 +38,12 @@ process PAIRWISE_TABLE_SINGLE_END{
 
     maxForks 1
 
-    cpus 1
-    memory '1 GB'
+    // cpus 1
+    // memory '5 GB'
 
-    executor 'local'
-    time '30m'
-    scratch true
+    // executor 'pbspro'
+    // time '30m'
+    // scratch true
     // queue 'i3q'
 
     input:
@@ -70,12 +70,12 @@ process PAIRWISE_TABLE_PAIRED_END{
 
     maxForks 1
 
-    cpus 1
-    memory '1 GB'
+    // cpus 4
+    // memory '25 GB'
 
-    executor 'local'
-    time '30m'
-    scratch true
+    // executor 'pbspro'
+    // time '2d'
+    // scratch true
     // queue 'i3q'
 
     input:
@@ -98,12 +98,12 @@ process PAIRWISE_BIALLELIC_TABLE{
 
     // maxForks 4
 
-    cpus 1
-    memory '2 GB'
+    // cpus 1
+    // memory '10 GB'
 
-    executor 'local'
-    time '30m'
-    scratch true
+    // executor 'pbspro'
+    // time '5h'
+    // scratch true
     // queue 'i3q'
 
     input:
@@ -126,12 +126,12 @@ process PAIRWISE_LOOKUP_FORMAT {
 
     // maxForks 4
 
-    cpus 1
-    memory '1 GB'
+    // cpus 1
+    // memory '10 GB'
 
-    executor 'local'
-    time '30m'
-    scratch true
+    // executor 'pbspro'
+    // time '5h'
+    // scratch true
     // queue 'i3q'
 
     input:
@@ -155,12 +155,12 @@ process CUSTOM_HAP_SETS_AND_MERGE {
 
     // maxForks 1
 
-    cpus 1
-    memory '4 GB'
+    // cpus 1
+    // memory '30 GB'
 
-    executor 'local'
-    time '1h'
-    scratch true
+    // executor 'pbspro'
+    // time '5h'
+    // scratch true
     // queue 'i3q'
 
     input:
@@ -186,12 +186,12 @@ process P_IJ_GRID {
 
     // maxForks 4
 
-    cpus 1
-    memory '1 GB'
+    // cpus 1
+    // memory '10 GB'
 
-    executor 'local'
-    time '30m'
-    scratch true
+    // executor 'pbspro'
+    // time '5h'
+    // scratch true
     // queue 'i3q'
 
     input:
@@ -218,12 +218,12 @@ process PAIRWISE_ESTIMATOR {
 
     // maxForks 4
 
-    cpus 1
-    memory '4 GB'
+    // cpus 1
+    // memory '30 GB'
 
-    executor 'local'
-    time '30m'
-    scratch true
+    // executor 'pbspro'
+    // time '5h'
+    // scratch true
     // queue 'i3q'
     
     input:
@@ -249,12 +249,12 @@ process FINAL_RESULTS {
 
     // maxForks 4
 
-    cpus 1
-    memory '256 MB'
+    // cpus 1
+    // memory '1 GB'
 
-    executor 'local'
-    time '10m'
-    scratch true
+    // executor 'pbspro'
+    // time '1h'
+    // scratch true
     // queue 'i3q'
 
     input:
@@ -277,12 +277,12 @@ process AGGREGATE_RESULTS{
 
     maxForks 1
 
-    cpus 1
-    memory '256 MB'
+    // cpus 1
+    // memory '1 GB'
 
-    executor 'local'
-    time '10m'
-    scratch true
+    // executor 'pbspro'
+    // time '1h'
+    // scratch true
     // queue 'i3q'
 
     input:
@@ -299,6 +299,17 @@ process AGGREGATE_RESULTS{
 
 }
 
+// parameters
+
+// params.bam_file = ""
+
+// input validation
+// if (params.bam_file) {
+
+// } else {
+//     exit 1, 'Missing bam file'
+// }
+
 
 workflow {
     // params.bam_file = projectDir + "/rho_15_sam_15_gen_10000_Aligned.bam"
@@ -306,17 +317,17 @@ workflow {
 
     params.bam_file = ""
     params.reference_genome = ""
-    params.theta = 0.005415942381893097
+    params.theta = 0.005
 
     bam_file_channel = Channel.fromPath( params.bam_file )
     reference_genome_channel = Channel.fromPath( params.reference_genome )
 
-    params.genome_size = 810781 // Needs to programatically determied
-    params.recom_tract_len = 500 // Needs to programatically determied
+    params.genome_size = 810781 // Needs to be programatically determied
+    params.recom_tract_len = 500 // Needs to be programatically determied
 
-    params.ldpop_rho_range = "101,100"
+    params.ldpop_rho_range = "101,1"
     
-    depth = Channel.from(2..180) // Needs to be determined based on min and max depth and used in the pipeline accordingly, should be $min..$max, for example
+    depth = Channel.from(2..200) // Needs to be determined based on min and max depth and used in the pipeline accordingly, should be $min..$max, for example
 
     // Feature idea: automatic single end / paired end read detection
 

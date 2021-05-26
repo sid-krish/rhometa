@@ -28,7 +28,8 @@ process LOFREQ{
     samtools index -@ 4 chrom_sorted.bam
 
     #lofreq call -f ${reference_genome_file} -o lofreqOut.vcf chrom_sorted.bam
-    lofreq call-parallel --pp-threads 4 --no-default-filter -f ${reference_genome_file} -o lofreqOut.vcf chrom_sorted.bam
+    #lofreq call-parallel --pp-threads 4 --no-default-filter -f ${reference_genome_file} -o lofreqOut.vcf chrom_sorted.bam
+    lofreq call-parallel --pp-threads 4 -f ${reference_genome_file} -o lofreqOut.vcf chrom_sorted.bam
     """
 }
 
@@ -68,11 +69,11 @@ workflow {
     bam_file_channel = Channel.fromPath( params.bam_file )
     reference_genome_channel = Channel.fromPath( params.reference_genome )
 
-    params.sample_size = 180 // Needs to programatically determied
+    params.sample_size = 125 // Needs to programatically determied
     params.genome_size = 810781 // Needs to programatically determied
     params.recom_tract_len = 500 // Needs to programatically determied
 
-    params.ldpop_rho_range = "101,100"
+    params.ldpop_rho_range = "101,1"
 
     LOFREQ(reference_genome_channel, bam_file_channel)
 

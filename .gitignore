@@ -4,6 +4,10 @@
 
 /.vscode/
 
+/.idea/
+
+/Analysed/
+
 /Lookup_tables/
 
 /Output/
@@ -20,6 +24,10 @@
 
 /edge_*/
 
-Actinobacteria.txt
+/Lookup_tables(rho0-100_m_0.01_sam_200)/
+
+/Lookup_tables(rho0-1_m_0.01_sam_100)/
+
 *.bam
+
 *.fa
