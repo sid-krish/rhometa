@@ -109,6 +109,8 @@ workflow {
     // Note: Channels can be called unlimited number of times in DSL2
     // A process component can be invoked only once in the same workflow context
 
+    // TODO: ALL PARAMS MUST BE SENT IN AS AN INPUT CHANNEL CAUSES ISSUES OTHERWISE
+    
     params.bam_file = ""
     params.reference_genome = ""
 
@@ -118,7 +120,6 @@ workflow {
     params.ldpop_rho_range = "101,1"
     params.recom_tract_len = 500 // Needs to be programatically determied
     params.seq_type = 1  // 0 - single end, 1 - paired end
-    params.genome_size = 1911230 // Needs to be programatically determied
     params.depth_range = "3,200" // min_depth, max_depth
     params.n_bootstrap_samples = 20 // number of bootstrap samples to get error bars for final results
 
