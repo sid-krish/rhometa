@@ -8,10 +8,10 @@ dependencies:
   - pandas
   - scipy
   - future
-  - numba
-  - fastsimbac
   - seq-gen
   - bwa
   - lofreq
   - samtools
   - pysam
+  - seaborn
+  - numba

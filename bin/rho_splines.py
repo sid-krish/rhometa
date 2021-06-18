@@ -1,5 +1,6 @@
 """
-SK: small modification to print out table_id for hap_configs
+SK: some modifications to save table_ids for hap_configs.
+SK: numba code removed as it was causing issues with my modifications (no speed differences noted with test data)
 
 Tools to tailor a lookup table to a particular dataset.
 
@@ -10,7 +11,6 @@ Functions:
 from __future__ import division
 
 import numpy as np
-from numba import njit
 
 from utility import get_table_idx, log_mult_coef
 
@@ -85,7 +85,6 @@ def _slow_sample(table, config, sample_size):
     )
 
 
-@njit('float64(int64[:, :], int64, int64, int64, int64)', cache=True)
 def _get_hap_comb(hconf, to_add00, to_add01, to_add10, to_add11):
     runtime = ((1 + min(to_add10, to_add00, hconf[-1, 0],
                         to_add00 + to_add10 - hconf[-1, 0]))
@@ -127,7 +126,6 @@ def _get_hap_comb(hconf, to_add00, to_add01, to_add10, to_add11):
     return to_return
 
 
-@njit('float64[:](float64[:, :], int64[:], int64)', cache=True)
 def _get_hap_likelihood(table, config, sample_size):
     hconf = np.array([[config[0], config[1], config[2]],
                       [config[3], config[4], config[5]],
@@ -157,12 +155,10 @@ def _get_hap_likelihood(table, config, sample_size):
                                          sample_size)
                 this_ll = table[this_idx, :] + log_comb
                 to_return = np.logaddexp(to_return, this_ll)
-                print(this_idx)
-                # print(str(to_add00) + ',' + str(hconf[0, 1] + to_add01) + ',' + str(hconf[1, 0] + to_add10) + ',' + str( hconf[1, 1] + to_add11))
-    return to_return
+
+    return to_return, this_idx
 
 
-@njit('float64[:, :](float64[:, :], int64[:, :], int64)', cache=True)
 def _get_splines_hap(table, configs, sample_size):
     to_return = np.zeros((configs.shape[0], table.shape[1]))
     for i in range(configs.shape[0]):
@@ -171,7 +167,6 @@ def _get_splines_hap(table, configs, sample_size):
     return to_return
 
 
-@njit('float64[:](float64[:, :], int64[:], int64)', cache=True)
 def _get_dip_likelihood(table, config, sample_size):
     gconf = np.array([[config[0], config[1], config[2], config[3]],
                       [config[4], config[5], config[6], config[7]],
@@ -195,21 +190,21 @@ def _get_dip_likelihood(table, config, sample_size):
     return swaps*np.log(2) + to_return
 
 
-@njit('float64[:, :](float64[:, :], int64[:, :], int64)', cache=True)
 def _get_splines(table, configs, sample_size):
     ploidy = int(np.round(np.sqrt(configs.shape[1] + 1))) - 2
     if ploidy != 1 and ploidy != 2:
         raise NotImplementedError('Ploidies other than 1 and 2 '
                                   'are not implemented.')
     to_return = np.zeros((configs.shape[0], table.shape[1]))
+    table_ids = np.zeros(configs.shape[0]) # SK added required later
     for i in range(configs.shape[0]):
         if ploidy == 1:
-            to_return[i, :] = _get_hap_likelihood(table, configs[i, :],
+            to_return[i, :], table_ids[i] = _get_hap_likelihood(table, configs[i, :],
                                                   sample_size)
         if ploidy == 2:
             to_return[i, :] = _get_dip_likelihood(table, configs[i, :],
                                                   sample_size)
-    return to_return
+    return to_return, table_ids
 
 
 def compute_splines(configs, lookup_table):
@@ -240,7 +235,7 @@ def compute_splines(configs, lookup_table):
     max_size = sum(map(int, lookup_table.index.values[0].split()))
     rho_grid = np.array(lookup_table.columns)
     table = lookup_table.values
-    rho_values = _get_splines(table, configs, max_size)
+    rho_values, table_ids = _get_splines(table, configs, max_size)
     if np.any(np.isnan(rho_values)):
         raise ArithmeticError('Error in computing splines.')
-    return rho_values, rho_grid
+    return rho_values, rho_grid, table_ids
