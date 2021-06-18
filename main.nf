@@ -312,8 +312,6 @@ process AGGREGATE_RESULTS{
 
 
 workflow {
-    // params.bam_file = projectDir + "/rho_15_sam_15_gen_10000_Aligned.bam"
-    // params.reference_genome = projectDir + "/rho_15_sam_15_gen_10000_firstGenome.fa"
 
     params.bam_file = ""
     params.reference_genome = ""
@@ -322,7 +320,7 @@ workflow {
     bam_file_channel = Channel.fromPath( params.bam_file )
     reference_genome_channel = Channel.fromPath( params.reference_genome )
 
-    params.genome_size = 810781 // Needs to be programatically determied
+    params.genome_size = 1911230 // Needs to be programatically determied
     params.recom_tract_len = 500 // Needs to be programatically determied
 
     params.ldpop_rho_range = "101,1"
