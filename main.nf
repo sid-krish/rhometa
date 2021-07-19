@@ -1,6 +1,39 @@
 #! /usr/bin/env nextflow
 nextflow.enable.dsl = 2
 
+def helpMessage() {
+
+    // TO DO: add remaining arguments and descriptions    
+    log.info"""
+    Usage:
+
+    nextflow run main.nf --bam_file in.bam --reference_genome ref.fa [options]
+
+    Options:
+    --bam_file [.bam]    Description
+    --reference_genome [.fa]  Description
+    --ldpop_rho_range [int,int]   Description
+    ... etc.
+
+    `nextflow run main.nf --help` to show this help message
+    """.stripIndent()
+
+}
+
+if (params.help) {
+    // Show help message above 
+    // In .config, params.help = false by default
+    helpMessage()
+    exit 0
+}
+
+// Deal with missing (mandatory) arguments 
+
+if (params.bam_file == 'none') {
+    println "No input .bam specified. Use --bam_file [.bam]"
+    exit 1
+}
+
 process LOFREQ{
     publishDir "Output", mode: "copy"
 
@@ -111,17 +144,8 @@ workflow {
 
     // TODO: ALL PARAMS MUST BE SENT IN AS AN INPUT CHANNEL CAUSES ISSUES OTHERWISE
     
-    params.bam_file = ""
-    params.reference_genome = ""
-
     bam_file_channel = Channel.fromPath( params.bam_file )
     reference_genome_channel = Channel.fromPath( params.reference_genome )
-
-    params.ldpop_rho_range = "101,1"
-    params.recom_tract_len = 500 // Needs to be programatically determied
-    params.seq_type = 1  // 0 - single end, 1 - paired end
-    params.depth_range = "3,200" // min_depth, max_depth
-    params.n_bootstrap_samples = 20 // number of bootstrap samples to get error bars for final results
 
     LOFREQ(reference_genome_channel, bam_file_channel)
 
