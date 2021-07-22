@@ -30,6 +30,10 @@
 
 /Lookup_tables(rho0-1_m_0.01_sam_100)/
 
+/Lookup_tables(rho0-1_m_0.005_sam_200)/
+
+/Recom_Est_Output/
+
 *.bam
 
 *.fa

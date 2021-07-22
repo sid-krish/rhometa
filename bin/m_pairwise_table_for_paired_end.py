@@ -45,12 +45,13 @@ def pattern_match(bam_File, final_ref_pos_list, df):
 
         if read.is_read1:
             read_1 = read
-            read_1_ref_positions = read_1.get_reference_positions()
+            read_1_ref_positions = read_1.get_reference_positions(full_length=True)
             # By default, this method only returns positions in the reference that are within the alignment.
             # If full_length is set, None values will be included for any soft-clipped or unaligned positions
             # within the read. The returned list will thus be of the same length as the read.
 
             # positions that are being looked at will be non soft-clipped
+            # as those ref pos will be none as mentioned above and will be ignored
             read_1_query_seq = read_1.query_sequence
 
         elif read.is_read2:
@@ -87,10 +88,10 @@ def pattern_match(bam_File, final_ref_pos_list, df):
     return df
 
 
-def main(bam, vcf_file):
-    window_size = 1000  # upper limit
+def main(bam, vcf_file, num_cores, fragment_len):
+    window_size = fragment_len
 
-    bam_file = pysam.AlignmentFile(bam, "rb", threads=4)
+    bam_file = pysam.AlignmentFile(bam, "rb", threads=num_cores)
 
     # genomeSize = int(bamfile.header.get("SQ")[0].get("LN"))  # Header information can be accessed like a dictionary
 

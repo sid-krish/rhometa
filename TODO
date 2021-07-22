@@ -1,7 +1,0 @@
-Switch to msprime
-Optimise generation of pairwise table
-Running a process for each depth needs to be handled better
-The files being output need to be looked into and reduced
-Moving large files to and from disk needs to be reduced. Need to keep files in memory as much as possible
-
-Make the output folder a user option.

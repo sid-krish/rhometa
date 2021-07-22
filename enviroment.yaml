@@ -5,7 +5,7 @@ channels:
   - conda-forge
 dependencies:
   - python
-  - pandas
+  - pandas <= 1.2
   - scipy
   - future
   - seq-gen

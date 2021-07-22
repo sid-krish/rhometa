@@ -36,7 +36,7 @@ if __name__ == '__main__':
     # The pipeline isolates pairwise entries based on depth and uses the appropriate lookup table for each depth.
     # note: after isolation some files will be empty
     for depth in range(depth_lower_limit, depth_upper_limit + 1):
-        lookup_table = f"../../../Lookup_tables/lk_downsampled_{depth}.csv"
+        lookup_table = f"lk_downsampled_{depth}.csv"
         pairwise_table_slice = m_isolate_by_depth.main(pairwise_table,
                                                        depth).copy()  # copy to create a new df using slice
 
@@ -109,7 +109,7 @@ if __name__ == '__main__':
     final_results_max_rho_and_likelihoods_df.to_csv("final_results_max_vals.csv", index=False)
 
     # summary statistics on 'max_rho' column
-    summary_stats = final_results_max_rho_and_likelihoods_df['max_rho'].describe()
+    summary_stats = final_results_max_rho_and_likelihoods_df['max_rho'].describe(percentiles = [.05,.25, .5, .75, .95])
     summary_stats = pd.DataFrame(summary_stats).T
 
     summary_stats = summary_stats.rename(columns={"count": "bootstrap_samples"})
