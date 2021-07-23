@@ -61,12 +61,14 @@ process PAIRWISE_TABLE{
 
     maxForks 1
 
+    echo true
+
     cpus {num_cores}
 
     input:
         path aligned_bam
         path vcf_file
-        val seq_type
+        val single_end
         val num_cores
         val window_size
 
@@ -75,7 +77,7 @@ process PAIRWISE_TABLE{
 
     script:
     """
-    gen_pairwise_table.py ${seq_type} ${aligned_bam} ${vcf_file} ${num_cores} ${window_size}
+    gen_pairwise_table.py ${single_end} ${aligned_bam} ${vcf_file} ${num_cores} ${window_size}
     """
 
 }
@@ -140,7 +142,7 @@ workflow {
     params.recom_tract_len = 500
     params.ldpop_rho_range = "101,100"
     params.window_size = 500 // For single end this is the read size, for paired end this is the max fragment length
-    params.seq_type = 1  // 0 - single end, 1 - paired end
+    params.single_end = false
     params.depth_range = "3,100" // min_depth, max_depth
     params.n_bootstrap_samples = 20 // number of bootstrap samples to get error bars for final results
 
@@ -171,7 +173,7 @@ workflow {
     LOFREQ(reference_genome_channel, bam_file_channel, params.num_cores)
 
     // Bams need to be query name sorted.
-    PAIRWISE_TABLE(bam_file_channel, LOFREQ.out.lofreqOut_vcf, params.seq_type, params.num_cores, params.window_size)
+    PAIRWISE_TABLE(bam_file_channel, LOFREQ.out.lofreqOut_vcf, params.single_end, params.num_cores, params.window_size)
 
     RECOM_RATE_ESTIMATOR(downsampled_lookup_tables, PAIRWISE_TABLE.out.pairwise_table_pkl, params.recom_tract_len, params.depth_range, params.n_bootstrap_samples, params.ldpop_rho_range, params.num_cores)
 

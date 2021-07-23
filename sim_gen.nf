@@ -395,7 +395,7 @@ workflow {
     params.recom_tract_len = 500
     params.effective_pop_size = 1
 
-    params.seq_type = 1  // 0 - single end, 1 - paired end
+    params.single_end = false
     params.read_len = 150
     params.paired_end_mean_frag_len = 300
     params.paired_end_std_dev = 50 // +- mean frag len
@@ -422,13 +422,13 @@ workflow {
 
     ISOLATE_GENOME(REFORMAT_FASTA.out.reformatted_fa, RATE_SELECTOR.out.path_fn_modifier)
 
-    if (params.seq_type == 0) {
+    if (params.single_end == true) {
         ART_ILLUMINA_SINGLE_END(REFORMAT_FASTA.out.reformatted_fa, params.seed, params.read_len, RATE_SELECTOR.out.path_fn_modifier)
 
         BWA_MEM_SINGLE_END(ISOLATE_GENOME.out.firstGenome_fa, ART_ILLUMINA_SINGLE_END.out.art_out_fq, params.num_cores, RATE_SELECTOR.out.path_fn_modifier)
     }
     
-    else if (params.seq_type == 1) {
+    else if (params.single_end == false) {
         ART_ILLUMINA_PAIRED_END(REFORMAT_FASTA.out.reformatted_fa, params.seed, params.read_len, params.paired_end_std_dev, params.paired_end_mean_frag_len, RATE_SELECTOR.out.path_fn_modifier)
 
         BWA_MEM_PAIRED_END(ISOLATE_GENOME.out.firstGenome_fa, ART_ILLUMINA_PAIRED_END.out.art_out_fq, params.num_cores, RATE_SELECTOR.out.path_fn_modifier)
