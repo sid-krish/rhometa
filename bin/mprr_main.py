@@ -102,7 +102,9 @@ if __name__ == '__main__':
     final_results_df.to_csv("final_results.csv", index=False)
 
     # set appropriate column names indicating they are max values
-    final_results_max_rho_and_likelihoods_df.columns = ["bootstrap_sample", "max_lk", "max_rho"]
+    final_results_max_rho_and_likelihoods_df.rename({"rho": 'max_rho', "likelihood_sums": 'max_lk'},
+                                                    axis=1, inplace=True)
+                                                    
     # reorder columns
     final_results_max_rho_and_likelihoods_df = final_results_max_rho_and_likelihoods_df[
         ["max_rho", "max_lk", "bootstrap_sample"]]
