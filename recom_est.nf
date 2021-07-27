@@ -5,6 +5,7 @@ nextflow.enable.dsl = 2
 def helpMessage() {
 
     log.info"""
+    Description:
 
     Usage:
     nextflow run recom_est.nf --bam_file in.bam --reference_genome ref.fa [options]

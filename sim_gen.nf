@@ -2,6 +2,38 @@
 nextflow.enable.dsl = 2
 
 
+def helpMessage() {
+
+    log.info"""
+    Description:
+
+    Usage:
+    nextflow run sim_gen.nf [options]
+
+    Help:
+    nextflow run sim_gen.nf --help
+
+    Options:
+    --ldpop_rho_range [int,int], default:[101,100], The range of rho values used to generate lookup tables
+    --num_cores [int], default:[4], The max number of cores the pipeline should use
+    --recom_tract_len [int], default:[500], Recombination tract length to use
+    --single_end, Used for single end read bams
+    --read_len [int], default:[150], Read length of each individual read
+    --paired_end_mean_frag_len [int], default:[300], The mean size of DNA fragments for paired-end simulations 
+    --paired_end_std_dev [int], default:[50], The standard deviation of DNA fragment size for paired-end simulations 
+    --seed [int], default:[123], Seed value to use for simulation
+    --mutation_rate [int], default:[0.01], Population mutation rate, theta
+    --effective_pop_size [int], default:[1], Effective population size
+    --rho_rates [int], default:[10], Population recombiation rate, rho 
+    --sample_sizes [int], default:[10], Number of haplotypes to use for generating reads
+    --genome_sizes [int], default:[10000], Genome size of haplotypes
+    --fold_cov [int], default:[10], The fold of read coverage to be simulated or number of reads/read pairs generated for each haplotype genome
+
+    """.stripIndent()
+
+}
+
+
 process RATE_SELECTOR {
     // This process prevents the need to use each in every process, which can be confusing
     // Perhaps this could be handled in a more elegant way using some DSL2 technique
@@ -264,6 +296,7 @@ process ART_ILLUMINA_SINGLE_END {
         path reformatted_fa
         val seed
         val read_len
+        val fold_cov
         val path_fn_modifier
 
     output:
@@ -274,7 +307,7 @@ process ART_ILLUMINA_SINGLE_END {
     """
     #Single end
     art_illumina --seqSys HSXt --rndSeed ${seed} --noALN --quiet \
-    --in reformatted.fa --len ${read_len} --fcov 10 --out art_out
+    --in reformatted.fa --len ${read_len} --fcov ${fold_cov} --out art_out
     """
 }
 
@@ -298,6 +331,7 @@ process ART_ILLUMINA_PAIRED_END {
         val read_len
         val paired_end_std_dev
         val paired_end_mean_frag_len
+        val fold_cov
         val path_fn_modifier
 
     output:
@@ -309,7 +343,7 @@ process ART_ILLUMINA_PAIRED_END {
     #Paired end
     art_illumina --seqSys HSXt --rndSeed ${seed} --noALN --quiet \
     --in reformatted.fa -p --len ${read_len} --sdev ${paired_end_std_dev} \
-    -m ${paired_end_mean_frag_len} --fcov 10 --out art_out
+    -m ${paired_end_mean_frag_len} --fcov ${fold_cov} --out art_out
     """
 }
 
@@ -388,21 +422,31 @@ workflow {
     // Note: Channels can be called unlimited number of times in DSL2
     // A process component can be invoked only once in the same workflow context
 
+    // Params
+    params.help = false
     params.num_cores = 4
-   
-    params.seed = 123
-    params.mutation_rate = 0.01
-    params.recom_tract_len = 500
-    params.effective_pop_size = 1
 
     params.single_end = false
     params.read_len = 150
     params.paired_end_mean_frag_len = 300
     params.paired_end_std_dev = 50 // +- mean frag len
 
-    params.rho_rates = 10  // Using each multiple times, causes nextflow to work improperly so removed it here for use with depth
+    params.seed = 123
+    params.mutation_rate = 0.01
+    params.recom_tract_len = 500
+    params.effective_pop_size = 1
+    params.rho_rates = 10
     params.sample_sizes = 10
     params.genome_sizes = 10000
+    params.fold_cov = 10
+
+    // Input verification
+    if (params.help) {
+        // Show help message from helpMessage() function
+        // params.help = false by default
+        helpMessage()
+        exit 0
+    }
     
     RATE_SELECTOR(params.rho_rates, params.sample_sizes, params.genome_sizes)
 
@@ -423,14 +467,14 @@ workflow {
     ISOLATE_GENOME(REFORMAT_FASTA.out.reformatted_fa, RATE_SELECTOR.out.path_fn_modifier)
 
     if (params.single_end == true) {
-        ART_ILLUMINA_SINGLE_END(REFORMAT_FASTA.out.reformatted_fa, params.seed, params.read_len, RATE_SELECTOR.out.path_fn_modifier)
-
+        ART_ILLUMINA_SINGLE_END(REFORMAT_FASTA.out.reformatted_fa, params.seed, params.read_len, params.fold_cov, RATE_SELECTOR.out.path_fn_modifier)
+        // Query name sorted bam
         BWA_MEM_SINGLE_END(ISOLATE_GENOME.out.firstGenome_fa, ART_ILLUMINA_SINGLE_END.out.art_out_fq, params.num_cores, RATE_SELECTOR.out.path_fn_modifier)
     }
     
     else if (params.single_end == false) {
-        ART_ILLUMINA_PAIRED_END(REFORMAT_FASTA.out.reformatted_fa, params.seed, params.read_len, params.paired_end_std_dev, params.paired_end_mean_frag_len, RATE_SELECTOR.out.path_fn_modifier)
-
+        ART_ILLUMINA_PAIRED_END(REFORMAT_FASTA.out.reformatted_fa, params.seed, params.read_len, params.paired_end_std_dev, params.paired_end_mean_frag_len, params.fold_cov, RATE_SELECTOR.out.path_fn_modifier)
+        // Query name sorted bam
         BWA_MEM_PAIRED_END(ISOLATE_GENOME.out.firstGenome_fa, ART_ILLUMINA_PAIRED_END.out.art_out_fq, params.num_cores, RATE_SELECTOR.out.path_fn_modifier)
     }
 
