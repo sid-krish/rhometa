@@ -448,6 +448,7 @@ workflow {
         exit 0
     }
     
+    // Process execution
     RATE_SELECTOR(params.rho_rates, params.sample_sizes, params.genome_sizes)
 
     MS(RATE_SELECTOR.out.p_val, params.mutation_rate, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, params.recom_tract_len, RATE_SELECTOR.out.path_fn_modifier)
