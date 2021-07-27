@@ -2,6 +2,28 @@
 nextflow.enable.dsl = 2
 
 
+def helpMessage() {
+
+    log.info"""
+    Description:
+
+    Usage:
+    nextflow run lookup_table_gen.nf [options]
+
+    Help:
+    nextflow run lookup_table_gen.nf --help
+
+    Options:
+    --ldpop_rho_range [int,int], default:[101,100], The range of rho values used to generate lookup tables
+    --num_cores [int], default:[4], The max number of cores the pipeline should use
+    --lk_table_max_depth [int], default:[100], The max depth to generate lookup tables for
+    --theta [int], default:[0.01], Population mutation rate, can be estimated value from theta_est.nf or a different value
+
+    """.stripIndent()
+
+}
+
+
 process LDPOP_TABLE_GEN {
     publishDir "Lookup_tables", mode: "copy"
     
@@ -53,15 +75,21 @@ workflow {
     // Note: Channels can be called unlimited number of times in DSL2
     // A process component can be invoked only once in the same workflow context
 
-    // Results will be output to Lookup_tables folder in current dir
-
+    // Params
     params.num_cores = 4
-   
     params.theta = 0.01 // Theta can be based on estimate or as desired
     params.ldpop_rho_range = "101,100"
-
     params.lk_table_max_depth = 100
 
+    // Input verification
+    if (params.help) {
+        // Show help message from helpMessage() function
+        // params.help = false by default
+        helpMessage()
+        exit 0
+    }
+
+    // Process execution
     LDPOP_TABLE_GEN(params.num_cores, params.lk_table_max_depth, params.theta, params.ldpop_rho_range)
 
     DOWNSAMPLE_LOOKUP_TABLE(params.num_cores, LDPOP_TABLE_GEN.out.lookup_table_txt, params.ldpop_rho_range, params.lk_table_max_depth)
