@@ -34,6 +34,10 @@
 
 /Recom_Est_Output/
 
+/Theta_Est_Output/
+
+/Sim_Gen_Output/
+
 *.bam
 
 *.fa
