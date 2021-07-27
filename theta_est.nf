@@ -93,6 +93,7 @@ workflow {
     // A process component can be invoked only once in the same workflow context
 
     // Params
+    params.help = false
     params.num_cores = 4
     params.bam_file = 'none'
     params.reference_genome = 'none'

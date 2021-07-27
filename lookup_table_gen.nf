@@ -76,6 +76,7 @@ workflow {
     // A process component can be invoked only once in the same workflow context
 
     // Params
+    params.help = false
     params.num_cores = 4
     params.theta = 0.01 // Theta can be based on estimate or as desired
     params.ldpop_rho_range = "101,100"
