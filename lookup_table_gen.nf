@@ -30,6 +30,12 @@ process LDPOP_TABLE_GEN {
     maxForks 1
 
     cpus {num_cores}
+    memory { 50.GB * task.attempt }
+    time { 10.hours * task.attempt }
+    scratch true
+
+    errorStrategy 'retry'
+    maxRetries 5
 
     input:
         val num_cores
@@ -55,6 +61,12 @@ process DOWNSAMPLE_LOOKUP_TABLE {
     maxForks 1
 
     cpus {num_cores}
+    memory { 10.GB * task.attempt }
+    time { 1.h * task.attempt }
+    scratch true
+
+    errorStrategy 'retry'
+    maxRetries 5
 
     input:
         val num_cores
@@ -77,10 +89,11 @@ workflow {
 
     // Params
     params.help = false
-    params.num_cores = 4
     params.theta = 0.01 // Theta can be based on estimate or as desired
     params.ldpop_rho_range = "101,100"
-    params.lk_table_max_depth = 100
+    params.lk_table_max_depth = 10
+
+    params.num_cores = 4
 
     // Input verification
     if (params.help) {
