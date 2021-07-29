@@ -17,9 +17,6 @@ def helpMessage() {
     --bam_file [*.bam], Query name sorted bam file
     --reference_genome [*.fa],  Single genome fasta file
 
-    Options:
-    --num_cores [int], default:[4], The max number of cores the pipeline should use
-
     """.stripIndent()
 
 }
@@ -29,18 +26,9 @@ process LOFREQ{
 
     maxForks 1
 
-    cpus {num_cores}
-    // memory '1 GB'
-
-    // executor 'local'
-    // time '30m'
-    // scratch true
-    // queue 'i3q'
-
     input:
         path reference_fa
         path bam
-        val num_cores
 
     output:
         path "lofreqOut.vcf", emit: lofreqOut_vcf
@@ -48,12 +36,12 @@ process LOFREQ{
     script:
     """
     samtools faidx ${reference_fa}
-    samtools sort --threads ${num_cores} ${bam} -o Aligned.csorted.bam
-    samtools index -@ ${num_cores} Aligned.csorted.bam
+    samtools sort --threads $task.cpus ${bam} -o Aligned.csorted.bam
+    samtools index -@ $task.cpus Aligned.csorted.bam
 
     #lofreq call -f ${reference_fa} -o lofreqOut.vcf Aligned.csorted.bam
-    #lofreq call-parallel --pp-threads ${num_cores} --no-default-filter -f ${reference_fa} -o lofreqOut.vcf Aligned.csorted.bam
-    lofreq call-parallel --pp-threads ${num_cores} -f ${reference_fa} -o lofreqOut.vcf Aligned.csorted.bam
+    #lofreq call-parallel --pp-threads $task.cpus --no-default-filter -f ${reference_fa} -o lofreqOut.vcf Aligned.csorted.bam
+    lofreq call-parallel --pp-threads $task.cpus -f ${reference_fa} -o lofreqOut.vcf Aligned.csorted.bam
     """
 }
 
@@ -63,13 +51,9 @@ process THETA_ESTIMATE {
 
     maxForks 1
 
-    cpus 1
-
-    // echo true
-
     input:
-    path bam
-    path vcf
+        path bam
+        path vcf
 
     output:
         path "Aligned_sorted.pileup"
@@ -79,7 +63,7 @@ process THETA_ESTIMATE {
         
     script:
     """
-    samtools sort Aligned.bam > Aligned_sorted.bam
+    samtools sort ${bam} > Aligned_sorted.bam
     samtools mpileup Aligned_sorted.bam > Aligned_sorted.pileup
     genome_size=\$(samtools view -H Aligned_sorted.bam | grep "@SQ" | awk '{ print \$3 }' | cut -c 4-)
 
@@ -94,7 +78,6 @@ workflow {
 
     // Params
     params.help = false
-    params.num_cores = 4
     params.bam_file = 'none'
     params.reference_genome = 'none'
 
@@ -121,7 +104,7 @@ workflow {
     }
 
     // Process execution
-    LOFREQ(reference_genome_channel, bam_file_channel, params.num_cores)
+    LOFREQ(reference_genome_channel, bam_file_channel)
 
     THETA_ESTIMATE(bam_file_channel, LOFREQ.out.lofreqOut_vcf)
 

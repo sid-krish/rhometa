@@ -20,7 +20,6 @@ def helpMessage() {
 
     Options:
     --ldpop_rho_range [int,int], default:[101,100], The range of rho values used to generate lookup tables
-    --num_cores [int], default:[4], The max number of cores the pipeline should use
     --recom_tract_len [int], default:[500], Recombination tract length to use
     --window_size [int], default:[500], Window size for variant pairs. For single end this is the read size, for paired end this is the max fragment length
     --single_end, Used for single end read bams
@@ -37,18 +36,9 @@ process LOFREQ{
 
     maxForks 1
 
-    cpus {num_cores}
-    // memory '1 GB'
-
-    // executor 'local'
-    // time '30m'
-    // scratch true
-    // queue 'i3q'
-
     input:
         path reference_fa
         path bam
-        val num_cores
 
     output:
         path "lofreqOut.vcf", emit: lofreqOut_vcf
@@ -56,12 +46,12 @@ process LOFREQ{
     script:
     """
     samtools faidx ${reference_fa}
-    samtools sort --threads ${num_cores} ${bam} -o Aligned.csorted.bam
-    samtools index -@ ${num_cores} Aligned.csorted.bam
+    samtools sort --threads $task.cpus ${bam} -o Aligned.csorted.bam
+    samtools index -@ $task.cpus Aligned.csorted.bam
 
     #lofreq call -f ${reference_fa} -o lofreqOut.vcf Aligned.csorted.bam
-    #lofreq call-parallel --pp-threads ${num_cores} --no-default-filter -f ${reference_fa} -o lofreqOut.vcf Aligned.csorted.bam
-    lofreq call-parallel --pp-threads ${num_cores} -f ${reference_fa} -o lofreqOut.vcf Aligned.csorted.bam
+    #lofreq call-parallel --pp-threads $task.cpus --no-default-filter -f ${reference_fa} -o lofreqOut.vcf Aligned.csorted.bam
+    lofreq call-parallel --pp-threads $task.cpus -f ${reference_fa} -o lofreqOut.vcf Aligned.csorted.bam
     """
 }
 
@@ -71,15 +61,10 @@ process PAIRWISE_TABLE{
 
     maxForks 1
 
-    echo true
-
-    cpus {num_cores}
-
     input:
         path aligned_bam
         path vcf_file
         val single_end
-        val num_cores
         val window_size
 
     output:
@@ -87,7 +72,7 @@ process PAIRWISE_TABLE{
 
     script:
     """
-    gen_pairwise_table.py ${single_end} ${aligned_bam} ${vcf_file} ${num_cores} ${window_size}
+    gen_pairwise_table.py ${single_end} ${aligned_bam} ${vcf_file} $task.cpus ${window_size}
     """
 
 }
@@ -98,8 +83,6 @@ process RECOM_RATE_ESTIMATOR {
 
     maxForks 1
 
-    cpus {num_cores}
-
     input:
         path downsampled_lookup_tables
         path pairwise_table_pkl
@@ -107,7 +90,6 @@ process RECOM_RATE_ESTIMATOR {
         val depth_range
         val n_bootstrap_samples
         val ldpop_rho_range
-        val num_cores
 
 
     output:
@@ -117,7 +99,7 @@ process RECOM_RATE_ESTIMATOR {
 
     script:
     """
-    mprr_main_parallel.py ${recom_tract_len} ${depth_range} ${n_bootstrap_samples} ${ldpop_rho_range} ${pairwise_table_pkl} ${num_cores}
+    mprr_main_parallel.py ${recom_tract_len} ${depth_range} ${n_bootstrap_samples} ${ldpop_rho_range} ${pairwise_table_pkl} $task.cpus
     """
 
 }
@@ -127,8 +109,6 @@ process FINAL_RESULTS_PLOT {
     publishDir "Recom_Est_Output", mode: "copy"
 
     maxForks 1
-
-    cpus 1
 
     input:
         path final_results_csv
@@ -149,7 +129,6 @@ workflow {
 
     // Params
     params.help = false
-    params.num_cores = 4
     params.recom_tract_len = 500
     params.ldpop_rho_range = "101,100"
     params.window_size = 500 // For single end this is the read size, for paired end this is the max fragment length
@@ -185,12 +164,12 @@ workflow {
     }
 
     // Process execution
-    LOFREQ(reference_genome_channel, bam_file_channel, params.num_cores)
+    LOFREQ(reference_genome_channel, bam_file_channel)
 
     // Bams need to be query name sorted.
-    PAIRWISE_TABLE(bam_file_channel, LOFREQ.out.lofreqOut_vcf, params.single_end, params.num_cores, params.window_size)
+    PAIRWISE_TABLE(bam_file_channel, LOFREQ.out.lofreqOut_vcf, params.single_end, params.window_size)
 
-    RECOM_RATE_ESTIMATOR(downsampled_lookup_tables, PAIRWISE_TABLE.out.pairwise_table_pkl, params.recom_tract_len, params.depth_range, params.n_bootstrap_samples, params.ldpop_rho_range, params.num_cores)
+    RECOM_RATE_ESTIMATOR(downsampled_lookup_tables, PAIRWISE_TABLE.out.pairwise_table_pkl, params.recom_tract_len, params.depth_range, params.n_bootstrap_samples, params.ldpop_rho_range)
 
     FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out.final_results_csv)
 
