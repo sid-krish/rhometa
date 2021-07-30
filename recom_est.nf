@@ -32,13 +32,14 @@ def helpMessage() {
 
 
 process LOFREQ{
-    publishDir "Recom_Est_Output", mode: "copy"
+    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
     input:
         path reference_fa
         path bam
+        val prepend_filename
 
     output:
         path "lofreqOut.vcf", emit: lofreqOut_vcf
@@ -57,7 +58,7 @@ process LOFREQ{
 
 
 process PAIRWISE_TABLE{
-    publishDir "Recom_Est_Output", mode: "copy"
+    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
@@ -66,6 +67,7 @@ process PAIRWISE_TABLE{
         path vcf_file
         val single_end
         val window_size
+        val prepend_filename
 
     output:
         path "pairwise_table.pkl", emit: pairwise_table_pkl
@@ -79,7 +81,7 @@ process PAIRWISE_TABLE{
 
 
 process RECOM_RATE_ESTIMATOR {
-    publishDir "Recom_Est_Output", mode: "copy"
+    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
@@ -90,6 +92,7 @@ process RECOM_RATE_ESTIMATOR {
         val depth_range
         val n_bootstrap_samples
         val ldpop_rho_range
+        val prepend_filename
 
 
     output:
@@ -106,12 +109,13 @@ process RECOM_RATE_ESTIMATOR {
 
 
 process FINAL_RESULTS_PLOT {
-    publishDir "Recom_Est_Output", mode: "copy"
+    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
     input:
         path final_results_csv
+        val prepend_filename
 
     output:
         path "final_results_plot.png", emit: final_results_plot_png
@@ -129,6 +133,7 @@ workflow {
 
     // Params
     params.help = false
+    params.prepend_filename = ""
     params.recom_tract_len = 500
     params.ldpop_rho_range = "101,100"
     params.window_size = 500 // For single end this is the read size, for paired end this is the max fragment length
@@ -164,13 +169,13 @@ workflow {
     }
 
     // Process execution
-    LOFREQ(reference_genome_channel, bam_file_channel)
+    LOFREQ(reference_genome_channel, bam_file_channel, params.prepend_filename)
 
     // Bams need to be query name sorted.
-    PAIRWISE_TABLE(bam_file_channel, LOFREQ.out.lofreqOut_vcf, params.single_end, params.window_size)
+    PAIRWISE_TABLE(bam_file_channel, LOFREQ.out.lofreqOut_vcf, params.single_end, params.window_size, params.prepend_filename)
 
-    RECOM_RATE_ESTIMATOR(downsampled_lookup_tables, PAIRWISE_TABLE.out.pairwise_table_pkl, params.recom_tract_len, params.depth_range, params.n_bootstrap_samples, params.ldpop_rho_range)
+    RECOM_RATE_ESTIMATOR(downsampled_lookup_tables, PAIRWISE_TABLE.out.pairwise_table_pkl, params.recom_tract_len, params.depth_range, params.n_bootstrap_samples, params.ldpop_rho_range, params.prepend_filename)
 
-    FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out.final_results_csv)
+    FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out.final_results_csv, params.prepend_filename)
 
 }
