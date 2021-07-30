@@ -17,18 +17,22 @@ def helpMessage() {
     --bam_file [*.bam], Query name sorted bam file
     --reference_genome [*.fa],  Single genome fasta file
 
+    Options:
+    --prepend_filename [str], Prepend string to output filenames to help distinguish runs
+
     """.stripIndent()
 
 }
 
 process LOFREQ{
-    publishDir "Theta_Est_Output", mode: "copy"
+    publishDir "Theta_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
     input:
         path reference_fa
         path bam
+        val prepend_filename
 
     output:
         path "lofreqOut.vcf", emit: lofreqOut_vcf
@@ -47,13 +51,14 @@ process LOFREQ{
 
 
 process THETA_ESTIMATE {
-    publishDir "Theta_Est_Output", mode: "copy"
+    publishDir "Theta_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
     input:
         path bam
         path vcf
+        val prepend_filename
 
     output:
         path "Aligned_sorted.pileup"
@@ -78,6 +83,7 @@ workflow {
 
     // Params
     params.help = false
+    params.prepend_filename = ""
     params.bam_file = 'none'
     params.reference_genome = 'none'
 
@@ -104,8 +110,8 @@ workflow {
     }
 
     // Process execution
-    LOFREQ(reference_genome_channel, bam_file_channel)
+    LOFREQ(reference_genome_channel, bam_file_channel, params.prepend_filename)
 
-    THETA_ESTIMATE(bam_file_channel, LOFREQ.out.lofreqOut_vcf)
+    THETA_ESTIMATE(bam_file_channel, LOFREQ.out.lofreqOut_vcf, params.prepend_filename)
 
 }
