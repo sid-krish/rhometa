@@ -27,6 +27,7 @@ def helpMessage() {
     --sample_sizes [int], default:[10], Number of haplotypes to use for generating reads
     --genome_sizes [int], default:[10000], Genome size of haplotypes
     --fold_cov [int], default:[10], The fold of read coverage to be simulated or number of reads/read pairs generated for each haplotype genome
+    --prepend_filename [str], Prepend string to output filenames to help distinguish runs
 
     """.stripIndent()
 
@@ -49,8 +50,6 @@ process RATE_SELECTOR {
         val "${sample_size}", emit: sample_size
         val "${genome_size}", emit: genome_size
 
-        val "rho_${rho_rate}_sam_${sample_size}_gen_${genome_size}/rho_${rho_rate}_sam_${sample_size}_gen_${genome_size}", emit: path_fn_modifier
-
     script:
     """
     """
@@ -59,7 +58,7 @@ process RATE_SELECTOR {
 
 
 process MS {
-    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
@@ -69,7 +68,7 @@ process MS {
         val sample_size
         val genome_size
         val recom_tract_len
-        val path_fn_modifier
+        val prepend_filename
 
     output:
         path "trees.txt", emit: trees_txt
@@ -83,7 +82,7 @@ process MS {
 
 
 process FAST_SIM_BAC {
-    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
     
@@ -94,7 +93,7 @@ process FAST_SIM_BAC {
         val mutation_rate
         val recom_tract_len
         val genome_size
-        val path_fn_modifier
+        val prepend_filename
 
     output:
         // path "rho_calc.txt", emit: rho_rho_calc_txt
@@ -108,7 +107,7 @@ process FAST_SIM_BAC {
 
 
 process MS_PRIME {
-    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
     
@@ -117,7 +116,7 @@ process MS_PRIME {
         val sample_size
         val genome_size
         val effective_pop_size
-        val path_fn_modifier
+        val prepend_filename
 
     output:
         path "rho_calculation.txt", emit: rho_rho_calculation_txt
@@ -131,14 +130,13 @@ process MS_PRIME {
 
 
 process CLEAN_TREES {
-    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
     input:
         path trees
-        val path_fn_modifier
-
+        val prepend_filename
 
     output:
         path "cleanTrees.txt", emit: cleanTrees_txt
@@ -151,7 +149,7 @@ process CLEAN_TREES {
 
 
 process SEQ_GEN {
-    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
@@ -159,7 +157,7 @@ process SEQ_GEN {
         path cleanTrees
         val genome_size
         val seed
-        val path_fn_modifier
+        val prepend_filename
 
     output:
         path "seqgenOut.fa", emit: seqgenout_fa
@@ -175,13 +173,13 @@ process SEQ_GEN {
 
 
 process REFORMAT_FASTA {
-    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
     input:
         path seqgenOut
-        val path_fn_modifier
+        val prepend_filename
 
     output:
         path "reformatted.fa", emit: reformatted_fa
@@ -195,13 +193,13 @@ process REFORMAT_FASTA {
 
 
 process ISOLATE_GENOME {
-    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
     input:
         path reformatted_fa
-        val path_fn_modifier
+        val prepend_filename
 
     output:
         path "firstGenome.fa", emit: firstGenome_fa
@@ -215,7 +213,7 @@ process ISOLATE_GENOME {
 
 
 process ART_ILLUMINA_SINGLE_END {
-    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
@@ -224,7 +222,7 @@ process ART_ILLUMINA_SINGLE_END {
         val seed
         val read_len
         val fold_cov
-        val path_fn_modifier
+        val prepend_filename
 
     output:
         path "*.fq", emit: art_out_fq // only files we are interested in
@@ -240,7 +238,7 @@ process ART_ILLUMINA_SINGLE_END {
 
 
 process ART_ILLUMINA_PAIRED_END {
-    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
@@ -251,7 +249,7 @@ process ART_ILLUMINA_PAIRED_END {
         val paired_end_std_dev
         val paired_end_mean_frag_len
         val fold_cov
-        val path_fn_modifier
+        val prepend_filename
 
     output:
         path "*.fq", emit: art_out_fq // only files we are interested in
@@ -268,14 +266,14 @@ process ART_ILLUMINA_PAIRED_END {
 
 
 process BWA_MEM_SINGLE_END {
-    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
     input:
         path firstGenome_fa
         path art_out_fq
-        val path_fn_modifier
+        val prepend_filename
 
     output:
         path "Aligned.bam", emit: aligned_bam
@@ -294,14 +292,14 @@ process BWA_MEM_SINGLE_END {
 
 
 process BWA_MEM_PAIRED_END {
-    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${path_fn_modifier}_${filename}"}
+    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
     input:
         path firstGenome_fa
         path art_out_fq
-        val path_fn_modifier
+        val prepend_filename
 
     output:
         path "Aligned.bam", emit: aligned_bam
@@ -325,6 +323,7 @@ workflow {
 
     // Params
     params.help = false
+    params.prepend_filename = ""
 
     params.single_end = false
     params.read_len = 150
@@ -351,32 +350,32 @@ workflow {
     // Process execution
     RATE_SELECTOR(params.rho_rates, params.sample_sizes, params.genome_sizes)
 
-    MS(RATE_SELECTOR.out.p_val, params.mutation_rate, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, params.recom_tract_len, RATE_SELECTOR.out.path_fn_modifier)
+    MS(RATE_SELECTOR.out.p_val, params.mutation_rate, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, params.recom_tract_len, params.prepend_filename)
 
-    // FAST_SIM_BAC(RATE_SELECTOR.out.p_val, RATE_SELECTOR.out.sample_size, params.seed, params.mutation_rate, params.recom_tract_len, RATE_SELECTOR.out.genome_size, RATE_SELECTOR.out.path_fn_modifier)
+    // FAST_SIM_BAC(RATE_SELECTOR.out.p_val, RATE_SELECTOR.out.sample_size, params.seed, params.mutation_rate, params.recom_tract_len, RATE_SELECTOR.out.genome_size, params.prepend_filename)
 
-    // MS_PRIME(RATE_SELECTOR.out.p_val, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, params.effective_pop_size, RATE_SELECTOR.out.path_fn_modifier)
+    // MS_PRIME(RATE_SELECTOR.out.p_val, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, params.effective_pop_size, params.prepend_filename)
 
-    CLEAN_TREES(MS.out.trees_txt, RATE_SELECTOR.out.path_fn_modifier)
+    CLEAN_TREES(MS.out.trees_txt, params.prepend_filename)
 
-    // CLEAN_TREES(FAST_SIM_BAC.out.trees_txt, RATE_SELECTOR.out.path_fn_modifier)
+    // CLEAN_TREES(FAST_SIM_BAC.out.trees_txt)
 
-    SEQ_GEN(CLEAN_TREES.out.cleanTrees_txt, RATE_SELECTOR.out.genome_size, params.seed, RATE_SELECTOR.out.path_fn_modifier)
+    SEQ_GEN(CLEAN_TREES.out.cleanTrees_txt, RATE_SELECTOR.out.genome_size, params.seed, params.prepend_filename)
 
-    REFORMAT_FASTA(SEQ_GEN.out.seqgenout_fa, RATE_SELECTOR.out.path_fn_modifier)
+    REFORMAT_FASTA(SEQ_GEN.out.seqgenout_fa, params.prepend_filename)
 
-    ISOLATE_GENOME(REFORMAT_FASTA.out.reformatted_fa, RATE_SELECTOR.out.path_fn_modifier)
+    ISOLATE_GENOME(REFORMAT_FASTA.out.reformatted_fa, params.prepend_filename)
 
     if (params.single_end == true) {
-        ART_ILLUMINA_SINGLE_END(REFORMAT_FASTA.out.reformatted_fa, params.seed, params.read_len, params.fold_cov, RATE_SELECTOR.out.path_fn_modifier)
+        ART_ILLUMINA_SINGLE_END(REFORMAT_FASTA.out.reformatted_fa, params.seed, params.read_len, params.fold_cov, params.prepend_filename)
         // Query name sorted bam
-        BWA_MEM_SINGLE_END(ISOLATE_GENOME.out.firstGenome_fa, ART_ILLUMINA_SINGLE_END.out.art_out_fq, RATE_SELECTOR.out.path_fn_modifier)
+        BWA_MEM_SINGLE_END(ISOLATE_GENOME.out.firstGenome_fa, ART_ILLUMINA_SINGLE_END.out.art_out_fq, params.prepend_filename)
     }
     
     else if (params.single_end == false) {
-        ART_ILLUMINA_PAIRED_END(REFORMAT_FASTA.out.reformatted_fa, params.seed, params.read_len, params.paired_end_std_dev, params.paired_end_mean_frag_len, params.fold_cov, RATE_SELECTOR.out.path_fn_modifier)
+        ART_ILLUMINA_PAIRED_END(REFORMAT_FASTA.out.reformatted_fa, params.seed, params.read_len, params.paired_end_std_dev, params.paired_end_mean_frag_len, params.fold_cov, params.prepend_filename)
         // Query name sorted bam
-        BWA_MEM_PAIRED_END(ISOLATE_GENOME.out.firstGenome_fa, ART_ILLUMINA_PAIRED_END.out.art_out_fq, RATE_SELECTOR.out.path_fn_modifier)
+        BWA_MEM_PAIRED_END(ISOLATE_GENOME.out.firstGenome_fa, ART_ILLUMINA_PAIRED_END.out.art_out_fq, params.prepend_filename)
     }
 
 }
