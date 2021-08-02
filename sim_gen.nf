@@ -14,7 +14,6 @@ def helpMessage() {
     nextflow run sim_gen.nf --help
 
     Options:
-    --ldpop_rho_range [int,int], default:[101,100], The range of rho values used to generate lookup tables
     --recom_tract_len [int], default:[500], Recombination tract length to use
     --single_end, Used for single end read bams
     --read_len [int], default:[150], Read length of each individual read
