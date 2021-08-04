@@ -31,6 +31,29 @@ def helpMessage() {
 }
 
 
+process SUBSAMPLE_BAM{
+    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+
+    maxForks 1
+
+    input:
+        val depth_range
+        path bam
+        val prepend_filename
+    
+    output:
+        path "subsampled.bam", emit: subsampled_bam
+
+    script:
+    """
+    samtools sort ${bam} > Aligned_sorted.bam
+    samtools mpileup Aligned_sorted.bam > Aligned_sorted.pileup
+
+    subsample_bam.py Aligned_sorted.pileup ${depth_range} ${bam}
+    """
+}
+
+
 process LOFREQ{
     publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
@@ -138,11 +161,11 @@ workflow {
     params.ldpop_rho_range = "101,100"
     params.window_size = 500 // For single end this is the read size, for paired end this is the max fragment length
     params.single_end = false
-    params.depth_range = "3,100" // min_depth, max_depth
+    params.depth_range = "3,200" // min_depth, max_depth
     params.n_bootstrap_samples = 20 // number of bootstrap samples to get error bars for final results
 
-    params.bam_file = null
-    params.reference_genome = null
+    params.bam_file = 'none'
+    params.reference_genome = 'none'
     params.lookup_tables = "Lookup_tables"
 
     // Channels
@@ -158,21 +181,24 @@ workflow {
         exit 0
     }
 
-    if (params.reference_genome == null) {
+    if (params.reference_genome == 'none') {
         println "No input .fa specified. Use --reference_genome [.fa]"
         exit 1
     }
 
-    if (params.bam_file == null) {
+    if (params.bam_file == 'none') {
         println "No input .bam specified. Use --bam_file [.bam]"
         exit 1
     }
 
     // Process execution
-    LOFREQ(reference_genome_channel, bam_file_channel, params.prepend_filename)
+    // Bams need to be query name sorted.
+    SUBSAMPLE_BAM(params.depth_range, bam_file_channel, params.prepend_filename)
+
+    LOFREQ(reference_genome_channel, SUBSAMPLE_BAM.out.subsampled_bam, params.prepend_filename)
 
     // Bams need to be query name sorted.
-    PAIRWISE_TABLE(bam_file_channel, LOFREQ.out.lofreqOut_vcf, params.single_end, params.window_size, params.prepend_filename)
+    PAIRWISE_TABLE(SUBSAMPLE_BAM.out.subsampled_bam, LOFREQ.out.lofreqOut_vcf, params.single_end, params.window_size, params.prepend_filename)
 
     RECOM_RATE_ESTIMATOR(downsampled_lookup_tables, PAIRWISE_TABLE.out.pairwise_table_pkl, params.recom_tract_len, params.depth_range, params.n_bootstrap_samples, params.ldpop_rho_range, params.prepend_filename)
 

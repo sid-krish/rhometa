@@ -99,12 +99,12 @@ workflow {
         exit 0
     }
 
-    if (params.reference_genome == null) {
+    if (params.reference_genome == 'none') {
         println "No input .fa specified. Use --reference_genome [.fa]"
         exit 1
     }
 
-    if (params.bam_file == null) {
+    if (params.bam_file == 'none') {
         println "No input .bam specified. Use --bam_file [.bam]"
         exit 1
     }
