@@ -8,18 +8,19 @@ TODO: 2 Parametric sweeps + Replicates
 Sweep 1: Recombination rate simulations
 ####
 
-Rho: 10, 30, 50, 60, 90
+Rho: 0.1, 0.5, 2.5, 25, 50
 Theta: 0.01 (fixed like PIIM)
 Genome_size: 100,000; 250,000; 500,000; 750,000; 1,000,000
-Depth: 5, 25, 50, 75, 100
+mean_cov: .5, 1, 2.5, 5, 10
+Samples: 10 (currently fixed)
 
 ####
 Sweep 2: Mutation rate simulations
 ####
 
-Theta: 0.1, 0.3, 0.5, 0.6, 0.9
+Theta: 0.001, 0.005, 0.01, 0.05, 0.1
 Genome_size: 100,000; 250,000; 500,000; 750,000; 1,000,000
-Depth: 5, 25, 50, 75, 100
+mean_cov: .5, 1, 2.5, 5, 10
 
 ####
 3 Replicates with different seed values
@@ -58,10 +59,10 @@ def sweep_1(rho, theta, genome_size, depth, seed):
 if __name__ == '__main__':
 
     # Sweep 1: Recombination rate simulations
-    rho = [10, 30, 50, 60, 90]
+    rho = [0.1, 0.5, 2.5, 25, 50]
     theta = [0.01]
     genome_size = [100000, 250000, 500000, 750000, 1000000]
-    depth = [5, 25, 50, 75, 100]
+    depth = [.5, 1, 2.5, 5, 10]
     seed = [123, 456, 789]
 
     sweep_1(rho, theta, genome_size, depth, seed)

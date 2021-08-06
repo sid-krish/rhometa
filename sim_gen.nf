@@ -57,7 +57,7 @@ process RATE_SELECTOR {
 
 
 process MS {
-    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
@@ -81,7 +81,7 @@ process MS {
 
 
 process FAST_SIM_BAC {
-    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
     
@@ -106,7 +106,7 @@ process FAST_SIM_BAC {
 
 
 process MS_PRIME {
-    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
     
@@ -129,7 +129,7 @@ process MS_PRIME {
 
 
 process CLEAN_TREES {
-    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
@@ -148,7 +148,7 @@ process CLEAN_TREES {
 
 
 process SEQ_GEN {
-    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
@@ -172,7 +172,7 @@ process SEQ_GEN {
 
 
 process REFORMAT_FASTA {
-    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
@@ -212,7 +212,7 @@ process ISOLATE_GENOME {
 
 
 process ART_ILLUMINA_SINGLE_END {
-    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
@@ -237,7 +237,7 @@ process ART_ILLUMINA_SINGLE_END {
 
 
 process ART_ILLUMINA_PAIRED_END {
-    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
