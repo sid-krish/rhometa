@@ -25,7 +25,7 @@ def helpMessage() {
 }
 
 process LOFREQ{
-    publishDir "Theta_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Theta_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
@@ -61,7 +61,7 @@ process THETA_ESTIMATE {
         val prepend_filename
 
     output:
-        path "Aligned_sorted.pileup"
+        // path "Aligned_sorted.pileup"
         path "theta_estimates.png"
         path "depth_distribution.png"
         path "Theta_estimate_stats.csv"

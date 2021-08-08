@@ -32,7 +32,7 @@ def helpMessage() {
 
 
 process SUBSAMPLE_BAM{
-    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
@@ -55,7 +55,7 @@ process SUBSAMPLE_BAM{
 
 
 process LOFREQ{
-    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
@@ -81,7 +81,7 @@ process LOFREQ{
 
 
 process PAIRWISE_TABLE{
-    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
