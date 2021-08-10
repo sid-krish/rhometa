@@ -38,6 +38,8 @@
 
 /Sim_Gen_Output/
 
+/SimulationResults/
+
 *.bam
 
 *.fa

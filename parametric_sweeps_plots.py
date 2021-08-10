@@ -16,16 +16,17 @@ def collect_results_sweep_1(rho, theta, genome_size, depth, seed):
     sweep_1_combinations = mesh_grid.T.reshape(-1, 5)
 
     # Load data into dataframe
-    recom_est_results_dir = f"{os.getcwd()}/Recom_Est_Output/"
-    prepended_filename = f"rho_{rho}_theta_{theta}_genome_size_{genome_size}_depth_{depth}_seed_{seed}_"
+    recom_est_results_dir = f"{os.getcwd()}/SimulationResults/Recom_Est_Output/"
+
     col_names = ["rho_sim", "theta_sim", "genome_size_sim", "depth_sim", "seed_sim",
                  "mean","std","min","5%","25%","50%","75%","95%","max"]
+
     df_recom_est_resutls = pd.DataFrame(columns=col_names)
 
     for rho, theta, genome_size, depth, seed in sweep_1_combinations:
-
+        prepended_filename = f"rho_{rho}_theta_{theta}_genome_size_{genome_size}_depth_{depth}_seed_{seed}_"
         with open(f"{recom_est_results_dir}{prepended_filename}final_results_summary.csv", 'r') as results:
-            results_unfiltered = results.readlines()[1].split(',')
+            results_unfiltered = results.readlines()[1].strip().split(',')
             results_final = results_unfiltered[2:]
 
         to_append = [rho, theta, genome_size, depth, seed] + results_final

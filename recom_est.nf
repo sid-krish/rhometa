@@ -23,6 +23,7 @@ def helpMessage() {
     --recom_tract_len [int], default:[500], Recombination tract length to use
     --window_size [int], default:[500], Window size for variant pairs. For single end this is the read size, for paired end this is the max fragment length
     --single_end, Used for single end read bams
+    --subsample_bam, Used for when read depths are higher than what can be analysed with available lookup tables (downsample bam to match max lookup table depth)
     --depth_range [int,int], default:[3,100], Minimum and maximum depth downsampled lookup tables available. Minimum should be no less than 3
     --n_bootstrap_samples [int], default:[20], Number of bootstrap samples to get confidence interval for recombination rate estimate
 
@@ -156,6 +157,7 @@ workflow {
 
     // Params
     params.help = false
+    params.subsample_bam = false
     params.prepend_filename = ""
     params.recom_tract_len = 500
     params.ldpop_rho_range = "101,100"
@@ -192,13 +194,22 @@ workflow {
     }
 
     // Process execution
-    // Bams need to be query name sorted.
-    SUBSAMPLE_BAM(params.depth_range, bam_file_channel, params.prepend_filename)
+    if (params.subsample_bam) {
+        // Bams need to be query name sorted.
+        SUBSAMPLE_BAM(params.depth_range, bam_file_channel, params.prepend_filename)
 
-    LOFREQ(reference_genome_channel, SUBSAMPLE_BAM.out.subsampled_bam, params.prepend_filename)
+        LOFREQ(reference_genome_channel, SUBSAMPLE_BAM.out.subsampled_bam, params.prepend_filename)
 
-    // Bams need to be query name sorted.
-    PAIRWISE_TABLE(SUBSAMPLE_BAM.out.subsampled_bam, LOFREQ.out.lofreqOut_vcf, params.single_end, params.window_size, params.prepend_filename)
+        PAIRWISE_TABLE(SUBSAMPLE_BAM.out.subsampled_bam, LOFREQ.out.lofreqOut_vcf, params.single_end, params.window_size, params.prepend_filename)
+
+    }
+
+    else {
+        // Bams need to be query name sorted.
+        LOFREQ(reference_genome_channel, bam_file_channel, params.prepend_filename)
+
+        PAIRWISE_TABLE(bam_file_channel, LOFREQ.out.lofreqOut_vcf, params.single_end, params.window_size, params.prepend_filename)
+    }
 
     RECOM_RATE_ESTIMATOR(downsampled_lookup_tables, PAIRWISE_TABLE.out.pairwise_table_pkl, params.recom_tract_len, params.depth_range, params.n_bootstrap_samples, params.ldpop_rho_range, params.prepend_filename)
 
