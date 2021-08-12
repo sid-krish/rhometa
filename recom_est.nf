@@ -159,7 +159,7 @@ workflow {
     params.help = false
     params.subsample_bam = false
     params.prepend_filename = ""
-    params.recom_tract_len = 500
+    params.recom_tract_len = 1000
     params.ldpop_rho_range = "101,100"
     params.window_size = 500 // For single end this is the read size, for paired end this is the max fragment length
     params.single_end = false

@@ -21,7 +21,6 @@ def helpMessage() {
     --paired_end_std_dev [int], default:[50], The standard deviation of DNA fragment size for paired-end simulations 
     --seed [int], default:[123], Seed value to use for simulation
     --mutation_rate [int], default:[0.01], Population mutation rate, theta
-    --effective_pop_size [int], default:[1], Effective population size
     --rho_rates [int], default:[10], Population recombiation rate, rho 
     --sample_sizes [int], default:[10], Number of haplotypes to use for generating reads
     --genome_sizes [int], default:[10000], Genome size of haplotypes
@@ -64,6 +63,7 @@ process MS {
     input:
         val rho_rate
         val mutation_rate
+        val seed
         val sample_size
         val genome_size
         val recom_tract_len
@@ -74,8 +74,7 @@ process MS {
   
     script:
     """
-    echo 123 456 789 > seedms
-    ms ${sample_size} 1 -T -t ${mutation_rate} -r ${rho_rate} ${genome_size} -c 10 ${recom_tract_len} > trees.txt
+    ms ${sample_size} 1 -T -seeds ${seed} -t ${mutation_rate} -r ${rho_rate} ${genome_size} -c 10 ${recom_tract_len} > trees.txt
     """
 }
 
@@ -326,16 +325,16 @@ workflow {
 
     params.single_end = false
     params.read_len = 150
-    params.paired_end_mean_frag_len = 300
+    params.paired_end_mean_frag_len = 500
     params.paired_end_std_dev = 50 // +- mean frag len
 
     params.seed = 123
     params.mutation_rate = 0.01
-    params.recom_tract_len = 500
-    params.effective_pop_size = 1
-    params.rho_rates = 10
+    params.recom_tract_len = 1000
+    params.effective_pop_size = 1 // only for msprime
+    params.rho_rates = 0.05
     params.sample_sizes = 10
-    params.genome_sizes = 10000
+    params.genome_sizes = 100000
     params.fold_cov = 10
 
     // Input verification
@@ -349,15 +348,15 @@ workflow {
     // Process execution
     RATE_SELECTOR(params.rho_rates, params.sample_sizes, params.genome_sizes)
 
-    MS(RATE_SELECTOR.out.p_val, params.mutation_rate, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, params.recom_tract_len, params.prepend_filename)
+    // MS(RATE_SELECTOR.out.p_val, params.mutation_rate, params.seed, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, params.recom_tract_len, params.prepend_filename)
 
-    // FAST_SIM_BAC(RATE_SELECTOR.out.p_val, RATE_SELECTOR.out.sample_size, params.seed, params.mutation_rate, params.recom_tract_len, RATE_SELECTOR.out.genome_size, params.prepend_filename)
+    FAST_SIM_BAC(RATE_SELECTOR.out.p_val, RATE_SELECTOR.out.sample_size, params.seed, params.mutation_rate, params.recom_tract_len, RATE_SELECTOR.out.genome_size, params.prepend_filename)
 
     // MS_PRIME(RATE_SELECTOR.out.p_val, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, params.effective_pop_size, params.prepend_filename)
 
     CLEAN_TREES(MS.out.trees_txt, params.prepend_filename)
 
-    // CLEAN_TREES(FAST_SIM_BAC.out.trees_txt)
+    CLEAN_TREES(FAST_SIM_BAC.out.trees_txt, params.prepend_filename)
 
     SEQ_GEN(CLEAN_TREES.out.cleanTrees_txt, RATE_SELECTOR.out.genome_size, params.seed, params.prepend_filename)
 

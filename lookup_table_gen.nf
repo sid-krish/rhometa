@@ -71,8 +71,8 @@ workflow {
     // Params
     params.help = false
     params.theta = 0.01 // Theta can be based on estimate or as desired
-    params.ldpop_rho_range = "101,100"
-    params.lk_table_max_depth = 100
+    params.ldpop_rho_range = "1001,100"
+    params.lk_table_max_depth = 250
 
     // Input verification
     if (params.help) {
