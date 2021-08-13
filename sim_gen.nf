@@ -330,11 +330,11 @@ workflow {
 
     params.seed = 123
     params.mutation_rate = 0.01
-    params.recom_tract_len = 1000
+    params.recom_tract_len = 500
     params.effective_pop_size = 1 // only for msprime
-    params.rho_rates = 0.05
-    params.sample_sizes = 10
-    params.genome_sizes = 100000
+    params.rho_rates = 0.1
+    params.sample_sizes = 30
+    params.genome_sizes = 25000
     params.fold_cov = 10
 
     // Input verification
@@ -354,7 +354,7 @@ workflow {
 
     // MS_PRIME(RATE_SELECTOR.out.p_val, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, params.effective_pop_size, params.prepend_filename)
 
-    CLEAN_TREES(MS.out.trees_txt, params.prepend_filename)
+    // CLEAN_TREES(MS.out.trees_txt, params.prepend_filename)
 
     CLEAN_TREES(FAST_SIM_BAC.out.trees_txt, params.prepend_filename)
 
