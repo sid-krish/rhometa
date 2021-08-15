@@ -40,6 +40,8 @@
 
 /SimulationResults/
 
+/SimulationResults(old)/
+
 *.bam
 
 *.fa
