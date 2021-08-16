@@ -42,6 +42,8 @@
 
 /SimulationResults(old)/
 
+/SimulationResults(subsample)/
+
 *.bam
 
 *.fa
