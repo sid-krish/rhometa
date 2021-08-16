@@ -44,6 +44,8 @@
 
 /SimulationResults(subsample)/
 
+/low_depth_sim_results/
+
 *.bam
 
 *.fa

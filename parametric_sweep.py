@@ -139,7 +139,7 @@ if __name__ == '__main__':
     rho_sweep_1 = [0.01, 0.025, 0.05, 0.075, 0.1]
     theta_sweep_1 = [0.01]
     genome_size_sweep_1 = [10000, 25000, 50000, 75000, 100000]
-    depth_sweep_1 = [.5, 1, 2.5, 5, 10]
+    depth_sweep_1 = [1, 1.82, 3.31, 6.03, 10.99, 20]
     seed_sweep_1 = [123, 456, 789]
 
     sweep_1_simulation(rho_sweep_1, theta_sweep_1, genome_size_sweep_1, depth_sweep_1, seed_sweep_1)
@@ -149,7 +149,7 @@ if __name__ == '__main__':
     theta_sweep_2 = [0.001, 0.005, 0.01, 0.05, 0.1]
     rho_sweep_2 = [0.01]
     genome_size_sweep_2 = [100000, 250000, 500000, 750000, 1000000]
-    depth_sweep_2 = [.5, 1, 2.5, 5, 10]
+    depth_sweep_2 = [1, 1.82, 3.31, 6.03, 10.99, 20]
     seed_sweep_2 = [123, 456, 789]
 
     # sweep_2_simulation(rho_sweep_2, theta_sweep_2, genome_size_sweep_2, depth_sweep_2, seed_sweep_2)

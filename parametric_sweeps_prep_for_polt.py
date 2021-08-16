@@ -15,7 +15,7 @@ def collect_results_sweep_1(rho, theta, genome_size, depth, seed):
     sweep_1_combinations = mesh_grid.T.reshape(-1, 5)
 
     # Load data into dataframe
-    recom_est_results_dir = f"{os.getcwd()}/SimulationResults/Recom_Est_Output/"
+    recom_est_results_dir = f"{os.getcwd()}SimulationResults/Recom_Est_Output/"
 
     col_names = ["rho_sim", "theta_sim", "genome_size_sim", "depth_sim", "seed_sim",
                  "mean", "std", "min", "5%", "25%", "50%", "75%", "95%", "max"]
@@ -70,9 +70,13 @@ if __name__ == '__main__':
     collected_results_sweep_1_df = collected_results_sweep_1_df.astype('float64')
 
     # Plot results
-    ax = sns.boxplot(data=collected_results_sweep_1_df, x="scaled_rho_sim", y="mean", hue="genome_size_sim",
-                     palette="Set3")
+    sns.set_theme(style="whitegrid", palette="Set3")
 
-    ax.set_title("MPRR Simulated (scaled_rho_sim) vs Estimated Rho (mean)")
+    ax = sns.catplot(data=collected_results_sweep_1_df, x="scaled_rho_sim", y="mean", hue="genome_size_sim",
+                     col="depth_sim", col_wrap=3, sharex=True, sharey=False, kind="box")
 
-    ax.figure.savefig("MPRR_results.png", dpi=500)
+    # ax.set_title("MPRR Simulated (scaled_rho_sim) vs Estimated Rho (mean)")
+
+    # ax.figure.savefig("MPRR_results.png", dpi=500)
+
+    ax.savefig("MPRR_results.png", dpi=500)
