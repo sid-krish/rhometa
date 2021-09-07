@@ -10,12 +10,16 @@ def helpMessage() {
     Usage:
     nextflow run lookup_table_gen.nf [options]
 
+    Downsample Only:
+    nextflow run lookup_table_gen.nf --lk_table [str] --ldpop_rho_range [int] --lk_table_max_depth [int]
+
     Help:
     nextflow run lookup_table_gen.nf --help
 
     Options:
     --ldpop_rho_range [int,int], default:[101,100], The range of rho values used to generate lookup tables
     --lk_table_max_depth [int], default:[100], The max depth to generate lookup tables for
+    --lk_table [str], Provide lookup table to run downsample step only
     --theta [int], default:[0.01], Population mutation rate, can be estimated value from theta_est.nf or a different value
 
     """.stripIndent()
@@ -70,9 +74,10 @@ workflow {
 
     // Params
     params.help = false
+    params.lk_table = 'none'
     params.theta = 0.01 // Theta can be based on estimate or as desired
-    params.ldpop_rho_range = "1001,100"
-    params.lk_table_max_depth = 250
+    params.ldpop_rho_range = "101,100"
+    params.lk_table_max_depth = 300
 
     // Input verification
     if (params.help) {
@@ -83,8 +88,17 @@ workflow {
     }
 
     // Process execution
-    LDPOP_TABLE_GEN(params.lk_table_max_depth, params.theta, params.ldpop_rho_range)
+    if (params.lk_table == 'none') {
+        LDPOP_TABLE_GEN(params.lk_table_max_depth, params.theta, params.ldpop_rho_range)
 
-    DOWNSAMPLE_LOOKUP_TABLE(LDPOP_TABLE_GEN.out.lookup_table_txt, params.ldpop_rho_range, params.lk_table_max_depth)
+        DOWNSAMPLE_LOOKUP_TABLE(LDPOP_TABLE_GEN.out.lookup_table_txt, params.ldpop_rho_range, params.lk_table_max_depth)
+    }
+
+    else {
+        lk_table_file = Channel.fromPath(params.lk_table)
+        DOWNSAMPLE_LOOKUP_TABLE(lk_table_file, params.ldpop_rho_range, params.lk_table_max_depth)
+    }
+
+    
 
 }
