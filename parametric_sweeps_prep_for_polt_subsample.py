@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 import pandas as pd
-
+import seaborn as sns
 
 def collect_results_sweep_1(rho, theta, genome_size, depth, seed):
     # utilise numpy for combinations
@@ -15,7 +15,7 @@ def collect_results_sweep_1(rho, theta, genome_size, depth, seed):
     sweep_1_combinations = mesh_grid.T.reshape(-1, 5)
 
     # Load data into dataframe
-    recom_est_results_dir = f"{os.getcwd()}/SimulationResults(subsample)/Recom_Est_Output/"
+    recom_est_results_dir = f"{os.getcwd()}/Recom_Est_Output(sub_sam25_singl)/"
 
     col_names = ["rho_sim", "theta_sim", "genome_size_sim", "depth_sim", "seed_sim",
                  "mean", "std", "min", "5%", "25%", "50%", "75%", "95%", "max"]
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     rho_sweep_1 = [0.01, 0.025, 0.05, 0.075, 0.1]
     theta_sweep_1 = [0.01]
     genome_size_sweep_1 = [10000, 25000, 50000, 75000, 100000]
-    depth_sweep_1 = [.5, 1, 2.5, 5, 10]
+    depth_sweep_1 = [1, 1.82, 3.31, 6.03, 10.99, 20]
     seed_sweep_1 = [123, 456, 789]
 
     recom_tract_len = 500
@@ -65,4 +65,18 @@ if __name__ == '__main__':
 
     collected_results_sweep_1_df = collected_results_sweep_1_df.reindex(columns=reorder_cols)
 
-    collected_results_sweep_1_df.to_csv("collected_results_sweep_1_sub_sample.csv", index=None)
+    collected_results_sweep_1_df.to_csv("collected_results_sweep_1_subsample.csv", index=None)
+
+    collected_results_sweep_1_df = collected_results_sweep_1_df.astype('float64')
+
+    # Plot results
+    sns.set_theme(style="whitegrid", palette="Set1")
+
+    ax = sns.catplot(data=collected_results_sweep_1_df, x="scaled_rho_sim", y="mean", hue="genome_size_sim",
+                     col="depth_sim", col_wrap=3, sharex=True, sharey=True, kind="box")
+
+    # ax.set_title("MPRR Simulated (scaled_rho_sim) vs Estimated Rho (mean)")
+
+    # ax.figure.savefig("MPRR_results.png", dpi=500)
+
+    ax.savefig("MPRR_subsample_results.png", dpi=500)

@@ -325,15 +325,15 @@ workflow {
 
     params.single_end = false
     params.read_len = 150
-    params.paired_end_mean_frag_len = 500
-    params.paired_end_std_dev = 50 // +- mean frag len
+    params.paired_end_mean_frag_len = 300
+    params.paired_end_std_dev = 25 // +- mean frag len
 
     params.seed = 123
     params.mutation_rate = 0.01
     params.recom_tract_len = 500
     params.effective_pop_size = 1 // only for msprime
-    params.rho_rates = 0.1
-    params.sample_sizes = 10
+    params.rho_rates = 0.05
+    params.sample_sizes = 25
     params.genome_sizes = 25000
     params.fold_cov = 10
 

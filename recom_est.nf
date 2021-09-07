@@ -56,7 +56,7 @@ process SUBSAMPLE_BAM{
 
 
 process LOFREQ{
-    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
@@ -82,7 +82,7 @@ process LOFREQ{
 
 
 process PAIRWISE_TABLE{
-    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
@@ -161,10 +161,10 @@ workflow {
     params.prepend_filename = ""
     params.recom_tract_len = 500
     params.ldpop_rho_range = "101,100"
-    params.window_size = 500 // For single end this is the read size, for paired end this is the max fragment length
+    params.window_size = 300 // For single end this is the read size, for paired end this is the max fragment length
     params.single_end = false
     params.depth_range = "3,200" // min_depth, max_depth
-    params.n_bootstrap_samples = 20 // number of bootstrap samples to get error bars for final results
+    params.n_bootstrap_samples = 25 // number of bootstrap samples to get error bars for final results
 
     params.bam_file = 'none'
     params.reference_genome = 'none'

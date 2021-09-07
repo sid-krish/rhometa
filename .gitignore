@@ -6,12 +6,6 @@
 
 /.idea/
 
-/Analysed/
-
-/Analysed_updated_pipeline/
-
-/Lookup_tables/
-
 /Output/
 
 /Work/
@@ -24,13 +18,7 @@
 
 /bin/ldpop/__pycache__/
 
-/edge_*/
-
-/Lookup_tables(rho0-100_m_0.01_sam_200)/
-
-/Lookup_tables(rho0-1_m_0.01_sam_100)/
-
-/Lookup_tables(rho0-1_m_0.005_sam_200)/
+/Lookup_tables/
 
 /Recom_Est_Output/
 
@@ -38,13 +26,17 @@
 
 /Sim_Gen_Output/
 
+/Lookup_tables*/
+
+/Recom_Est_Output*/
+
+/Theta_Est_Output*/
+
+/Sim_Gen_Output*/
+
 /SimulationResults/
 
-/SimulationResults(old)/
-
-/SimulationResults(subsample)/
-
-/low_depth_sim_results/
+/SimulationResults*/
 
 *.bam
 
