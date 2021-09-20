@@ -138,19 +138,19 @@ if __name__ == '__main__':
     # Sweep 1: Recombination rate estimation
     rho_sweep_1 = [0.01, 0.025, 0.05, 0.075, 0.1]
     theta_sweep_1 = [0.01]
-    sample_size_sweep_1 = [10, 20, 30, 40]
-    depth_sweep_1 = [1, 2, 4, 8]
-    seed_sweep_1 = [123, 456, 789]
+    sample_size_sweep_1 = [50,60,70,80]
+    depth_sweep_1 = [.5, 1, 2, 4, 8]
+    seed_sweep_1 = [1,2,3,4,5,6,7,8,9,10]
 
     sweep_1_simulation(rho_sweep_1, theta_sweep_1, sample_size_sweep_1, depth_sweep_1, seed_sweep_1)
     sweep_1_recom_est(rho_sweep_1, theta_sweep_1, sample_size_sweep_1, depth_sweep_1, seed_sweep_1)
 
     # Sweep 2: Mutation rate estimation
-    theta_sweep_2 = [0.001, 0.005, 0.01, 0.05, 0.1]
-    rho_sweep_2 = [0.01]
-    sample_size_sweep_2 = [100000, 250000, 500000, 750000, 1000000]
-    depth_sweep_2 = [.5, 1, 2.5, 5, 10]
-    seed_sweep_2 = [123, 456, 789]
+    # theta_sweep_2 = [0.001, 0.005, 0.01, 0.05, 0.1]
+    # rho_sweep_2 = [0.01]
+    # sample_size_sweep_2 = [100000, 250000, 500000, 750000, 1000000]
+    # depth_sweep_2 = [.5, 1, 2.5, 5, 10]
+    # seed_sweep_2 = [123, 456, 789]
 
     # sweep_2_simulation(rho_sweep_2, theta_sweep_2, sample_size_sweep_2, depth_sweep_2, seed_sweep_2)
     # sweep_2_mut_est(rho_sweep_2, theta_sweep_2, sample_size_sweep_2, depth_sweep_2, seed_sweep_2)

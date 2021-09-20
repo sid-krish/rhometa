@@ -22,7 +22,7 @@
 
 /Original_lk_tables/
 
-/Recom_Est_Output/
+/Recom_Est_Output(ref)/
 
 /Theta_Est_Output/
 
@@ -41,3 +41,5 @@
 *.bam
 
 *.fa
+*.csv
+*.png

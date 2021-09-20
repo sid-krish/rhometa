@@ -38,36 +38,38 @@ if __name__ == '__main__':
     for depth in range(depth_lower_limit, depth_upper_limit + 1):
         lookup_table = f"lk_downsampled_{depth}.csv"
         pairwise_table_slice = m_isolate_by_depth.main(pairwise_table,
-                                                       depth).copy()  # copy to create a new df using slice
+                                                       depth)
 
         # Step 3: Filter pairwise table so that it is bi-allelic pairs only
         # note: after bi-allelic filtering some files will be empty
+        # copy to create a new df using slice
         if not pairwise_table_slice.empty:
-            pairwise_biallelic_table = m_biallelic_filter_pairwise_table.main(pairwise_table_slice).copy()
+            pairwise_biallelic_table = m_biallelic_filter_pairwise_table.main(pairwise_table_slice.copy())
 
         else:
             continue  # skip to next iteration
 
         # Step 4: convert to lookup format to match against likelihood tables
         if not pairwise_biallelic_table.empty:
-            lookup_formatted_table = m_pairwise_lookup_format_pyrho.main(pairwise_biallelic_table)
+            lookup_formatted_table = m_pairwise_lookup_format_pyrho.main(pairwise_biallelic_table.copy())
 
         else:
             continue
 
         # Step 5: Merge lookup formatted table on likelihood table
         # this step is equation 3 as defined in PIIM paper
-        merged_eq3_table, table_ids_for_eq3 = m_custom_hap_sets_and_merge.main(pairwise_biallelic_table,
-                                                                               lookup_formatted_table,
+        merged_eq3_table, table_ids_for_eq3 = m_custom_hap_sets_and_merge.main(pairwise_biallelic_table.copy(),
+                                                                               lookup_formatted_table.copy(),
                                                                                lookup_table_rho_vals, lookup_table)
 
         # Step 6: Calculate p_ij values for variant pairs
-        p_ij_grid = m_pij_grid_vectorised.main(recom_tract_len, lookup_table_rho_vals, merged_eq3_table)
+        p_ij_grid = m_pij_grid_vectorised.main(recom_tract_len, lookup_table_rho_vals, merged_eq3_table.copy())
 
         # Step 7: Get final pairwise (variant pairs) likelihoods
-        interpolated_eq2_df = m_pairwise_rho_estimator_intp_rect_biv.main(merged_eq3_table,
-                                                                          table_ids_for_eq3,
-                                                                          p_ij_grid, lookup_table,
+        interpolated_eq2_df = m_pairwise_rho_estimator_intp_rect_biv.main(merged_eq3_table.copy(),
+                                                                          table_ids_for_eq3.copy(),
+                                                                          p_ij_grid.copy(),
+                                                                          lookup_table,
                                                                           depth)
 
         # Step 8: Collect pairwise likelihoods across depths

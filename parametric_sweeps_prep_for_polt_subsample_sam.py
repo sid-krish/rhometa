@@ -15,7 +15,7 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, seed):
     sweep_1_combinations = mesh_grid.T.reshape(-1, 5)
 
     # Load data into dataframe
-    recom_est_results_dir = f"{os.getcwd()}/Recom_Est_Output/"
+    recom_est_results_dir = f"{os.getcwd()}/SimulationResults(subsample)/Recom_Est_Output/"
 
     col_names = ["rho_sim", "theta_sim", "sample_size_sim", "depth_sim", "seed_sim",
                  "mean", "std", "min", "5%", "25%", "50%", "75%", "95%", "max"]
@@ -34,6 +34,7 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, seed):
             df_recom_est_resutls.loc[len(df_recom_est_resutls)] = to_append
 
         else:
+            print(f"{recom_est_results_dir}{prepended_filename}final_results_summary.csv")
             results_final = 9 * [np.nan]
             to_append = [rho, theta, sample_size, depth, seed] + results_final
             df_recom_est_resutls.loc[len(df_recom_est_resutls)] = to_append
@@ -45,9 +46,9 @@ if __name__ == '__main__':
     # Sweep 1: Recombination rate estimation
     rho_sweep_1 = [0.01, 0.025, 0.05, 0.075, 0.1]
     theta_sweep_1 = [0.01]
-    sample_size_sweep_1 = [10, 20, 30, 40]
-    depth_sweep_1 = [1, 2, 4, 8]
-    seed_sweep_1 = [123, 456, 789]
+    sample_size_sweep_1 = [5, 10, 20, 30, 40]
+    depth_sweep_1 = [.5, 1, 2, 4, 8]
+    seed_sweep_1 = [1,2,3,4,5,6,7,8,9,10]
 
     recom_tract_len = 500
 

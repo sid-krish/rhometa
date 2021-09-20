@@ -56,7 +56,7 @@ process SUBSAMPLE_BAM{
 
 
 process LOFREQ{
-    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
@@ -163,7 +163,7 @@ workflow {
     params.ldpop_rho_range = "101,100"
     params.window_size = 300 // For single end this is the read size, for paired end this is the max fragment length
     params.single_end = false
-    params.depth_range = "3,200" // min_depth, max_depth
+    params.depth_range = "3,250" // min_depth, max_depth
     params.n_bootstrap_samples = 25 // number of bootstrap samples to get error bars for final results
 
     params.bam_file = 'none'
