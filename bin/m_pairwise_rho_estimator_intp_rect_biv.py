@@ -40,14 +40,14 @@ def main(merged_eq3_table, table_ids_for_eq3, p_ij_grid, lookup_table, depth):
     # from here the index of the df_lookup_table (default 0-based row identifier) will be used as lookup config id
 
     x = df_lookup_table.index.values.astype("int32")  # row index 0,1,2,3...
-    y = df_lookup_table.columns.values.astype("float64")  # the rows 0.0, 1.0, 2.0...
+    y = df_lookup_table.columns.values.astype("float64")  # the rhos 0.0, 1.0, 2.0...
     z = df_lookup_table.to_numpy().astype("float64")  # values in cells
     
     # a = np.array([0, 1, 2]) # np.tile(a, 2) # Out[10]: array([0, 1, 2, 0, 1, 2])
     x_new = np.tile(table_ids_for_eq3, y.shape[0])
     y_transposed = p_ij_grid.to_numpy().astype("float64").T  # must be transposed
     y_new = y_transposed.ravel()  # same as flatten() but a bit faster
-    
+
     # Equation 2
     intpltd_res = eq2(x, y, z, x_new, y_new, merged_eq3_table)
     intpltd_res_df = pd.DataFrame(data=intpltd_res, columns=y)

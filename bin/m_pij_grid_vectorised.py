@@ -16,6 +16,7 @@ def main(recom_tract_len, lookup_table_rho_vals, merged_eq3_table):
     rho_vals_to_process = np.tile(rho_vals_to_test, d_ij.shape[0])
     rho_vals_to_process.sort()
 
+    # LDhat implentation in pairdip.c lk_calc https://github.com/auton1/LDhat/blob/master/pairdip.c
     p_ij = 2 * rho_vals_to_process * (1 - np.exp(-1 * d_ij_vals_to_process / recom_tract_len))
     p_ij = np.minimum(p_ij, max_rho_val_to_test)  # if val over max rho, select max rho (which would be minimum)
 

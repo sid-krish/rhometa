@@ -57,7 +57,6 @@ if __name__ == '__main__':
             continue
 
         # Step 5: Merge lookup formatted table on likelihood table
-        # this step is equation 3 as defined in PIIM paper
         merged_eq3_table, table_ids_for_eq3 = m_custom_hap_sets_and_merge.main(pairwise_biallelic_table.copy(),
                                                                                lookup_formatted_table.copy(),
                                                                                lookup_table_rho_vals, lookup_table)
