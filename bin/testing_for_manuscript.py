@@ -24,9 +24,11 @@ if __name__ == '__main__':
     # load pairwise table
     pairwise_table = pd.read_pickle(pairwise_table_file)
 
+    pairwise_table.to_csv("testing_pairwise.csv")
+
     # isolate a single depth for testing
     pairwise_table_slice = m_isolate_by_depth.main(pairwise_table, 5)
-
+    
     # perform bi-allelic filtering
     pairwise_biallelic_table = m_biallelic_filter_pairwise_table.main(pairwise_table_slice.copy())
 

@@ -82,7 +82,7 @@ process LOFREQ{
 
 
 process PAIRWISE_TABLE{
-    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
@@ -213,6 +213,6 @@ workflow {
 
     RECOM_RATE_ESTIMATOR(downsampled_lookup_tables, PAIRWISE_TABLE.out.pairwise_table_pkl, params.recom_tract_len, params.depth_range, params.n_bootstrap_samples, params.ldpop_rho_range, params.prepend_filename)
 
-    FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out.final_results_csv, params.prepend_filename)
+    // FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out.final_results_csv, params.prepend_filename)
 
 }

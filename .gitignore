@@ -38,8 +38,11 @@
 
 /SimulationResults*/
 
+/varied_abundance*/
+
 *.bam
 
 *.fa
 *.csv
 *.png
+no_results_for.txt
