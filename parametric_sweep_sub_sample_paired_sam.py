@@ -2,6 +2,7 @@ import os
 import subprocess
 
 import numpy as np
+from tqdm import tqdm
 
 """
 TODO: 2 Parametric sweeps + Replicates
@@ -46,7 +47,7 @@ def sweep_1_simulation(rho, theta, sample_size, depth, genome_size, seed):
     sweep_1_combinations = mesh_grid.T.reshape(-1, 6)
 
     # Generate simulated datasets
-    for rho, theta, sample_size, depth,genome_size, seed in sweep_1_combinations:
+    for rho, theta, sample_size, depth,genome_size, seed in tqdm(sweep_1_combinations):
         subprocess.run(["nextflow", "run", "sim_gen.nf",
                         "--rho_rates", f"{rho}",
                         "--mutation_rate", f"{theta}",
@@ -72,7 +73,7 @@ def sweep_1_recom_est(rho, theta, sample_size, depth, genome_size, seed):
 
     # Process simulated datasets
     simulation_results_dir = f"{os.getcwd()}/Sim_Gen_Output/"
-    for rho, theta, sample_size, depth,genome_size, seed in sweep_1_combinations:
+    for rho, theta, sample_size, depth,genome_size, seed in tqdm(sweep_1_combinations):
         prepended_filename = f"rho_{rho}_theta_{theta}_sample_size_{sample_size}_depth_{depth}_genome_size_{genome_size}_seed_{seed}_"
         subprocess.run(["nextflow", "run", "recom_est.nf",
                         "--bam_file",
