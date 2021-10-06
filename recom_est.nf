@@ -161,7 +161,7 @@ workflow {
     params.prepend_filename = ""
     params.recom_tract_len = 500
     params.ldpop_rho_range = "101,100"
-    params.window_size = 300 // For single end this is the read size, for paired end this is the max fragment length
+    params.window_size = 300 // For single end this is the read size, for paired end this is the max insert length
     params.single_end = false
     params.depth_range = "3,250" // min_depth, max_depth
     params.n_bootstrap_samples = 25 // number of bootstrap samples to get error bars for final results

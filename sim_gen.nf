@@ -338,7 +338,7 @@ workflow {
     params.recom_tract_len = 500
     params.effective_pop_size = 1 // only for msprime
     params.rho_rates = 0.05
-    params.sample_sizes = 40
+    params.sample_sizes = 10
     params.genome_sizes = 25000
     params.fold_cov = 10
 
