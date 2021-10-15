@@ -42,6 +42,8 @@
 
 /Old_results/
 
+/final_parametric_sweep_for_paper/
+
 *.bam
 
 *.fa
