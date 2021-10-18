@@ -81,10 +81,10 @@ def sweep_1_recom_est(rho, theta, sample_size, depth, genome_size, seed):
                         f"{simulation_results_dir}{prepended_filename}Aligned.bam",
                         "--reference_genome",
                         f"{simulation_results_dir}{prepended_filename}firstGenome.fa",
-                        "--prepend_filename",
                         "--single_end",
                         "--window_size",
                         "150",
+                        "--prepend_filename",
                         f"rho_{rho}_theta_{theta}_sample_size_{sample_size}_depth_{depth}_genome_size_{genome_size}_seed_{seed}_",
                         "--subsample_bam"])
 
@@ -150,7 +150,7 @@ if __name__ == '__main__':
     genome_size_sweep_1 = [25000]
     seed_sweep_1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-    sweep_1_simulation(rho_sweep_1, theta_sweep_1, sample_size_sweep_1, depth_sweep_1,genome_size_sweep_1, seed_sweep_1)
+    # sweep_1_simulation(rho_sweep_1, theta_sweep_1, sample_size_sweep_1, depth_sweep_1,genome_size_sweep_1, seed_sweep_1)
     sweep_1_recom_est(rho_sweep_1, theta_sweep_1, sample_size_sweep_1, depth_sweep_1,genome_size_sweep_1, seed_sweep_1)
 
     # Sweep 2: Mutation rate estimation
