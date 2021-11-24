@@ -33,7 +33,7 @@ def helpMessage() {
 
 
 process SUBSAMPLE_BAM{
-    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
@@ -56,7 +56,7 @@ process SUBSAMPLE_BAM{
 
 
 process LOFREQ{
-    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
@@ -82,7 +82,7 @@ process LOFREQ{
 
 
 process PAIRWISE_TABLE{
-    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
@@ -100,7 +100,6 @@ process PAIRWISE_TABLE{
     """
     gen_pairwise_table.py ${single_end} ${aligned_bam} ${vcf_file} $task.cpus ${window_size}
     """
-
 }
 
 
@@ -160,10 +159,10 @@ workflow {
     params.subsample_bam = false
     params.prepend_filename = ""
     params.recom_tract_len = 500
-    params.ldpop_rho_range = "101,100"
+    params.ldpop_rho_range = "0,0.01,1,1,100"
     params.window_size = 300 // For single end this is the read size, for paired end this is the max insert length
     params.single_end = false
-    params.depth_range = "3,250" // min_depth, max_depth
+    params.depth_range = "3,200" // min_depth, max_depth
     params.n_bootstrap_samples = 25 // number of bootstrap samples to get error bars for final results
 
     params.bam_file = 'none'
@@ -213,6 +212,6 @@ workflow {
 
     RECOM_RATE_ESTIMATOR(downsampled_lookup_tables, PAIRWISE_TABLE.out.pairwise_table_pkl, params.recom_tract_len, params.depth_range, params.n_bootstrap_samples, params.ldpop_rho_range, params.prepend_filename)
 
-    // FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out.final_results_csv, params.prepend_filename)
+    FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out.final_results_csv, params.prepend_filename)
 
 }

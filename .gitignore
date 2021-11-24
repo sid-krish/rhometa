@@ -8,6 +8,8 @@
 
 /Output/
 
+/Output*/
+
 /Work/
 
 .nextflow.log
@@ -44,9 +46,12 @@
 
 /final_parametric_sweep_for_paper/
 
+/final_single_end_for_paper/
+
 *.bam
 
 *.fa
 *.csv
 *.png
 no_results_for.txt
+*.fasta
