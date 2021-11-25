@@ -4,7 +4,7 @@ import pandas as pd
 import sys
 import pysam
 
-## Just for testing do not use
+## Just for testing do not use. The ordering of bases is different to the normal method
 
 def get_var_pos_from_vcf(vcf_file):
     f = pysam.VariantFile(vcf_file)
