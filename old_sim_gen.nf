@@ -64,6 +64,30 @@ process RATE_SELECTOR {
 }  
 
 
+process MS {
+    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+
+    maxForks 1
+
+    input:
+        val rho_rate
+        val mutation_rate
+        val seed
+        val sample_size
+        val genome_size
+        val recom_tract_len
+        val prepend_filename
+
+    output:
+        path "trees.txt", emit: trees_txt
+  
+    script:
+    """
+    ms ${sample_size} 1 -T -seeds ${seed} -t ${mutation_rate} -r ${rho_rate} ${genome_size} -c 10 ${recom_tract_len} > trees.txt
+    """
+}
+
+
 process FAST_SIM_BAC {
     // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
@@ -93,6 +117,29 @@ process FAST_SIM_BAC {
     script:
     """
     fastSimBac ${sample_size} ${genome_size} -s ${seed} -T -t ${theta} -r ${rho} ${recom_tract_len} > trees.txt
+    """
+}
+
+
+process MS_PRIME {
+    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+
+    maxForks 1
+    
+    input:
+        val rho_rate
+        val sample_size
+        val genome_size
+        val effective_pop_size
+        val prepend_filename
+
+    output:
+        path "rho_calculation.txt", emit: rho_rho_calculation_txt
+        path "trees.txt", emit: trees_txt
+             
+    script:
+    """
+    run_msprime.py
     """
 }
 
@@ -409,6 +456,7 @@ workflow {
     params.read_len = 150
     params.paired_end_mean_frag_len = 300
     params.paired_end_std_dev = 25 // +- mean frag len
+    // params.effective_pop_size = 1 // only for msprime
 
     params.rho_rates = [0.05]
     params.theta_rates = [0.01]
@@ -428,7 +476,13 @@ workflow {
     // Process execution
     RATE_SELECTOR(params.rho_rates, params.theta_rates, params.sample_sizes, params.fold_cov_rates, params.genome_sizes, params.seed_vals)
 
+    // MS(RATE_SELECTOR.out.p_val, params.theta_rates, params.seed_vals, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, params.recom_tract_len, params.prepend_filename)
+
     FAST_SIM_BAC(RATE_SELECTOR.out, params.recom_tract_len)
+
+    // MS_PRIME(RATE_SELECTOR.out.p_val, RATE_SELECTOR.out.sample_size, RATE_SELECTOR.out.genome_size, params.effective_pop_size, params.prepend_filename)
+
+    // CLEAN_TREES(MS.out.trees_txt, params.prepend_filename)
 
     CLEAN_TREES(FAST_SIM_BAC.out)
 
