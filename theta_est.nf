@@ -15,7 +15,7 @@ def helpMessage() {
 
     Required:
     --bam_file [*.bam], Query name sorted bam file
-    --reference_genome [*.fa],  Single genome fasta file
+    --reference_genome [*.fa],  Single/Multi genome fasta file
 
     Options:
     --prepend_filename [str], Prepend string to output filenames to help distinguish runs
