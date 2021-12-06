@@ -14,7 +14,7 @@ def helpMessage() {
     nextflow run theta_est.nf --help
 
     Required:
-    --bam_file [*.bam], Query name sorted bam file
+    --bam_file [*.bam], Query name sorted bam file. Multi bam support via glob input e.g. "*.bam", quotes but be included for glob. Use with one fasta file only
     --reference_genome [*.fa],  Single/Multi genome fasta file
 
     Options:
@@ -24,28 +24,54 @@ def helpMessage() {
 
 }
 
+
+process PREPEND_FILENAME {
+
+    // echo true
+
+    input:
+        tuple path(bam),
+            path(fasta)
+        
+        val(prepend_fn)
+
+    output:
+        tuple stdout,
+            path(bam),
+            path(fasta)
+
+    script:
+    """
+    prepend_filename.py ${bam} ${prepend_fn} 
+    """
+}
+
+
 process LOFREQ{
     // publishDir "Theta_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
     input:
-        path reference_fa
-        path bam
-        val prepend_filename
+        tuple val(prepend_filename),
+            path(bam),
+            path(fasta)
 
     output:
-        path "lofreqOut.vcf", emit: lofreqOut_vcf
+        tuple val(prepend_filename),
+            path(bam),
+            path(fasta),
+            path("lofreqOut.vcf")
 
     script:
     """
-    samtools faidx ${reference_fa}
+    samtools faidx ${fasta}
     samtools sort --threads $task.cpus ${bam} -o Aligned.csorted.bam
     samtools index -@ $task.cpus Aligned.csorted.bam
 
-    #lofreq call -f ${reference_fa} -o lofreqOut.vcf Aligned.csorted.bam
-    #lofreq call-parallel --pp-threads $task.cpus --no-default-filter -f ${reference_fa} -o lofreqOut.vcf Aligned.csorted.bam
-    lofreq call-parallel --pp-threads $task.cpus -f ${reference_fa} -o lofreqOut.vcf Aligned.csorted.bam
+    #lofreq call -f ${fasta} -o lofreqOut.vcf Aligned.csorted.bam
+    #lofreq call-parallel --pp-threads $task.cpus --no-default-filter -f ${fasta} -o lofreqOut.vcf Aligned.csorted.bam
+    lofreq call-parallel --pp-threads $task.cpus -f ${fasta} -o lofreqOut.vcf Aligned.csorted.bam
     """
 }
 
@@ -56,9 +82,10 @@ process THETA_ESTIMATE {
     maxForks 1
 
     input:
-        path bam
-        path vcf
-        val prepend_filename
+        tuple val(prepend_filename),
+            path(bam),
+            path(fasta),
+            path(vcf)
 
     output:
         // path "Aligned_sorted.pileup"
@@ -72,7 +99,7 @@ process THETA_ESTIMATE {
     samtools mpileup Aligned_sorted.bam > Aligned_sorted.pileup
     genome_size=\$(samtools view -H Aligned_sorted.bam | grep "@SQ" | awk '{ print \$3 }' | cut -c 4-)
 
-    m_theta.py \$genome_size Aligned_sorted.pileup lofreqOut.vcf
+    m_theta.py \$genome_size Aligned_sorted.pileup ${vcf}
     """
 }
 
@@ -81,15 +108,20 @@ workflow {
     // Note: Channels can be called unlimited number of times in DSL2
     // A process component can be invoked only once in the same workflow context
 
+    // For each process there is a output of tuple with the necessary files/values to move forward until they are no longer need
+
     // Params
     params.help = false
-    params.prepend_filename = ""
+    params.prepend_filename = "none"
+
     params.bam_file = 'none'
     params.reference_genome = 'none'
 
     // Channels
     bam_file_channel = Channel.fromPath( params.bam_file )
     reference_genome_channel = Channel.fromPath( params.reference_genome )
+
+    bam_and_fa = bam_file_channel.combine(reference_genome_channel)
 
     // Input verification
     if (params.help) {
@@ -110,8 +142,10 @@ workflow {
     }
 
     // Process execution
-    LOFREQ(reference_genome_channel, bam_file_channel, params.prepend_filename)
+    PREPEND_FILENAME(bam_and_fa, params.prepend_filename)
 
-    THETA_ESTIMATE(bam_file_channel, LOFREQ.out.lofreqOut_vcf, params.prepend_filename)
+    LOFREQ(PREPEND_FILENAME.out)
+
+    THETA_ESTIMATE(LOFREQ.out)
 
 }
