@@ -26,6 +26,8 @@ def helpMessage() {
 
 
 process PREPEND_FILENAME {
+    
+    maxForks 1
 
     // echo true
 

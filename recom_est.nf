@@ -34,6 +34,8 @@ def helpMessage() {
 
 process PREPEND_FILENAME {
 
+    maxForks 1
+
     // echo true
 
     input:
@@ -139,6 +141,8 @@ process RECOM_RATE_ESTIMATOR {
     publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
+
+    errorStrategy 'ignore' // skip if there is not enough data from processing
 
     input:
         tuple val(prepend_filename),
@@ -255,6 +259,6 @@ workflow {
 
     RECOM_RATE_ESTIMATOR(PAIRWISE_TABLE.out, downsampled_lookup_tables, params.recom_tract_len, params.depth_range, params.n_bootstrap_samples, params.ldpop_rho_range)
 
-    FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out)
+    // FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out)
 
 }

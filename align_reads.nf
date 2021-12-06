@@ -39,7 +39,7 @@ workflow {
     // For each process there is a output of tuple with the necessary files/values to move forward until they are no longer need
 
     // Params
-    params.fastqs = "Sim_Gen_Output/*_{1,2}.fq"
+    params.fastqs = "*_{1,2}.fastq"
     params.reference_genome = 'none'
 
     // Channels
