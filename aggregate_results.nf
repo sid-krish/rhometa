@@ -77,12 +77,16 @@ workflow {
     theta_summary_channel = Channel.fromPath( params.theta_summary )
 
     // Process execution
-    RECOM_RESULTS(recom_summary_channel) | collectFile(name:"aggregate_recom_results.csv", keepHeader:true, storeDir:"agg_results")
-    
-    PLOT_RECOM_RESULTS(Channel.fromPath( "agg_results/aggregate_recom_results.csv" ))
+    RECOM_RESULTS(recom_summary_channel) 
 
-    THETA_RESULTS(theta_summary_channel) | collectFile(name:"aggregate_theta_results.csv", keepHeader:true, storeDir:"agg_results")
+    THETA_RESULTS(theta_summary_channel)
 
-    PLOT_THETA_RESULTS(Channel.fromPath( "agg_results/aggregate_theta_results.csv" ))
+    agg_recom_results = RECOM_RESULTS.out.collectFile(name:"aggregate_recom_results.csv", keepHeader:true, storeDir:"agg_results")
+
+    agg_theta_results = THETA_RESULTS.out.collectFile(name:"aggregate_theta_results.csv", keepHeader:true, storeDir:"agg_results")
+
+    PLOT_RECOM_RESULTS(agg_recom_results)
+
+    PLOT_THETA_RESULTS(agg_theta_results)
 
 }
