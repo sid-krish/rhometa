@@ -57,3 +57,4 @@
 *.png
 no_results_for.txt
 *.fasta
+*.pyc
