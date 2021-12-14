@@ -52,19 +52,17 @@ process LDPOP_TABLE_GEN {
 process DOWNSAMPLE_LOOKUP_TABLE {
     publishDir "Lookup_tables", mode: "copy"
 
-    maxForks 1
-
     input:
         path lookup_table
         val ldpop_rho_range
-        val lk_table_max_depth
+        each downsample_val
 
     output:
-        path "lk_downsampled_*.csv"
+        path "lk_downsampled_${downsample_val}.csv"
 
     script:
     """
-    m_downsample_lk_tables.py ${lookup_table} ${ldpop_rho_range} ${lk_table_max_depth} $task.cpus
+    m_downsample_lk_table.py ${lookup_table} ${ldpop_rho_range} ${downsample_val}
     """
 }
 
@@ -77,7 +75,9 @@ workflow {
     params.lk_table = 'none'
     params.theta = 0.01 // Theta can be based on estimate or as desired
     params.ldpop_rho_range = "101,100"
-    params.lk_table_max_depth = 250
+    params.lk_table_max_depth = 20
+
+    depth_range = Channel.of(3 .. params.lk_table_max_depth) // 3 to max_depth val
 
     // Input verification
     if (params.help) {
@@ -91,12 +91,12 @@ workflow {
     if (params.lk_table == 'none') {
         LDPOP_TABLE_GEN(params.lk_table_max_depth, params.theta, params.ldpop_rho_range)
 
-        DOWNSAMPLE_LOOKUP_TABLE(LDPOP_TABLE_GEN.out.lookup_table_txt, params.ldpop_rho_range, params.lk_table_max_depth)
+        DOWNSAMPLE_LOOKUP_TABLE(LDPOP_TABLE_GEN.out.lookup_table_txt, params.ldpop_rho_range, depth_range)
     }
 
     else {
         lk_table_file = Channel.fromPath(params.lk_table)
-        DOWNSAMPLE_LOOKUP_TABLE(lk_table_file, params.ldpop_rho_range, params.lk_table_max_depth)
+        DOWNSAMPLE_LOOKUP_TABLE(lk_table_file, params.ldpop_rho_range, depth_range)
     }
 
     

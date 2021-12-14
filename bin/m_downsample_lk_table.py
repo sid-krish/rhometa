@@ -40,3 +40,5 @@ if __name__ == '__main__':
     lookup_table = sys.argv[1]
     lookup_table_rho_range = sys.argv[2]
     downsample_value = int(sys.argv[3])
+
+    downsample_lookup_table(lookup_table, lookup_table_rho_range, downsample_value)
