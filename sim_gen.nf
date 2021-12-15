@@ -232,7 +232,7 @@ process ISOLATE_GENOME {
 
 
 process ART_ILLUMINA_SINGLE_END {
-    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
@@ -272,7 +272,7 @@ process ART_ILLUMINA_SINGLE_END {
 
 
 process ART_ILLUMINA_PAIRED_END {
-    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
 
     maxForks 1
 
