@@ -1,17 +1,20 @@
-name: rmeta
+name: mprr
 channels:
   - defaults
   - bioconda
   - conda-forge
 dependencies:
   - python
-  - pandas
   - numpy
+  - pandas
+  - biopython
   - scipy
   - future
+  - seq-gen
+  - bwa
   - lofreq
-  - samtools
+  - samtools=1.12
   - pysam
   - seaborn
-  - biopython
   - numba
+  - fastsimbac
