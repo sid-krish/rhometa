@@ -1,20 +1,10 @@
-.DS_Store
-
 /.nextflow/
 
 /.vscode/
 
 /.idea/
 
-/Output/
-
-/Output*/
-
 /Work/
-
-.nextflow.log
-
-.nextflow.log.*
 
 /bin/__pycache__/
 
@@ -22,39 +12,28 @@
 
 /Lookup_tables/
 
-/Original_lk_tables/
-
-/Recom_Est_Output(ref)/
-
 /Theta_Est_Output/
 
 /Sim_Gen_Output/
 
-/Recom_Est_Output*/
-
-/Theta_Est_Output*/
-
-/Sim_Gen_Output*/
-
-/SimulationResults/
-
-/SimulationResults*/
-
-/varied_abundance*/
-
-/Old_results/
-
-/final_parametric_sweep_for_paper/
-
-/final_single_end_for_paper/
+/Recom_Est_Output/
 
 /Misc/
+
+.DS_Store
 
 *.bam
 
 *.fa
+
 *.csv
+
 *.png
-no_results_for.txt
+
 *.fasta
+
 *.pyc
+
+.nextflow.log
+
+.nextflow.log.*
