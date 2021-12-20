@@ -80,14 +80,9 @@ datasets based on the LDhat composite likelihood method.
 
 ### Built With
 
-* [Next.js](https://nextjs.org/)
-* [React.js](https://reactjs.org/)
-* [Vue.js](https://vuejs.org/)
-* [Angular](https://angular.io/)
-* [Svelte](https://svelte.dev/)
-* [Laravel](https://laravel.com)
-* [Bootstrap](https://getbootstrap.com)
-* [JQuery](https://jquery.com)
+* [Python](https://www.python.org/)
+* [Nextflow](https://www.nextflow.io/)
+
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -96,19 +91,20 @@ datasets based on the LDhat composite likelihood method.
 <!-- GETTING STARTED -->
 ## Getting Started
 
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
+The pipeline is designed to be run on linux and requires nextflow to be installed. 
+Dependencies are resolved either via conda or docker images. Support for HPC, docker, singularity, AWS
+and many other systems are provided via nextflow.
 
 ### Prerequisites
+* Nextflow (required)
+* conda or containerization platform (required)
+  * If using conda, Conda package manager available from: [Anaconda download](https://www.anaconda.com/products/individual)
+  * If using containers, docker from: [Docker download](https://www.docker.com/get-started)
+  * Other container technologies such as singularity are also supported via nextflow
 
-This is an example of how to list things you need to use the software and how to install them.
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
 
 ### Installation
-
+Instructions for installing nextflow and dependencies via conda (default method)
 1. Get a free API Key at [https://example.com](https://example.com)
 2. Clone the repo
    ```sh
