@@ -18,14 +18,14 @@ def helpMessage() {
     --reference_genome [*.fa],  Single/Multi genome fasta file
 
     Options:
-    --prepend_filename [str], Prepend string to output filenames to help distinguish runs
+    --prefix_filename [str], prefix string to output filenames to help distinguish runs
 
     """.stripIndent()
 
 }
 
 
-process PREPEND_FILENAME {
+process prefix_FILENAME {
     
     maxForks 1
 
@@ -35,7 +35,7 @@ process PREPEND_FILENAME {
         tuple path(bam),
             path(fasta)
         
-        val(prepend_fn)
+        val(prefix_fn)
 
     output:
         tuple stdout,
@@ -44,23 +44,23 @@ process PREPEND_FILENAME {
 
     script:
     """
-    prepend_filename.py ${bam} ${prepend_fn} 
+    prefix_filename.py ${bam} ${prefix_fn} 
     """
 }
 
 
 process LOFREQ{
-    // publishDir "Theta_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Theta_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     maxForks 1
 
     input:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             path(bam),
             path(fasta)
 
     output:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             path(bam),
             path(fasta),
             path("lofreqOut.vcf")
@@ -79,12 +79,12 @@ process LOFREQ{
 
 
 process THETA_ESTIMATE {
-    publishDir "Theta_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    publishDir "Theta_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     maxForks 1
 
     input:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             path(bam),
             path(fasta),
             path(vcf)
@@ -114,7 +114,7 @@ workflow {
 
     // Params
     params.help = false
-    params.prepend_filename = "none"
+    params.prefix_filename = "none"
 
     params.bam_file = 'none'
     params.reference_genome = 'none'
@@ -144,9 +144,9 @@ workflow {
     }
 
     // Process execution
-    PREPEND_FILENAME(bam_and_fa, params.prepend_filename)
+    prefix_FILENAME(bam_and_fa, params.prefix_filename)
 
-    LOFREQ(PREPEND_FILENAME.out)
+    LOFREQ(prefix_FILENAME.out)
 
     THETA_ESTIMATE(LOFREQ.out)
 

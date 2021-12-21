@@ -32,7 +32,7 @@ def helpMessage() {
 }
 
 
-process PREPEND_FILENAME {
+process prefix_FILENAME {
 
     maxForks 1
 
@@ -42,7 +42,7 @@ process PREPEND_FILENAME {
         tuple path(bam),
             path(fasta)
         
-        val(prepend_fn)
+        val(prefix_fn)
 
     output:
         tuple stdout,
@@ -51,25 +51,25 @@ process PREPEND_FILENAME {
 
     script:
     """
-    prepend_filename.py ${bam} ${prepend_fn} 
+    prefix_filename.py ${bam} ${prefix_fn} 
     """
 }
 
 
 process SUBSAMPLE_BAM{
-    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     maxForks 1
 
     input:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             path(bam),
             path(fasta)
 
         val depth_range
     
     output:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             path("subsampled.bam"),
             path(fasta)
 
@@ -84,17 +84,17 @@ process SUBSAMPLE_BAM{
 
 
 process LOFREQ{
-    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     maxForks 1
 
     input:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             path(bam),
             path(fasta)
 
     output:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             path(bam),
             path(fasta),
             path("lofreqOut.vcf")
@@ -113,12 +113,12 @@ process LOFREQ{
 
 
 process PAIRWISE_TABLE{
-    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     maxForks 1
 
     input:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             path(bam),
             path(fasta),
             path(vcf_file)
@@ -127,7 +127,7 @@ process PAIRWISE_TABLE{
         val window_size
 
     output:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             path("pairwise_table.pkl")
 
     script:
@@ -138,14 +138,14 @@ process PAIRWISE_TABLE{
 
 
 process RECOM_RATE_ESTIMATOR {
-    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     maxForks 1
 
     errorStrategy 'ignore' // skip if there is not enough data from processing
 
     input:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             path(pairwise_table_pkl)
 
         path downsampled_lookup_tables
@@ -156,7 +156,7 @@ process RECOM_RATE_ESTIMATOR {
 
 
     output:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             path("final_results.csv"),
             path("final_results_max_vals.csv"),
             path("final_results_summary.csv")
@@ -170,12 +170,12 @@ process RECOM_RATE_ESTIMATOR {
 
 
 process FINAL_RESULTS_PLOT {
-    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     maxForks 1
 
     input:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             path("final_results.csv"),
             path("final_results_max_vals.csv"),
             path("final_results_summary.csv")
@@ -199,7 +199,7 @@ workflow {
     // Params
     params.help = false
     params.subsample_bam = true
-    params.prepend_filename = "none"
+    params.prefix_filename = "none"
     params.recom_tract_len = 1000
     params.ldpop_rho_range = "0,0.01,1,1,100"
     params.window_size = 300 // For single end this is the read size, for paired end this is the max insert length
@@ -238,11 +238,11 @@ workflow {
 
     // Process execution
 
-    PREPEND_FILENAME(bam_and_fa, params.prepend_filename)
+    prefix_FILENAME(bam_and_fa, params.prefix_filename)
 
     if (params.subsample_bam) {
         // Bams need to be query name sorted.
-        SUBSAMPLE_BAM(PREPEND_FILENAME.out, params.depth_range)
+        SUBSAMPLE_BAM(prefix_FILENAME.out, params.depth_range)
 
         LOFREQ(SUBSAMPLE_BAM.out)
 
@@ -252,7 +252,7 @@ workflow {
 
     else {
         // Bams need to be query name sorted.
-        LOFREQ(PREPEND_FILENAME.out)
+        LOFREQ(prefix_FILENAME.out)
 
         PAIRWISE_TABLE(LOFREQ.out, params.single_end, params.window_size)
     }

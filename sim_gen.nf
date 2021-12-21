@@ -65,12 +65,12 @@ process RATE_SELECTOR {
 
 
 process FAST_SIM_BAC {
-    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     maxForks 1
     
     input:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             val(rho),
             val(theta),
             val(sample_size),
@@ -81,7 +81,7 @@ process FAST_SIM_BAC {
         val(recom_tract_len)
 
     output:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             val(rho),
             val(theta),
             val(sample_size),
@@ -98,12 +98,12 @@ process FAST_SIM_BAC {
 
 
 process CLEAN_TREES {
-    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     maxForks 1
 
     input:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             val(rho),
             val(theta),
             val(sample_size),
@@ -113,7 +113,7 @@ process CLEAN_TREES {
             path("trees.txt")
 
     output:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             val(rho),
             val(theta),
             val(sample_size),
@@ -130,12 +130,12 @@ process CLEAN_TREES {
 
 
 process SEQ_GEN {
-    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     maxForks 1
 
     input:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             val(rho),
             val(theta),
             val(sample_size),
@@ -145,7 +145,7 @@ process SEQ_GEN {
             path("cleanTrees.txt")
 
     output:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             val(rho),
             val(theta),
             val(sample_size),
@@ -165,12 +165,12 @@ process SEQ_GEN {
 
 
 process REFORMAT_FASTA {
-    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     maxForks 1
 
     input:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             val(rho),
             val(theta),
             val(sample_size),
@@ -180,7 +180,7 @@ process REFORMAT_FASTA {
             path("seqgenOut.fa")
 
     output:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             val(rho),
             val(theta),
             val(sample_size),
@@ -198,12 +198,12 @@ process REFORMAT_FASTA {
 
 
 process ISOLATE_GENOME {
-    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     maxForks 1
 
     input:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             val(rho),
             val(theta),
             val(sample_size),
@@ -213,7 +213,7 @@ process ISOLATE_GENOME {
             path("reformatted.fa")
 
     output:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             val(rho),
             val(theta),
             val(sample_size),
@@ -232,12 +232,12 @@ process ISOLATE_GENOME {
 
 
 process ART_ILLUMINA_SINGLE_END {
-    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     maxForks 1
 
     input:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             val(rho),
             val(theta),
             val(sample_size),
@@ -252,7 +252,7 @@ process ART_ILLUMINA_SINGLE_END {
         val(paired_end_mean_frag_len)
 
     output:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             val(rho),
             val(theta),
             val(sample_size),
@@ -272,12 +272,12 @@ process ART_ILLUMINA_SINGLE_END {
 
 
 process ART_ILLUMINA_PAIRED_END {
-    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     maxForks 1
 
     input:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             val(rho),
             val(theta),
             val(sample_size),
@@ -292,7 +292,7 @@ process ART_ILLUMINA_PAIRED_END {
         val(paired_end_mean_frag_len)
 
     output:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             val(rho),
             val(theta),
             val(sample_size),
@@ -315,12 +315,12 @@ process ART_ILLUMINA_PAIRED_END {
 
 
 process BWA_MEM_SINGLE_END {
-    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     maxForks 1
 
     input:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             val(rho),
             val(theta),
             val(sample_size),
@@ -331,7 +331,7 @@ process BWA_MEM_SINGLE_END {
             path("art_out.fq")
 
     output:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             val(rho),
             val(theta),
             val(sample_size),
@@ -355,12 +355,12 @@ process BWA_MEM_SINGLE_END {
 
 
 process BWA_MEM_PAIRED_END {
-    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prepend_filename}${filename}"}
+    publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     maxForks 1
 
     input:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             val(rho),
             val(theta),
             val(sample_size),
@@ -372,7 +372,7 @@ process BWA_MEM_PAIRED_END {
             path("art_out_2.fq")
 
     output:
-        tuple val(prepend_filename),
+        tuple val(prefix_filename),
             val(rho),
             val(theta),
             val(sample_size),
