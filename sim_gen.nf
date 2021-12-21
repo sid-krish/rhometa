@@ -404,18 +404,18 @@ workflow {
     // Params
     params.help = false
 
-    params.recom_tract_len = 500
+    params.recom_tract_len = 1000
     params.single_end = false
     params.read_len = 150
     params.paired_end_mean_frag_len = 300
     params.paired_end_std_dev = 25 // +- mean frag len
 
-    params.rho_rates = [0.05]
+    params.rho_rates = [0.0001, 0.00025, 0.0005, 0.00075, 0.001, 0.005, 0.015, 0.025, 0.035, 0.045]
     params.theta_rates = [0.01]
-    params.sample_sizes = [20]
-    params.fold_cov_rates = [4]
-    params.genome_sizes = [10000]
-    params.seed_vals = [123]
+    params.sample_sizes = [10, 20, 40, 80, 160, 200]
+    params.fold_cov_rates = [1, 2, 4, 8]
+    params.genome_sizes = [100000]
+    params.seed_vals = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
     // Input verification
     if (params.help) {
