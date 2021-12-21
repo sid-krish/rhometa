@@ -415,7 +415,7 @@ workflow {
     params.sample_sizes = [10, 20, 40, 80, 160, 200]
     params.fold_cov_rates = [1, 2, 4, 8]
     params.genome_sizes = [100000]
-    params.seed_vals = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    params.seed_vals = [1, 2, 3, 4, 5, 6, 7]
 
     // Input verification
     if (params.help) {
