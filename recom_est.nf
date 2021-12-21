@@ -205,11 +205,11 @@ workflow {
     params.window_size = 300 // For single end this is the read size, for paired end this is the max insert length
     params.single_end = false
     params.depth_range = "3,200" // min_depth, max_depth
-    params.n_bootstrap_samples = 25 // number of bootstrap samples to get error bars for final results
+    params.n_bootstrap_samples = 50 // number of bootstrap samples to get error bars for final results
 
     params.bam_file = 'none'
     params.reference_genome = 'none'
-    params.lookup_tables = "/Volumes/Backup/Lookup_tables/Lookup_tables_stp"
+    params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_stp"
 
     // Channels
     bam_file_channel = Channel.fromPath( params.bam_file )
