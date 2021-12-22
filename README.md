@@ -105,19 +105,16 @@ and many other systems are provided via nextflow.
 
 ### Installation
 Instructions for installing nextflow and dependencies via conda (default method)
-1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
+1. Clone the repo
    ```sh
-   git clone https://github.com/github_username/repo_name.git
+   git clone https://github.com/sid-krish/repo_name.git
    ```
-3. Install NPM packages
+2. Make all files in bin directory executable
    ```sh
-   npm install
+   cd bin
+   chmod +x *
    ```
-4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
-   ```
+3. 
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -134,17 +131,24 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 
 
 
-<!-- ROADMAP -->
-## Roadmap
+[//]: # (<!-- ROADMAP -->)
 
-- [] Feature 1
-- [] Feature 2
-- [] Feature 3
-    - [] Nested Feature
+[//]: # (## Roadmap)
 
-See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
+[//]: # ()
+[//]: # (- [] Feature 1)
 
-<p align="right">(<a href="#top">back to top</a>)</p>
+[//]: # (- [] Feature 2)
+
+[//]: # (- [] Feature 3)
+
+[//]: # (    - [] Nested Feature)
+
+[//]: # ()
+[//]: # (See the [open issues]&#40;https://github.com/github_username/repo_name/issues&#41; for a full list of proposed features &#40;and known issues&#41;.)
+
+[//]: # ()
+[//]: # (<p align="right">&#40;<a href="#top">back to top</a>&#41;</p>)
 
 
 
