@@ -32,7 +32,7 @@ def helpMessage() {
 }
 
 
-process prefix_FILENAME {
+process PREFIX_FILENAME {
 
     maxForks 1
 
@@ -84,7 +84,7 @@ process SUBSAMPLE_BAM{
 
 
 process LOFREQ{
-    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
+    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     maxForks 1
 
@@ -113,7 +113,7 @@ process LOFREQ{
 
 
 process PAIRWISE_TABLE{
-    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
+    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     maxForks 1
 
@@ -209,7 +209,10 @@ workflow {
 
     params.bam_file = 'none'
     params.reference_genome = 'none'
-    params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_stp"
+    params.lookup_tables = "/Volumes/Backup/Lookup_tables/Lookup_tables_stp"
+    // params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_stp"
+    // params.lookup_tables = "Lookup_tables"
+
 
     // Channels
     bam_file_channel = Channel.fromPath( params.bam_file )
@@ -238,11 +241,11 @@ workflow {
 
     // Process execution
 
-    prefix_FILENAME(bam_and_fa, params.prefix_filename)
+    PREFIX_FILENAME(bam_and_fa, params.prefix_filename)
 
     if (params.subsample_bam) {
         // Bams need to be query name sorted.
-        SUBSAMPLE_BAM(prefix_FILENAME.out, params.depth_range)
+        SUBSAMPLE_BAM(PREFIX_FILENAME.out, params.depth_range)
 
         LOFREQ(SUBSAMPLE_BAM.out)
 

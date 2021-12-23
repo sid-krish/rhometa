@@ -25,7 +25,7 @@ def helpMessage() {
 }
 
 
-process prefix_FILENAME {
+process PREFIX_FILENAME {
     
     maxForks 1
 
@@ -144,9 +144,9 @@ workflow {
     }
 
     // Process execution
-    prefix_FILENAME(bam_and_fa, params.prefix_filename)
+    PREFIX_FILENAME(bam_and_fa, params.prefix_filename)
 
-    LOFREQ(prefix_FILENAME.out)
+    LOFREQ(PREFIX_FILENAME.out)
 
     THETA_ESTIMATE(LOFREQ.out)
 
