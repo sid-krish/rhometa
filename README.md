@@ -125,7 +125,7 @@ Instructions for installing nextflow and dependencies via conda (default method)
 ## Usage
 
 The pipeline is made up of 4 of modules. Each of which can be used independently as necessary.
-![Logo](images/modules.png)
+![Modules](images/modules.png?raw=true)
 
 * **sim_gen.nf** is used to generate bam files and fasta reference files with simulated reads from bacterial genomes with recombination, the bacterial genomes were simulated using fastsimbac. This module is primarily included so that the simulated datasets used for the paper can be reproduced.
 * **theta_est.nf** is used to determine the population mutation rate (theta) per site based on the LDhat method. The theta value is one the required parameters for generating lookup tables and this module helps to get an estimate on the datasets that is to be analysed. The user has the option to use the estimated theta or a different value when generating lookup tables.
@@ -180,9 +180,11 @@ Sid Krishnan - sidaswar.krishnan-1@student.uts.edu.au
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
-[//]: # * []()
-[//]: # * []()
-[//]: # * []()
+[//]: # (* []&#40;&#41;)
+
+[//]: # (* []&#40;&#41;)
+
+[//]: # (* []&#40;&#41;)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
