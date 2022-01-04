@@ -14,7 +14,7 @@
 <h1 align="center">Rhometa</h1>
 
   <p align="center">
-    Metagenomic population recombination rate estimation pipeline
+    Metagenomic Population Recombination Rate Estimation Pipeline
 
 [//]: # (    <br />)
 
@@ -91,7 +91,7 @@ datasets based on the LDhat composite likelihood method.
 <!-- GETTING STARTED -->
 ## Getting Started
 
-The pipeline is designed to be run on linux and requires nextflow to be installed. 
+This pipeline is designed to be run on linux and requires nextflow to be installed. 
 Dependencies are resolved either via conda or docker images. Support for HPC, docker, singularity, AWS
 and many other systems are provided via nextflow.
 
@@ -114,7 +114,7 @@ Instructions for installing nextflow and dependencies via conda (default method)
    cd bin
    chmod +x *
    ```
-3. 
+3. Adjust settings in nextflow.config file, by default it is configured to work with conda with modest resources
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -123,12 +123,9 @@ Instructions for installing nextflow and dependencies via conda (default method)
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
-
-_For more examples, please refer to the [Documentation](https://example.com)_
+The pipeline is made up of 4 of modules. Each of which can be used separately of each other as necessary.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
-
 
 
 [//]: # (<!-- ROADMAP -->)
