@@ -28,8 +28,6 @@
 
 *.csv
 
-*.png
-
 *.fasta
 
 *.pyc
