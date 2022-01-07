@@ -209,8 +209,8 @@ workflow {
 
     params.bam_file = 'none'
     params.reference_genome = 'none'
-    params.lookup_tables = "/Volumes/Backup/Lookup_tables/Lookup_tables_stp"
-    // params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_stp"
+    // params.lookup_tables = "/Volumes/Backup/Lookup_tables/Lookup_tables_stp"
+    params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_stp"
     // params.lookup_tables = "Lookup_tables"
 
 

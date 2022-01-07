@@ -35,7 +35,7 @@ process RATE_SELECTOR {
     // This process prevents the need to use each in every process, which can be confusing
     // Perhaps this could be handled in a more elegant way using some DSL2 technique
     
-    maxForks 1 // Run sequentially
+    // maxForks 1 // Run sequentially
     
     // echo true
 
@@ -67,7 +67,7 @@ process RATE_SELECTOR {
 process FAST_SIM_BAC {
     // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
-    maxForks 1
+    // maxForks 1
     
     input:
         tuple val(prefix_filename),
@@ -100,7 +100,7 @@ process FAST_SIM_BAC {
 process CLEAN_TREES {
     // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
-    maxForks 1
+    // maxForks 1
 
     input:
         tuple val(prefix_filename),
@@ -132,7 +132,7 @@ process CLEAN_TREES {
 process SEQ_GEN {
     // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
-    maxForks 1
+    // maxForks 1
 
     input:
         tuple val(prefix_filename),
@@ -167,7 +167,7 @@ process SEQ_GEN {
 process REFORMAT_FASTA {
     // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
-    maxForks 1
+    // maxForks 1
 
     input:
         tuple val(prefix_filename),
@@ -200,7 +200,7 @@ process REFORMAT_FASTA {
 process ISOLATE_GENOME {
     // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
-    maxForks 1
+    // maxForks 1
 
     input:
         tuple val(prefix_filename),
@@ -234,7 +234,7 @@ process ISOLATE_GENOME {
 process ART_ILLUMINA_SINGLE_END {
     // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
-    maxForks 1
+    // maxForks 1
 
     input:
         tuple val(prefix_filename),
@@ -274,7 +274,7 @@ process ART_ILLUMINA_SINGLE_END {
 process ART_ILLUMINA_PAIRED_END {
     // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
-    maxForks 1
+    // maxForks 1
 
     input:
         tuple val(prefix_filename),
@@ -317,7 +317,7 @@ process ART_ILLUMINA_PAIRED_END {
 process BWA_MEM_SINGLE_END {
     publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
-    maxForks 1
+    // maxForks 1
 
     input:
         tuple val(prefix_filename),
@@ -338,8 +338,8 @@ process BWA_MEM_SINGLE_END {
             val(depth),
             val(genome_size),
             val(seed),
-            path("firstGenome.fa"),
-            path("Aligned.bam")
+            path("final.fa"),
+            path("final.bam")
 
     script:
     // using first fa entry only (one genome)
@@ -350,6 +350,9 @@ process BWA_MEM_SINGLE_END {
     bwa mem -t $task.cpus firstGenome.fa art_out.fq > Aligned.sam
 
     samtools view -bS Aligned.sam > Aligned.bam
+
+    mv Aligned.bam final.bam
+    mv firstGenome.fa final.fa
     """
 }
 
@@ -357,7 +360,7 @@ process BWA_MEM_SINGLE_END {
 process BWA_MEM_PAIRED_END {
     publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
-    maxForks 1
+    // maxForks 1
 
     input:
         tuple val(prefix_filename),
@@ -379,8 +382,8 @@ process BWA_MEM_PAIRED_END {
             val(depth),
             val(genome_size),
             val(seed),
-            path("firstGenome.fa"),
-            path("Aligned.bam")
+            path("final.fa"),
+            path("final.bam")
 
     script:
     // using first fa entry only (one genome)
@@ -391,6 +394,9 @@ process BWA_MEM_PAIRED_END {
     bwa mem -t $task.cpus firstGenome.fa art_out_1.fq art_out_2.fq > Aligned.sam
 
     samtools view -bS Aligned.sam > Aligned.bam
+
+    mv Aligned.bam final.bam
+    mv firstGenome.fa final.fa
     """
 }
 
