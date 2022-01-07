@@ -84,7 +84,7 @@ process SUBSAMPLE_BAM{
 
 
 process LOFREQ{
-    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
+    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     maxForks 1
 
@@ -113,7 +113,7 @@ process LOFREQ{
 
 
 process PAIRWISE_TABLE{
-    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
+    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     maxForks 1
 
@@ -198,7 +198,7 @@ workflow {
 
     // Params
     params.help = false
-    params.subsample_bam = true
+    params.subsample_bam = false
     params.prefix_filename = "none"
     params.recom_tract_len = 1000
     params.ldpop_rho_range = "0,0.01,1,1,100"
@@ -215,9 +215,9 @@ workflow {
 
 
     // Channels
-    bam_file_channel = Channel.fromPath( params.bam_file )
-    reference_genome_channel = Channel.fromPath( params.reference_genome )
-    downsampled_lookup_tables = Channel.fromPath( "${params.lookup_tables}/lk_downsampled_*.csv" ).collect()
+    bam_file_channel = Channel.fromPath( params.bam_file, checkIfExists: true )
+    reference_genome_channel = Channel.fromPath( params.reference_genome, checkIfExists: true )
+    downsampled_lookup_tables = Channel.fromPath( "${params.lookup_tables}/lk_downsampled_*.csv", checkIfExists: true ).collect()
 
     bam_and_fa = bam_file_channel.combine(reference_genome_channel)
 
@@ -255,7 +255,7 @@ workflow {
 
     else {
         // Bams need to be query name sorted.
-        LOFREQ(prefix_FILENAME.out)
+        LOFREQ(PREFIX_FILENAME.out)
 
         PAIRWISE_TABLE(LOFREQ.out, params.single_end, params.window_size)
     }
