@@ -39,19 +39,19 @@ process PREFIX_FILENAME {
     // echo true
 
     input:
-        tuple path(bam),
-            path(fasta)
+        tuple val(sample_id),
+            path(bam_and_fa)
         
         val(prefix_fn)
 
     output:
         tuple stdout,
-            path(bam),
-            path(fasta)
+            path("${bam_and_fa[0]}"),
+            path("${bam_and_fa[1]}")
 
     script:
     """
-    prefix_filename.py ${bam} ${prefix_fn} 
+    prefix_filename.py ${bam_and_fa[0]} ${prefix_fn}
     """
 }
 
@@ -207,19 +207,15 @@ workflow {
     params.depth_range = "3,250" // min_depth, max_depth
     params.n_bootstrap_samples = 50 // number of bootstrap samples to get error bars for final results
 
-    params.bam_file = 'none'
-    params.reference_genome = 'none'
-    // params.lookup_tables = "/Volumes/Backup/Lookup_tables/Lookup_tables_stp"
-    params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_stp"
+    params.lookup_tables = "/Volumes/Backup/Lookup_tables/Lookup_tables_stp"
+    // params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_stp"
     // params.lookup_tables = "Lookup_tables"
 
 
     // Channels
-    bam_file_channel = Channel.fromPath( params.bam_file, checkIfExists: true )
-    reference_genome_channel = Channel.fromPath( params.reference_genome, checkIfExists: true )
     downsampled_lookup_tables = Channel.fromPath( "${params.lookup_tables}/lk_downsampled_*.csv", checkIfExists: true ).collect()
 
-    bam_and_fa = bam_file_channel.combine(reference_genome_channel)
+    bam_and_fa = Channel.fromFilePairs('./test/*.{bam,fa}', checkIfExists: true)
 
     // Input verification
     if (params.help) {
@@ -227,16 +223,6 @@ workflow {
         // params.help = false by default
         helpMessage()
         exit 0
-    }
-
-    if (params.reference_genome == 'none') {
-        println "No input .fa specified. Use --reference_genome [.fa]"
-        exit 1
-    }
-
-    if (params.bam_file == 'none') {
-        println "No input .bam specified. Use --bam_file [.bam]"
-        exit 1
     }
 
     // Process execution
