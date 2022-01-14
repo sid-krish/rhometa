@@ -17,7 +17,7 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed):
     sweep_1_combinations = mesh_grid.T.reshape(-1, 6)
 
     # Load data into dataframe
-    recom_est_results_dir = f"{os.getcwd()}/final_parametric_sweep_for_paper/Recom_Est_Output/"
+    recom_est_results_dir = f"/Users/Sid/Documents/Github/rhometa/Misc/simulation_results/Recom_Est_Output/"
 
     col_names = ["rho_sim", "theta_sim", "sample_size_sim", "depth_sim", "genome_size_sim", "seed_sim",
                  "mean", "std", "min", "5%", "25%", "50%", "75%", "95%", "max"]
@@ -25,7 +25,7 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed):
     df_recom_est_resutls = pd.DataFrame(columns=col_names)
 
     for rho, theta, sample_size, depth, genome_size, seed in sweep_1_combinations:
-        prepended_filename = f"rho_{rho}_theta_{theta}_sample_size_{sample_size}_depth_{depth}_genome_size_{genome_size}_seed_{seed}_"
+        prepended_filename = f"rho_{rho}_theta_{theta}_sample_size_{int(sample_size)}_depth_{int(depth)}_genome_size_{int(genome_size)}_seed_{int(seed)}_final_"
 
         if os.path.isfile(f"{recom_est_results_dir}{prepended_filename}final_results_summary.csv"):
             with open(f"{recom_est_results_dir}{prepended_filename}final_results_summary.csv", 'r') as results:
@@ -80,17 +80,23 @@ if __name__ == '__main__':
     # x-axis variable is treated as categorical
 
     ax = sns.catplot(data=collected_results_sweep_1_df, x="scaled_rho_sim", y="mean", hue="Genomes",
-                     col="fold_coverage_scaler", col_wrap=3, sharex=True, sharey=True, kind="box", palette="Spectral")
+                     col="fold_coverage_scaler", col_wrap=2, sharex=True, sharey=True, kind="box", palette="Spectral")
 
-    ax.set(ylim=(0, 55), xlabel="Simulated \u03C1", ylabel="Estimated \u03C1 (mean)")
+    ax.set(ylim=(0, 50), xlabel="Simulated \u03C1", ylabel="Estimated \u03C1 (mean)")
 
-    # ax.set(yticks=([5, 12.5, 25, 37.5, 50]))
+    ax.set(yticks=([1.0, 5.0, 15.0, 25.0, 35.0, 45.0]))
+    # ax.set(yticks=(range(0,45)))
 
+    ax.map(plt.axhline, y=0.1, ls='dotted', color='g', linewidth=1)
+    ax.map(plt.axhline, y=0.25, ls='dotted', color='g', linewidth=1)
+    ax.map(plt.axhline, y=0.5, ls='dotted', color='g', linewidth=1)
+    ax.map(plt.axhline, y=0.75, ls='dotted', color='g', linewidth=1)
+    ax.map(plt.axhline, y=1, ls='dotted', color='g', linewidth=1)
     ax.map(plt.axhline, y=5, ls='dotted', color='g', linewidth=1)
-    ax.map(plt.axhline, y=12.5, ls='dotted', color='g', linewidth=1)
+    ax.map(plt.axhline, y=15, ls='dotted', color='g', linewidth=1)
     ax.map(plt.axhline, y=25, ls='dotted', color='g', linewidth=1)
-    ax.map(plt.axhline, y=37.5, ls='dotted', color='g', linewidth=1)
-    ax.map(plt.axhline, y=50, ls='dotted', color='g', linewidth=1)
+    ax.map(plt.axhline, y=35, ls='dotted', color='g', linewidth=1)
+    ax.map(plt.axhline, y=45, ls='dotted', color='g', linewidth=1)
 
     ax.set(ylabel="Estimated \u03C1 (mean)", xlabel="Simulated \u03C1")
 
@@ -98,7 +104,7 @@ if __name__ == '__main__':
 
     # ax.figure.savefig("MPRR_results.png", dpi=500)
 
-    ax.savefig("MPRR_subsample_results_mixed_sam.png", dpi=500)
+    ax.savefig("rhometa_subsample_results_mixed_sam.png", dpi=500)
 
     #### deviation plot
 
@@ -107,10 +113,10 @@ if __name__ == '__main__':
                                                     "scaled_rho_sim"]
 
     ax2 = sns.catplot(data=collected_results_sweep_1_df, x="scaled_rho_sim", y="deviation", hue="Genomes",
-                     col="fold_coverage_scaler", col_wrap=3, sharex=True, sharey=True, kind="box", palette="RdYlGn")
+                     col="fold_coverage_scaler", col_wrap=2, sharex=True, sharey=True, kind="box", palette="RdYlGn")
 
     ax2.set(ylim=(-1,1), xlabel="Simulated \u03C1", ylabel="Deviation")
 
     ax2.map(plt.axhline, y=0, ls='--', color='g', linewidth=2)
 
-    ax2.savefig("MPRR_subsample_deviation_mixed_sam.png", dpi=500)
+    ax2.savefig("rhometa_subsample_deviation_mixed_sam.png", dpi=500)

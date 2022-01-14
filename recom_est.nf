@@ -112,6 +112,34 @@ process LOFREQ{
 }
 
 
+process FREEBAYES {
+    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
+
+    // maxForks 1
+
+    input:
+        tuple val(prefix_filename),
+            path(bam),
+            path(fasta)
+
+    output:
+        tuple val(prefix_filename),
+            path(bam),
+            path(fasta),
+            path("freeBayesOut.vcf")
+
+    script:
+    """
+    samtools faidx ${fasta}
+    samtools sort --threads $task.cpus ${bam} -o Aligned.csorted.bam
+    samtools index -@ $task.cpus Aligned.csorted.bam
+
+    # only keep SNP type entries
+    freebayes -f ${fasta} -p 1 Aligned.csorted.bam | grep -e '^#' -e 'TYPE=snp' > freeBayesOut.vcf
+    """
+}
+
+
 process PAIRWISE_TABLE{
     // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
@@ -202,7 +230,7 @@ workflow {
     params.prefix_filename = "none"
     params.recom_tract_len = 1000
     params.ldpop_rho_range = "0,0.01,1,1,100"
-    params.window_size = 300 // For single end this is the read size, for paired end this is the max insert length
+    params.window_size = 1000 // For single end this is the read size, for paired end this is the max insert length
     params.single_end = false
     params.depth_range = "3,250" // min_depth, max_depth
     params.n_bootstrap_samples = 50 // number of bootstrap samples to get error bars for final results
@@ -247,17 +275,17 @@ workflow {
         // Bams need to be query name sorted.
         SUBSAMPLE_BAM(PREFIX_FILENAME.out, params.depth_range)
 
-        LOFREQ(SUBSAMPLE_BAM.out)
+        FREEBAYES(SUBSAMPLE_BAM.out)
 
-        PAIRWISE_TABLE(LOFREQ.out, params.single_end, params.window_size)
+        PAIRWISE_TABLE(FREEBAYES.out, params.single_end, params.window_size)
 
     }
 
     else {
         // Bams need to be query name sorted.
-        LOFREQ(PREFIX_FILENAME.out)
+        FREEBAYES(PREFIX_FILENAME.out)
 
-        PAIRWISE_TABLE(LOFREQ.out, params.single_end, params.window_size)
+        PAIRWISE_TABLE(FREEBAYES.out, params.single_end, params.window_size)
     }
 
     RECOM_RATE_ESTIMATOR(PAIRWISE_TABLE.out, downsampled_lookup_tables, params.recom_tract_len, params.depth_range, params.n_bootstrap_samples, params.ldpop_rho_range)
