@@ -416,7 +416,7 @@ workflow {
     params.paired_end_mean_frag_len = 300
     params.paired_end_std_dev = 25 // +- mean frag len
 
-    params.rho_rates = [0.0001, 0.00025, 0.0005, 0.00075, 0.001, 0.005, 0.015, 0.025, 0.035, 0.045]
+    params.rho_rates = [0.0001, 0.00025, 0.0005, 0.00075]
     params.theta_rates = [0.01]
     params.sample_sizes = [10, 20, 40, 80, 160, 200]
     params.fold_cov_rates = [1, 2, 4, 8]

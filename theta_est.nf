@@ -78,6 +78,34 @@ process LOFREQ{
 }
 
 
+process FREEBAYES {
+    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
+
+    // maxForks 1
+
+    input:
+        tuple val(prefix_filename),
+            path(bam),
+            path(fasta)
+
+    output:
+        tuple val(prefix_filename),
+            path(bam),
+            path(fasta),
+            path("freeBayesOut.vcf")
+
+    script:
+    """
+    samtools faidx ${fasta}
+    samtools sort --threads $task.cpus ${bam} -o Aligned.csorted.bam
+    samtools index -@ $task.cpus Aligned.csorted.bam
+
+    # only keep SNP type entries
+    freebayes -f ${fasta} -p 1 Aligned.csorted.bam | grep -e '^#' -e 'TYPE=snp' > freeBayesOut.vcf
+    """
+}
+
+
 process THETA_ESTIMATE {
     publishDir "Theta_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
@@ -146,8 +174,8 @@ workflow {
     // Process execution
     PREFIX_FILENAME(bam_and_fa, params.prefix_filename)
 
-    LOFREQ(PREFIX_FILENAME.out)
+    FREEBAYES(PREFIX_FILENAME.out)
 
-    THETA_ESTIMATE(LOFREQ.out)
+    THETA_ESTIMATE(FREEBAYES.out)
 
 }

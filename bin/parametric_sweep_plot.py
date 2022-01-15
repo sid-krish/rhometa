@@ -46,7 +46,8 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed):
 
 if __name__ == '__main__':
     # Sweep 1: Recombination rate estimation
-    rho_sweep_1 = [0.0001, 0.00025, 0.0005, 0.00075, 0.001, 0.005, 0.015, 0.025, 0.035, 0.045]
+    rho_sweep_1 = [0.0001, 0.00025, 0.0005, 0.00075]
+    # rho_sweep_1 = [0.0001, 0.00025, 0.0005, 0.00075, 0.001, 0.005, 0.015, 0.025, 0.035, 0.045]
     theta_sweep_1 = [0.01]
     sample_size_sweep_1 = [10, 20, 40, 80, 160, 200]
     depth_sweep_1 = [1, 2, 4, 8]
@@ -80,23 +81,23 @@ if __name__ == '__main__':
     # x-axis variable is treated as categorical
 
     ax = sns.catplot(data=collected_results_sweep_1_df, x="scaled_rho_sim", y="mean", hue="Genomes",
-                     col="fold_coverage_scaler", col_wrap=2, sharex=True, sharey=True, kind="box", palette="Spectral")
+                     col="fold_coverage_scaler", col_wrap=2, sharex=True, sharey=True, kind="box", palette="RdYlBu")
 
-    ax.set(ylim=(0, 50), xlabel="Simulated \u03C1", ylabel="Estimated \u03C1 (mean)")
+    # ax.set(ylim=(0, 50), xlabel="Simulated \u03C1", ylabel="Estimated \u03C1 (mean)")
 
-    ax.set(yticks=([1.0, 5.0, 15.0, 25.0, 35.0, 45.0]))
+    # ax.set(yticks=([1.0, 5.0, 15.0, 25.0, 35.0, 45.0]))
     # ax.set(yticks=(range(0,45)))
 
-    ax.map(plt.axhline, y=0.1, ls='dotted', color='g', linewidth=1)
-    ax.map(plt.axhline, y=0.25, ls='dotted', color='g', linewidth=1)
-    ax.map(plt.axhline, y=0.5, ls='dotted', color='g', linewidth=1)
-    ax.map(plt.axhline, y=0.75, ls='dotted', color='g', linewidth=1)
-    ax.map(plt.axhline, y=1, ls='dotted', color='g', linewidth=1)
-    ax.map(plt.axhline, y=5, ls='dotted', color='g', linewidth=1)
-    ax.map(plt.axhline, y=15, ls='dotted', color='g', linewidth=1)
-    ax.map(plt.axhline, y=25, ls='dotted', color='g', linewidth=1)
-    ax.map(plt.axhline, y=35, ls='dotted', color='g', linewidth=1)
-    ax.map(plt.axhline, y=45, ls='dotted', color='g', linewidth=1)
+    # ax.map(plt.axhline, y=0.1, ls='dotted', color='g', linewidth=1)
+    # ax.map(plt.axhline, y=0.25, ls='dotted', color='g', linewidth=1)
+    # ax.map(plt.axhline, y=0.5, ls='dotted', color='g', linewidth=1)
+    # ax.map(plt.axhline, y=0.75, ls='dotted', color='g', linewidth=1)
+    # ax.map(plt.axhline, y=1, ls='dotted', color='g', linewidth=1)
+    # ax.map(plt.axhline, y=5, ls='dotted', color='g', linewidth=1)
+    # ax.map(plt.axhline, y=15, ls='dotted', color='g', linewidth=1)
+    # ax.map(plt.axhline, y=25, ls='dotted', color='g', linewidth=1)
+    # ax.map(plt.axhline, y=35, ls='dotted', color='g', linewidth=1)
+    # ax.map(plt.axhline, y=45, ls='dotted', color='g', linewidth=1)
 
     ax.set(ylabel="Estimated \u03C1 (mean)", xlabel="Simulated \u03C1")
 
