@@ -228,9 +228,9 @@ workflow {
     params.help = false
     params.subsample_bam = false
     params.prefix_filename = "none"
-    params.recom_tract_len = 2300
+    params.recom_tract_len = 500
     params.ldpop_rho_range = "0,0.01,1,1,100"
-    params.window_size = 500 // For single end this is the read size, for paired end this is the max insert length
+    params.window_size = 1000 // For single end this is the read size, for paired end this is the max insert length
     params.single_end = false
     params.depth_range = "3,250" // min_depth, max_depth
     params.n_bootstrap_samples = 50 // number of bootstrap samples to get error bars for final results

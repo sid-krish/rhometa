@@ -79,7 +79,7 @@ process LOFREQ{
 
 
 process FREEBAYES {
-    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
+    // publishDir "Theta_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     // maxForks 1
 
