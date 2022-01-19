@@ -86,25 +86,26 @@ if __name__ == '__main__':
     pileup = sys.argv[2]
     vcf = sys.argv[3]
 
-    # genome_size = 10000
-    # pileup = "../Output/rho_10_sam_10_gen_10000/rho_10_sam_10_gen_10000_Aligned_sorted.pileup"
-    # vcf = "../Output/rho_10_sam_10_gen_10000/rho_10_sam_10_gen_10000_lofreqOut.vcf"
+    # genome_size = 100000
+    # pileup = "../Theta_Est_Output/rho_0.001_theta_0.01_sample_size_25_depth_4_genome_size_100000_seed_0_final_Aligned_sorted.pileup"
+    # vcf = "../Theta_Est_Output/rho_0.001_theta_0.01_sample_size_25_depth_4_genome_size_100000_seed_0_final_freeBayesOut.vcf"
 
     num_variant_positions = len(get_var_pos_from_vcf(vcf))
     pileup_df = depth_distribution(pileup)
     plot_depth(pileup_df)
 
     # Summary stats for depth
-    depth_summary_stats_df = pileup_df["Depth"].describe(percentiles = [.05,.25, .5, .75, .95])
+    depth_summary_stats_df = pileup_df["Depth"].describe(percentiles = [.5])
     depth_summary_stats_df = pd.DataFrame(depth_summary_stats_df).T
-    depth_summary_stats_df = depth_summary_stats_df.round(0)  # makes sense to round depth vals to nearest int
-    depth_summary_stats_df = depth_summary_stats_df.drop(columns=["count", "std"]) # Drop cols that can't be used for theta
+    depth_summary_stats_df = depth_summary_stats_df.round(0)  # makes sense to round depth vals to the nearest int
+    depth_summary_stats_df = depth_summary_stats_df.drop(columns=["count", "std"])  # Drop cols that can't be used for theta
 
     # Plot theta for min - max depth range
     min_depth, max_depth = int(depth_summary_stats_df["min"][0]), int(depth_summary_stats_df["max"][0])
     plot_theta(num_variant_positions, genome_size, min_depth, max_depth)
 
     # Summary stats for theta based on depth summary stats
+    depth_summary_stats_df = depth_summary_stats_df.drop(columns=["min", "max"])
     theta_sum_stats_df = pd.DataFrame()
     theta_sum_stats_df = depth_summary_stats_df.applymap(lambda x: watterson_estimate(num_variant_positions,
                                                                                       genome_size,
@@ -112,6 +113,7 @@ if __name__ == '__main__':
 
     # Export all summary stats
     all_summary_stats_df = depth_summary_stats_df.append(theta_sum_stats_df)
-    new_idx = ["Depth", "Theta_Est"]
+    new_idx = ["Depth_Counts", "Theta_Per_Site_Est"]
     all_summary_stats_df.index = new_idx
+    all_summary_stats_df.rename(columns={'mean': 'mean_depth', '50%': 'median_depth'}, inplace=True)
     all_summary_stats_df.to_csv("Theta_estimate_stats.csv")
