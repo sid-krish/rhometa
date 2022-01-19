@@ -92,11 +92,11 @@ if __name__ == '__main__':
     num_cores = int(sys.argv[6])
 
 
-    # recom_tract_len = 500
-    # depth_range = "3,100"
-    # n_resamples = 20
-    # lookup_table_rho_range = "101,100"
-    # pairwise_table_file = "../Output/rho_10_sam_10_gen_10000/rho_10_sam_10_gen_10000_pairwise_table.pkl"
+    # recom_tract_len = 1000
+    # depth_range = "3,250"
+    # n_resamples = 50
+    # lookup_table_rho_range = "0,0.01,1,1,100"
+    # pairwise_table_file = "Recom_Est_Output/rho_0.001_theta_0.01_sample_size_25_depth_4_genome_size_100000_seed_0_final_pairwise_table.pkl"
     # num_cores = 4
 
     pairwise_table = pd.read_pickle(pairwise_table_file)
@@ -105,10 +105,7 @@ if __name__ == '__main__':
 
     depth_lower_limit, depth_upper_limit = [int(i) for i in depth_range.split(',')]
 
-
-
     depth_vals = [i for i in range(depth_lower_limit, depth_upper_limit + 1)]
-
 
     steps_1_to_7_arg_list = []
     for i in depth_vals:
@@ -157,9 +154,11 @@ if __name__ == '__main__':
     final_results_max_rho_and_likelihoods_df.to_csv("final_results_max_vals.csv", index=False)
 
     # summary statistics on 'max_rho' column
-    summary_stats = final_results_max_rho_and_likelihoods_df['max_rho'].describe(percentiles = [.05, .25, .5, .75, .95])
+    summary_stats = final_results_max_rho_and_likelihoods_df['max_rho'].describe(percentiles = [.5])
     summary_stats = pd.DataFrame(summary_stats).T
-
-    summary_stats = summary_stats.rename(columns={"count": "bootstrap_samples"})
-
-    summary_stats.to_csv("final_results_summary.csv")
+    summary_stats = summary_stats.drop(columns=["min", "max", "std"])
+    summary_stats = summary_stats.rename(columns={"count": "num_bootstraps", "mean": "mean_rho_est-full_seq", "50%": "median_rho_est-full_seq"})
+    summary_stats["specified_tract_len"] = recom_tract_len
+    summary_stats["mean_rho_div_tract_len-per_site"] = summary_stats["mean_rho_est-full_seq"] / recom_tract_len
+    summary_stats["median_rho_div_tract_len-per_site"] = summary_stats["median_rho_est-full_seq"] / recom_tract_len
+    summary_stats.to_csv("final_results_summary.csv", index=False)
