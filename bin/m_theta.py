@@ -113,7 +113,7 @@ if __name__ == '__main__':
 
     # Export all summary stats
     all_summary_stats_df = depth_summary_stats_df.append(theta_sum_stats_df)
-    new_idx = ["Depth_Counts", "Theta_Per_Site_Est"]
+    new_idx = ["depth_counts", "theta_per_site_at_depth"]
     all_summary_stats_df.index = new_idx
     all_summary_stats_df.rename(columns={'mean': 'mean_depth', '50%': 'median_depth'}, inplace=True)
     all_summary_stats_df.to_csv("Theta_estimate_stats.csv")
