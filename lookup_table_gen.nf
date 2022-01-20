@@ -52,8 +52,6 @@ process LDPOP_TABLE_GEN {
 process DOWNSAMPLE_LOOKUP_TABLE {
     publishDir "Lookup_tables", mode: "copy"
 
-    cpus 1
-
     input:
         path lookup_table
         val ldpop_rho_range
@@ -75,7 +73,7 @@ workflow {
     // Params
     params.help = false
     params.lk_table = 'none'
-    params.theta = 0.00126 // Theta can be based on estimate or as desired
+    params.theta = 0.01 // Theta can be based on estimate or as desired
     params.ldpop_rho_range = "0,0.01,1,1,100"
     params.lk_table_max_depth = 200
 
