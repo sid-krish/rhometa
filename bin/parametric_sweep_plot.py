@@ -17,7 +17,7 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed):
     sweep_1_combinations = mesh_grid.T.reshape(-1, 6)
 
     # Load data into dataframe
-    recom_est_results_dir = f"/Users/Sid/Documents/Github/rhometa/Misc/simulation_results/Recom_Est_Output/"
+    recom_est_results_dir = f"/Users/Sid/Documents/Github/rhometa/Misc/simulation_results/Recom_Est_Output_fb(old)/"
 
     col_names = ["rho_sim", "theta_sim", "sample_size_sim", "depth_sim", "genome_size_sim", "seed_sim",
                  "mean", "std", "min", "5%", "25%", "50%", "75%", "95%", "max"]
@@ -46,7 +46,7 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed):
 
 if __name__ == '__main__':
     # Sweep 1: Recombination rate estimation
-    rho_sweep_1 = [0.0001, 0.00025, 0.0005, 0.00075]
+    rho_sweep_1 = [0.001, 0.005, 0.015, 0.025, 0.035, 0.045]
     # rho_sweep_1 = [0.0001, 0.00025, 0.0005, 0.00075, 0.001, 0.005, 0.015, 0.025, 0.035, 0.045]
     theta_sweep_1 = [0.01]
     sample_size_sweep_1 = [10, 20, 40, 80, 160, 200]
@@ -81,7 +81,7 @@ if __name__ == '__main__':
     # x-axis variable is treated as categorical
 
     ax = sns.catplot(data=collected_results_sweep_1_df, x="scaled_rho_sim", y="mean", hue="Genomes",
-                     col="fold_coverage_scaler", col_wrap=2, sharex=True, sharey=True, kind="box", palette="RdYlBu")
+                     col="fold_coverage_scaler", col_wrap=2, sharex=True, sharey=True, palette="Accent", kind="box")
 
     # ax.set(ylim=(0, 50), xlabel="Simulated \u03C1", ylabel="Estimated \u03C1 (mean)")
 
@@ -114,7 +114,7 @@ if __name__ == '__main__':
                                                     "scaled_rho_sim"]
 
     ax2 = sns.catplot(data=collected_results_sweep_1_df, x="scaled_rho_sim", y="deviation", hue="Genomes",
-                     col="fold_coverage_scaler", col_wrap=2, sharex=True, sharey=True, kind="box", palette="RdYlGn")
+                     col="fold_coverage_scaler", col_wrap=2, sharex=True, sharey=True, kind="box", palette="Accent")
 
     ax2.set(ylim=(-1,1), xlabel="Simulated \u03C1", ylabel="Deviation")
 

@@ -159,6 +159,7 @@ if __name__ == '__main__':
     summary_stats = summary_stats.drop(columns=["min", "max", "std"])
     summary_stats = summary_stats.rename(columns={"count": "num_bootstraps", "mean": "mean_rho_est-full_seq", "50%": "median_rho_est-full_seq"})
     summary_stats["specified_tract_len"] = recom_tract_len
-    summary_stats["mean_rho_div_tract_len-per_site"] = summary_stats["mean_rho_est-full_seq"] / recom_tract_len
-    summary_stats["median_rho_div_tract_len-per_site"] = summary_stats["median_rho_est-full_seq"] / recom_tract_len
-    summary_stats.to_csv("final_results_summary.csv", index=False)
+    summary_stats["mean_rho_est-per_site-full_seq_rho_div_by_tract"] = summary_stats["mean_rho_est-full_seq"] / recom_tract_len
+    summary_stats["median_rho_est-per_site-full_seq_rho_div_by_tract"] = summary_stats["median_rho_est-full_seq"] / recom_tract_len
+    summary_stats = pd.DataFrame(summary_stats).T
+    summary_stats.to_csv("final_results_summary.csv", header=False)
