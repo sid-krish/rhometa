@@ -1,4 +1,4 @@
-name: mprr
+name: rhometa
 channels:
   - defaults
   - bioconda
@@ -12,7 +12,6 @@ dependencies:
   - future
   - seq-gen
   - bwa
-  - lofreq
   - samtools=1.12
   - pysam
   - seaborn
