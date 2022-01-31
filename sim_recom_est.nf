@@ -235,8 +235,7 @@ workflow {
     params.depth_range = "3,250" // min_depth, max_depth
     params.n_bootstrap_samples = 50 // number of bootstrap samples to get error bars for final results
 
-    params.lookup_tables = "/Volumes/Backup/Lookup_tables/Lookup_tables_stp"
-    // params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_0-1"
+    params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_stp"
     // params.lookup_tables = "Lookup_tables"
 
 
