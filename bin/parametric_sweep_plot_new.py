@@ -47,7 +47,7 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed):
 
 if __name__ == '__main__':
     # Sweep 1: Recombination rate estimation
-    rho_sweep_1 = [0.01, 0.02, 0.03, 0.04, 0.05]
+    rho_sweep_1 = [0.0002, 0.0004, 0.0006, 0.0008, 0.001]
     # rho_sweep_1 = [0.0002, 0.0004, 0.0006, 0.0008, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05]
     theta_sweep_1 = [0.01]
     sample_size_sweep_1 = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
@@ -83,9 +83,9 @@ if __name__ == '__main__':
     # x-axis variable is treated as categorical
 
     ax = sns.catplot(data=collected_results_sweep_1_df, x="scaled_rho_sim", y='median_rho_est', hue="genomes",
-                     col="fold_coverage", col_wrap=2, sharex=True, sharey=True, palette="Spectral", kind="violin", inner=None, linewidth=0.2)
+                     col="fold_coverage", col_wrap=2, sharex=True, sharey=True, palette="mako_r", kind="box", linewidth=0.2)
 
-    ax.set(ylim=(0, 50), xlabel="Simulated \u03C1", ylabel="Estimated \u03C1 (median)")
+    ax.set(ylim=(0, 5), xlabel="Simulated \u03C1", ylabel="Estimated \u03C1 (median)")
 
     # ax.set(yticks=([1.0, 5.0, 15.0, 25.0, 35.0, 45.0]))
     # ax.set(yticks=(range(0,45)))
@@ -116,7 +116,7 @@ if __name__ == '__main__':
                                                     "scaled_rho_sim"]
     
     ax2 = sns.catplot(data=collected_results_sweep_1_df, x="scaled_rho_sim", y="deviation", hue="genomes",
-                     col="fold_coverage", col_wrap=2, sharex=True, sharey=True, kind="box", palette="Accent")
+                     col="fold_coverage", col_wrap=2, sharex=True, sharey=True, kind="box", palette="RdYlGn_r", linewidth=0.2)
     
     ax2.set(ylim=(-1,1), xlabel="Simulated \u03C1", ylabel="Deviation")
     
