@@ -111,15 +111,15 @@ if __name__ == '__main__':
 
     #### deviation plot
 
-    # collected_results_sweep_1_df["deviation"] = (collected_results_sweep_1_df["mean"] -
-    #                                              collected_results_sweep_1_df["scaled_rho_sim"]) / collected_results_sweep_1_df[
-    #                                                 "scaled_rho_sim"]
-    #
-    # ax2 = sns.catplot(data=collected_results_sweep_1_df, x="scaled_rho_sim", y="deviation", hue="Genomes",
-    #                  col="fold_coverage_scaler", col_wrap=2, sharex=True, sharey=True, kind="box", palette="Accent")
-    #
-    # ax2.set(ylim=(-1,1), xlabel="Simulated \u03C1", ylabel="Deviation")
-    #
-    # ax2.map(plt.axhline, y=0, ls='--', color='g', linewidth=2)
-    #
-    # ax2.savefig("rhometa_subsample_deviation_mixed_sam.png", dpi=500)
+    collected_results_sweep_1_df["deviation"] = (collected_results_sweep_1_df['median_rho_est'] -
+                                                 collected_results_sweep_1_df["scaled_rho_sim"]) / collected_results_sweep_1_df[
+                                                    "scaled_rho_sim"]
+    
+    ax2 = sns.catplot(data=collected_results_sweep_1_df, x="scaled_rho_sim", y="deviation", hue="genomes",
+                     col="fold_coverage", col_wrap=2, sharex=True, sharey=True, kind="box", palette="Accent")
+    
+    ax2.set(ylim=(-1,1), xlabel="Simulated \u03C1", ylabel="Deviation")
+    
+    ax2.map(plt.axhline, y=0, ls='--', color='g', linewidth=2)
+    
+    ax2.savefig("rhometa_subsample_deviation_results.png", dpi=500)
