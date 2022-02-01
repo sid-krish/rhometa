@@ -101,8 +101,6 @@ if __name__ == '__main__':
     # ax.map(plt.axhline, y=35, ls='dotted', color='g', linewidth=1)
     # ax.map(plt.axhline, y=45, ls='dotted', color='g', linewidth=1)
 
-    ax.set(ylabel="Estimated \u03C1 (mean)", xlabel="Simulated \u03C1")
-
     # ax.fig.suptitle("rhometa Simulated (scaled_rho_sim) vs Estimated Rho (median)", y=1.05)
 
     # ax.figure.savefig("rhometa_results.png", dpi=500)
@@ -116,7 +114,7 @@ if __name__ == '__main__':
                                                     "scaled_rho_sim"]
     
     ax2 = sns.catplot(data=collected_results_sweep_1_df, x="scaled_rho_sim", y="deviation", hue="genomes",
-                     col="fold_coverage", col_wrap=2, sharex=True, sharey=True, kind="box", palette="RdYlGn_r", linewidth=0.2)
+                     col="fold_coverage", col_wrap=2, sharex=True, sharey=True, kind="box", palette="RdYlGn", linewidth=0.2)
     
     ax2.set(ylim=(-1,1), xlabel="Simulated \u03C1", ylabel="Deviation")
     
