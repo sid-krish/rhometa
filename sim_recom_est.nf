@@ -23,7 +23,7 @@ def helpMessage() {
     --recom_tract_len [int], default:[500], Recombination tract length to use
     --window_size [int], default:[500], Window size for variant pairs. For single end this is the read size, for paired end this is the max fragment length
     --single_end, Used for single end read bams
-    --subsample_bam, Used for when read depths are higher than what can be analysed with available lookup tables (downsample bam to match max lookup table depth)
+    --no_subsampling, By default bam file is subsampled when read depths are higher than what can be analysed with available lookup tables (downsample bam to match max lookup table depth)
     --depth_range [int,int], default:[3,100], Minimum and maximum depth downsampled lookup tables available. Minimum should be no less than 3
     --n_bootstrap_samples [int], default:[20], Number of bootstrap samples to get confidence interval for recombination rate estimate
 
@@ -259,7 +259,7 @@ workflow {
     // Params
     params.help = false
     // params.seed = 123 // used for samtools subsamping and final bootstrap algorithm
-    params.subsample_bam = false
+    params.no_subsampling = false
     params.prefix_filename = "none"
     params.recom_tract_len = 1000
     params.ldpop_rho_range = "0,0.01,1,1,100"
@@ -268,8 +268,8 @@ workflow {
     params.depth_range = "3,250" // min_depth, max_depth
     params.n_bootstrap_samples = 50 // number of bootstrap samples to get error bars for final results
 
-    // params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_stp"
-    params.lookup_tables = "/Volumes/Backup/Lookup_tables/Lookup_tables_stp"
+    params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_stp"
+    // params.lookup_tables = "/Volumes/Backup/Lookup_tables/Lookup_tables_stp"
     // params.lookup_tables = "Lookup_tables"
 
 
@@ -292,11 +292,9 @@ workflow {
 
     GET_SEED_VAL(PREFIX_FILENAME.out)
 
-    if (params.subsample_bam) {
+    if (params.no_subsampling) {
         // Bams need to be query name sorted.
-        SUBSAMPLE_BAM(GET_SEED_VAL.out, params.depth_range)
-
-        FREEBAYES(SUBSAMPLE_BAM.out)
+        FREEBAYES(GET_SEED_VAL.out)
 
         PAIRWISE_TABLE(FREEBAYES.out, params.single_end, params.window_size)
 
@@ -304,7 +302,9 @@ workflow {
 
     else {
         // Bams need to be query name sorted.
-        FREEBAYES(GET_SEED_VAL.out)
+        SUBSAMPLE_BAM(GET_SEED_VAL.out, params.depth_range)
+
+        FREEBAYES(SUBSAMPLE_BAM.out)
 
         PAIRWISE_TABLE(FREEBAYES.out, params.single_end, params.window_size)
     }

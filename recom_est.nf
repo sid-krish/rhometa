@@ -23,9 +23,10 @@ def helpMessage() {
     --recom_tract_len [int], default:[500], Recombination tract length to use
     --window_size [int], default:[500], Window size for variant pairs. For single end this is the read size, for paired end this is the max fragment length
     --single_end, Used for single end read bams
-    --subsample_bam, Used for when read depths are higher than what can be analysed with available lookup tables (downsample bam to match max lookup table depth)
+    --no_subsampling, By default bam file is subsampled when read depths are higher than what can be analysed with available lookup tables (downsample bam to match max lookup table depth)
     --depth_range [int,int], default:[3,100], Minimum and maximum depth downsampled lookup tables available. Minimum should be no less than 3
     --n_bootstrap_samples [int], default:[20], Number of bootstrap samples to get confidence interval for recombination rate estimate
+    --seed [int] , default:[123], Seed value for samtools subsamping and final bootstrap algorithm
 
     """.stripIndent()
 
@@ -66,7 +67,9 @@ process SUBSAMPLE_BAM{
             path(bam),
             path(fasta)
 
+            
         val depth_range
+        val seed
     
     output:
         tuple val(prefix_filename),
@@ -78,7 +81,7 @@ process SUBSAMPLE_BAM{
     samtools sort ${bam} > Aligned_sorted.bam
     samtools mpileup Aligned_sorted.bam > Aligned_sorted.pileup
 
-    subsample_bam.py Aligned_sorted.pileup ${depth_range} ${bam}
+    subsample_bam_seeded.py Aligned_sorted.pileup ${depth_range} ${bam} ${seed}
     """
 }
 
@@ -181,6 +184,7 @@ process RECOM_RATE_ESTIMATOR {
         val depth_range
         val n_bootstrap_samples
         val ldpop_rho_range
+        val seed
 
 
     output:
@@ -191,7 +195,7 @@ process RECOM_RATE_ESTIMATOR {
 
     script:
     """
-    mprr_main_parallel.py ${recom_tract_len} ${depth_range} ${n_bootstrap_samples} ${ldpop_rho_range} ${pairwise_table_pkl} $task.cpus
+    mprr_main_parallel_seeded.py ${recom_tract_len} ${depth_range} ${n_bootstrap_samples} ${ldpop_rho_range} ${pairwise_table_pkl} $task.cpus ${seed}
     """
 
 }
@@ -226,7 +230,8 @@ workflow {
 
     // Params
     params.help = false
-    params.subsample_bam = false
+    params.no_subsampling = false
+    params.seed = 123 // used for samtools subsamping and final bootstrap algorithm
     params.prefix_filename = "none"
     params.recom_tract_len = 1000
     params.ldpop_rho_range = "0,0.01,1,1,100"
@@ -273,11 +278,9 @@ workflow {
 
     PREFIX_FILENAME(bam_and_fa, params.prefix_filename)
 
-    if (params.subsample_bam) {
+    if (params.no_subsampling) {
         // Bams need to be query name sorted.
-        SUBSAMPLE_BAM(PREFIX_FILENAME.out, params.depth_range)
-
-        FREEBAYES(SUBSAMPLE_BAM.out)
+        FREEBAYES(PREFIX_FILENAME.out)
 
         PAIRWISE_TABLE(FREEBAYES.out, params.single_end, params.window_size)
 
@@ -285,13 +288,15 @@ workflow {
 
     else {
         // Bams need to be query name sorted.
-        FREEBAYES(PREFIX_FILENAME.out)
+        SUBSAMPLE_BAM(PREFIX_FILENAME.out, params.depth_range, params.seed)
+
+        FREEBAYES(SUBSAMPLE_BAM.out)
 
         PAIRWISE_TABLE(FREEBAYES.out, params.single_end, params.window_size)
     }
 
-    RECOM_RATE_ESTIMATOR(PAIRWISE_TABLE.out, downsampled_lookup_tables, params.recom_tract_len, params.depth_range, params.n_bootstrap_samples, params.ldpop_rho_range)
+    RECOM_RATE_ESTIMATOR(PAIRWISE_TABLE.out, downsampled_lookup_tables, params.recom_tract_len, params.depth_range, params.n_bootstrap_samples, params.ldpop_rho_range, params.seed)
 
-    // FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out)
+    FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out)
 
 }
