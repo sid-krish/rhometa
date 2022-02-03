@@ -56,6 +56,31 @@ process PREFIX_FILENAME {
 }
 
 
+process GET_SEED_VAL{
+    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
+
+    // maxForks 1
+
+    // echo true
+
+    input:
+        tuple val(prefix_filename),
+            path(bam),
+            path(fasta)
+    
+    output:
+        tuple val(prefix_filename),
+            path(bam),
+            path(fasta),
+            stdout
+
+    script:
+    """
+    get_seed_val.py ${prefix_filename}
+    """
+}
+
+
 process SUBSAMPLE_BAM{
     // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
@@ -64,21 +89,23 @@ process SUBSAMPLE_BAM{
     input:
         tuple val(prefix_filename),
             path(bam),
-            path(fasta)
+            path(fasta),
+            val(seed)
 
         val depth_range
     
     output:
         tuple val(prefix_filename),
             path("subsampled.bam"),
-            path(fasta)
+            path(fasta),
+            val(seed)
 
     script:
     """
     samtools sort ${bam} > Aligned_sorted.bam
     samtools mpileup Aligned_sorted.bam > Aligned_sorted.pileup
 
-    subsample_bam.py Aligned_sorted.pileup ${depth_range} ${bam}
+    subsample_bam_seeded.py Aligned_sorted.pileup ${depth_range} ${bam} ${seed}
     """
 }
 
@@ -120,13 +147,15 @@ process FREEBAYES {
     input:
         tuple val(prefix_filename),
             path(bam),
-            path(fasta)
+            path(fasta),
+            val(seed)
 
     output:
         tuple val(prefix_filename),
             path(bam),
             path(fasta),
-            path("freeBayesOut.vcf")
+            path("freeBayesOut.vcf"),
+            val(seed)
 
     script:
     """
@@ -149,14 +178,16 @@ process PAIRWISE_TABLE{
         tuple val(prefix_filename),
             path(bam),
             path(fasta),
-            path(vcf_file)
+            path(vcf_file),
+            val(seed)
 
         val single_end
         val window_size
 
     output:
         tuple val(prefix_filename),
-            path("pairwise_table.pkl")
+            path("pairwise_table.pkl"),
+            val(seed)
 
     script:
     """
@@ -170,11 +201,12 @@ process RECOM_RATE_ESTIMATOR {
 
     // maxForks 1
 
-    errorStrategy 'ignore' // skip if there is not enough data from processing
+    // errorStrategy 'ignore' // skip if there is not enough data from processing
 
     input:
         tuple val(prefix_filename),
-            path(pairwise_table_pkl)
+            path(pairwise_table_pkl),
+            val(seed)
 
         path downsampled_lookup_tables
         val recom_tract_len
@@ -191,7 +223,7 @@ process RECOM_RATE_ESTIMATOR {
 
     script:
     """
-    mprr_main_parallel.py ${recom_tract_len} ${depth_range} ${n_bootstrap_samples} ${ldpop_rho_range} ${pairwise_table_pkl} $task.cpus
+    mprr_main_parallel_seeded.py ${recom_tract_len} ${depth_range} ${n_bootstrap_samples} ${ldpop_rho_range} ${pairwise_table_pkl} $task.cpus ${seed}
     """
 
 }
@@ -226,6 +258,7 @@ workflow {
 
     // Params
     params.help = false
+    // params.seed = 123 // used for samtools subsamping and final bootstrap algorithm
     params.subsample_bam = false
     params.prefix_filename = "none"
     params.recom_tract_len = 1000
@@ -235,7 +268,8 @@ workflow {
     params.depth_range = "3,250" // min_depth, max_depth
     params.n_bootstrap_samples = 50 // number of bootstrap samples to get error bars for final results
 
-    params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_stp"
+    // params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_stp"
+    params.lookup_tables = "/Volumes/Backup/Lookup_tables/Lookup_tables_stp"
     // params.lookup_tables = "Lookup_tables"
 
 
@@ -256,9 +290,11 @@ workflow {
 
     PREFIX_FILENAME(bam_and_fa, params.prefix_filename)
 
+    GET_SEED_VAL(PREFIX_FILENAME.out)
+
     if (params.subsample_bam) {
         // Bams need to be query name sorted.
-        SUBSAMPLE_BAM(PREFIX_FILENAME.out, params.depth_range)
+        SUBSAMPLE_BAM(GET_SEED_VAL.out, params.depth_range)
 
         FREEBAYES(SUBSAMPLE_BAM.out)
 
@@ -268,13 +304,13 @@ workflow {
 
     else {
         // Bams need to be query name sorted.
-        FREEBAYES(PREFIX_FILENAME.out)
+        FREEBAYES(GET_SEED_VAL.out)
 
         PAIRWISE_TABLE(FREEBAYES.out, params.single_end, params.window_size)
     }
 
     RECOM_RATE_ESTIMATOR(PAIRWISE_TABLE.out, downsampled_lookup_tables, params.recom_tract_len, params.depth_range, params.n_bootstrap_samples, params.ldpop_rho_range)
 
-    // FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out)
+    FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out)
 
 }
