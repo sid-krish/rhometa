@@ -34,7 +34,6 @@ if __name__ == '__main__':
 
     if depth_upper_limit_relative_proportion < 1.0:
         # the only time subsampling is required and possible
-        # subsample seed fixed to 0 so that same results are produced each time
         frac = str(depth_upper_limit_relative_proportion).split('.')[1]
         subprocess.run(f"samtools view -b -s {seed}.{frac} {bam_file} > subsampled.bam", shell=True)
 
