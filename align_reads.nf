@@ -13,7 +13,7 @@ process BWA_MEM_PAIRED_END {
         path(reference_fa)
 
     output:
-        path("${sample_id}_Aligned.bam")
+        path("${sample_id}_Aligned_Sorted.bam")
 
     script:
     """
@@ -28,6 +28,8 @@ process BWA_MEM_PAIRED_END {
     bwa mem -t $task.cpus ${reference_fa} ${fastqs[0]} ${fastqs[1]} > ${sample_id}_Aligned.sam
 
     samtools view -bS ${sample_id}_Aligned.sam > ${sample_id}_Aligned.bam
+
+    samtools sort --threads $task.cpus ${sample_id}_Aligned.bam -o ${sample_id}_Aligned_Sorted.bam
     """
 }
 
