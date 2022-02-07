@@ -26,7 +26,7 @@ def helpMessage() {
     --no_subsampling, By default bam file is subsampled when read depths are higher than what can be analysed with available lookup tables (downsample bam to match max lookup table depth)
     --depth_range [int,int], default:[3,100], Minimum and maximum depth downsampled lookup tables available. Minimum should be no less than 3
     --n_bootstrap_samples [int], default:[20], Number of bootstrap samples to get confidence interval for recombination rate estimate
-    --seed [int] , default:[123], Seed value for samtools subsamping and final bootstrap algorithm
+    --seed [int] , default:[123], Seed value for samtools subsamping and final bootstrap algorithm. The seed value will be displayed at the start of the output file names
 
     """.stripIndent()
 
@@ -240,22 +240,23 @@ workflow {
     // Params
     params.help = false
     params.no_subsampling = false
-    params.seed = [0,1] // used for samtools subsamping and final bootstrap algorithm
+    params.seed = [0,1,2,3,4] // used for samtools subsamping and final bootstrap algorithm
     params.prefix_filename = "none"
-    params.recom_tract_len = 500
+    params.recom_tract_len = 2300
     params.ldpop_rho_range = "0,0.01,1,1,100"
-    params.window_size = 1000 // For single end this is the read size, for paired end this is the max insert length
+    params.window_size = 5000 // For single end this is the read size, for paired end this is the max insert length
     params.single_end = false
-    params.depth_range = "3,100" // min_depth, max_depth
+    params.depth_range = "3,200" // min_depth, max_depth
     params.n_bootstrap_samples = 50 // number of bootstrap samples to get error bars for final results
 
     params.bam_file = 'none'
     params.reference_genome = 'none'
-    params.lookup_tables = "/Volumes/Backup/Lookup_tables/Lookup_tables_stp"
+    // params.lookup_tables = "/Volumes/Backup/Lookup_tables/Lookup_tables_stp"
     // params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_stp"
     // params.lookup_tables = "/shared/homes/11849395/lookup_table_gen/Lookup_tables(0.00126)" // hpylori
     // params.lookup_tables = "/shared/homes/11849395/lookup_table_gen/Lookup_tables(0.00002)" // s_pne 5ng
-    // params.lookup_tables = "/shared/homes/11849395/lookup_table_gen/Lookup_tables(0.00003)" // s_pne 500ng
+    params.lookup_tables = "/shared/homes/11849395/lookup_table_gen/Lookup_tables(0.00003)" // s_pne exp1_500ng
+    // params.lookup_tables = "/shared/homes/11849395/lookup_table_gen/Lookup_tables(0.00002)" // 84 samples
     // params.lookup_tables = "Lookup_tables"
 
 

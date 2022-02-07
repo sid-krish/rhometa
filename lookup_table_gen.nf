@@ -17,7 +17,10 @@ def helpMessage() {
     nextflow run lookup_table_gen.nf --help
 
     Options:
-    --ldpop_rho_range [int,int], default:[101,100], The range of rho values used to generate lookup tables
+    --ldpop_rho_range [int,int], default:[101,100], [num_rh,max_rh] The grid of rho values used to generate lookup tables for using the ldpop algorithm.
+                                                    ldpop help: The grid has num_rh uniformly spaced points from 0 to max_rh, inclusive. (((Alternatively, to create 
+                                                    a non-uniform grid, use r0,step0,r1,step1,r2,...rK. This creates a grid {r0,r0+step0,r0+2*step0,...,r1,r1+step1,...,rK}
+                                                    similar to ldhelmet. Note that non-uniform grid is incompatible with vanilla ldhat.)))
     --lk_table_max_depth [int], default:[100], The max depth to generate lookup tables for
     --lk_table [str], Provide lookup table to run downsample step only
     --theta [int], default:[0.01], Population mutation rate, can be estimated value from theta_est.nf or a different value
