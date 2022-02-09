@@ -36,7 +36,6 @@ if __name__ == '__main__':
         # the only time subsampling is required and possible
         frac = str(depth_upper_limit_relative_proportion).split('.')[1]
         subprocess.run(f"samtools view -b -s {seed}.{frac} {bam_file} > subsampled.bam", shell=True)
-
     else:
         # Just renaming and returning original file for nextflow
         subprocess.run(f"mv {bam_file} subsampled.bam", shell=True)

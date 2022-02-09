@@ -86,7 +86,7 @@ process SUBSAMPLE_BAM{
     samtools sort ${bam} > Aligned_sorted.bam
     samtools mpileup Aligned_sorted.bam > Aligned_sorted.pileup
 
-    subsample_bam_seeded.py Aligned_sorted.pileup ${depth_range} ${bam} ${seed}
+    subsample_bam_seeded.py Aligned_sorted.pileup ${depth_range} Aligned_sorted.bam ${seed}
     """
 }
 
@@ -252,11 +252,11 @@ workflow {
     params.bam_file = 'none'
     params.reference_genome = 'none'
     
-    params.lookup_tables = "/Volumes/Backup/Lookup_tables/Lookup_tables_stp"
+    // params.lookup_tables = "/Volumes/Backup/Lookup_tables/Lookup_tables_stp"
     // params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_stp"
     // params.lookup_tables = "/shared/homes/11849395/lookup_table_gen/Lookup_tables(0.00126)" // hpylori
     // params.lookup_tables = "/shared/homes/11849395/lookup_table_gen/Lookup_tables(0.00002)" // s_pne 5ng
-    // params.lookup_tables = "/shared/homes/11849395/lookup_table_gen/Lookup_tables(0.00003)" // s_pne exp1_500ng
+    params.lookup_tables = "/shared/homes/11849395/lookup_table_gen/Lookup_tables(0.00003)" // s_pne exp1_500ng
     // params.lookup_tables = "/shared/homes/11849395/lookup_table_gen/Lookup_tables(0.00002)" // 84 samples
     // params.lookup_tables = "Lookup_tables"
 
