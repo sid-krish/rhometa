@@ -23,7 +23,6 @@ def helpMessage() {
     --recom_tract_len [int], default:[500], Recombination tract length to use
     --window_size [int], default:[500], Window size for variant pairs. For single end this is the read size, for paired end this is the max fragment length
     --single_end, Used for single end read bams
-    --no_subsampling, By default bam file is subsampled when read depths are higher than what can be analysed with available lookup tables (downsample bam to match max lookup table depth)
     --depth_range [int,int], default:[3,100], Minimum and maximum depth downsampled lookup tables available. Minimum should be no less than 3
     --n_bootstrap_samples [int], default:[20], Number of bootstrap samples to get confidence interval for recombination rate estimate
     --seed [int] , default:[123], Seed value for samtools subsamping and final bootstrap algorithm. The seed value will be displayed at the start of the output file names
@@ -239,7 +238,6 @@ workflow {
 
     // Params
     params.help = false
-    params.no_subsampling = false
     params.seed = [0,1,2,3,4] // used for samtools subsamping and final bootstrap algorithm
     params.prefix_filename = "none"
     params.recom_tract_len = 2300
@@ -252,11 +250,11 @@ workflow {
     params.bam_file = 'none'
     params.reference_genome = 'none'
     
-    // params.lookup_tables = "/Volumes/Backup/Lookup_tables/Lookup_tables_stp"
+    params.lookup_tables = "/Volumes/Backup/Lookup_tables/Lookup_tables_stp"
     // params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_stp"
     // params.lookup_tables = "/shared/homes/11849395/lookup_table_gen/Lookup_tables(0.00126)" // hpylori
     // params.lookup_tables = "/shared/homes/11849395/lookup_table_gen/Lookup_tables(0.00002)" // s_pne 5ng
-    params.lookup_tables = "/shared/homes/11849395/lookup_table_gen/Lookup_tables(0.00003)" // s_pne exp1_500ng
+    // params.lookup_tables = "/shared/homes/11849395/lookup_table_gen/Lookup_tables(0.00003)" // s_pne exp1_500ng
     // params.lookup_tables = "/shared/homes/11849395/lookup_table_gen/Lookup_tables(0.00002)" // 84 samples
     // params.lookup_tables = "Lookup_tables"
 
@@ -290,20 +288,11 @@ workflow {
 
     PREFIX_FILENAME(bam_and_fa, params.prefix_filename, params.seed)
 
-    if (params.no_subsampling) {
-        FREEBAYES(PREFIX_FILENAME.out)
+    SUBSAMPLE_BAM(PREFIX_FILENAME.out, params.depth_range)
 
-        PAIRWISE_TABLE(FREEBAYES.out, params.single_end, params.window_size)
+    FREEBAYES(SUBSAMPLE_BAM.out)
 
-    }
-
-    else {
-        SUBSAMPLE_BAM(PREFIX_FILENAME.out, params.depth_range)
-
-        FREEBAYES(SUBSAMPLE_BAM.out)
-
-        PAIRWISE_TABLE(FREEBAYES.out, params.single_end, params.window_size)
-    }
+    PAIRWISE_TABLE(FREEBAYES.out, params.single_end, params.window_size)
 
     RECOM_RATE_ESTIMATOR(PAIRWISE_TABLE.out, downsampled_lookup_tables, params.recom_tract_len, params.depth_range, params.n_bootstrap_samples, params.ldpop_rho_range)
 
