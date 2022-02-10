@@ -26,25 +26,25 @@ def helpMessage() {
 
 
 process PREFIX_FILENAME {
-    
+
     // maxForks 1
 
     // echo true
 
     input:
-        tuple path(bam),
-            path(fasta)
+        tuple val(sample_id),
+            path(bam_and_fa)
         
         val(prefix_fn)
 
     output:
         tuple stdout,
-            path(bam),
-            path(fasta)
+            path("${bam_and_fa[0]}"),
+            path("${bam_and_fa[1]}")
 
     script:
     """
-    prefix_filename.py ${bam} ${prefix_fn} 
+    prefix_filename.py ${bam_and_fa[0]} ${prefix_fn}
     """
 }
 
@@ -52,7 +52,7 @@ process PREFIX_FILENAME {
 process LOFREQ{
     // publishDir "Theta_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
-    // maxForks 1
+    maxForks 1
 
     input:
         tuple val(prefix_filename),
@@ -144,14 +144,8 @@ workflow {
     params.help = false
     params.prefix_filename = "none"
 
-    params.bam_file = 'none'
-    params.reference_genome = 'none'
-
     // Channels
-    bam_file_channel = Channel.fromPath( params.bam_file )
-    reference_genome_channel = Channel.fromPath( params.reference_genome )
-
-    bam_and_fa = bam_file_channel.combine(reference_genome_channel)
+    bam_and_fa = Channel.fromFilePairs('./Sim_Gen_Output/*.{bam,fa}', checkIfExists: true)
 
     // Input verification
     if (params.help) {
@@ -159,16 +153,6 @@ workflow {
         // params.help = false by default
         helpMessage()
         exit 0
-    }
-
-    if (params.reference_genome == 'none') {
-        println "No input .fa specified. Use --reference_genome [.fa]"
-        exit 1
-    }
-
-    if (params.bam_file == 'none') {
-        println "No input .bam specified. Use --bam_file [.bam]"
-        exit 1
     }
 
     // Process execution
