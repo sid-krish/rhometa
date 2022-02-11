@@ -52,7 +52,7 @@ process PREFIX_FILENAME {
 process LOFREQ{
     // publishDir "Theta_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
-    maxForks 1
+    // maxForks 1
 
     input:
         tuple val(prefix_filename),
@@ -157,6 +157,8 @@ workflow {
 
     // Process execution
     PREFIX_FILENAME(bam_and_fa, params.prefix_filename)
+
+    // LOFREQ(PREFIX_FILENAME.out)
 
     FREEBAYES(PREFIX_FILENAME.out)
 
