@@ -35,7 +35,7 @@ def depth_distribution(pileup):
 
 def watterson_estimate(segregating_sites, genome_len, samples):
     """
-    Theta is at population level
+    Theta per site
     Might have to do theta/2 at some point for haplotypes? -> keeping original formula to maintain parity with ldhat
     """
 

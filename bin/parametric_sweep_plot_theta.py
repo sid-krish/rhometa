@@ -17,7 +17,7 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed):
     sweep_1_combinations = mesh_grid.T.reshape(-1, 6)
 
     # Load data into dataframe
-    theta_est_results_dir = f"/Users/Sid/Documents/Github/rhometa/Misc/theta_sweep_lofreq/"
+    theta_est_results_dir = f"/Users/Sid/Documents/Github/rhometa/Misc/theta_sweep/"
 
     col_names = ["rho_sim", "theta_sim", "sample_size_sim", "depth_sim", "genome_size_sim", "seed_sim",
                  "mean_depth", "theta_per_site_at_mean_depth", "median_depth", "theta_per_site_at_median_depth"]
@@ -25,7 +25,7 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed):
     df_theta_est_results = pd.DataFrame(columns=col_names)
 
     for rho, theta, sample_size, depth, genome_size, seed in sweep_1_combinations:
-        prepended_filename = f"rho_{rho:.5f}_theta_{theta}_sample_size_{int(sample_size)}_depth_{int(depth)}_genome_size_{int(genome_size)}_seed_{int(seed)}_final_"
+        prepended_filename = f"rho_{rho}_theta_{theta}_sample_size_{int(sample_size)}_depth_{int(depth)}_genome_size_{int(genome_size)}_seed_{int(seed)}_final_"
 
         if os.path.isfile(f"{theta_est_results_dir}{prepended_filename}Theta_estimate_stats.csv"):
             df = pd.read_csv(f"{theta_est_results_dir}{prepended_filename}Theta_estimate_stats.csv", header=None)
@@ -47,8 +47,8 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed):
 
 if __name__ == '__main__':
     # Sweep 1: Recombination rate estimation
-    rho_sweep_1 = [0.00001] # rho 0.01
-    theta_sweep_1 = [0.001, 0.01, 0.1, 1.0]
+    rho_sweep_1 = [0.005]
+    theta_sweep_1 = [0.05, 0.5, 5]
     sample_size_sweep_1 = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
     depth_sweep_1 = [1, 4, 8, 16]
     genome_size_sweep_1 = [100000]

@@ -426,12 +426,12 @@ workflow {
     // params.seed_vals = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
     // Theta parametric sweep
-    params.rho_rates = [0.001] // rho 1
-    params.theta_rates = [0.001, 0.01, 0.1, 1.0]
-    params.sample_sizes = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
-    params.fold_cov_rates = [1, 4, 8, 16]
+    params.rho_rates = [0.00005] // rho 0.05
+    params.theta_rates = [0.5]
+    params.sample_sizes = [50]
+    params.fold_cov_rates = [8]
     params.genome_sizes = [100000]
-    params.seed_vals = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    params.seed_vals = [1]
 
     // Input verification
     if (params.help) {
