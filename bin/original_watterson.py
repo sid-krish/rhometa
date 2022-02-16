@@ -4,10 +4,11 @@ from math import log
 
 genome_len = int(sys.argv[1])
 segregating_sites = int(sys.argv[2])
-num_samples = int(sys.argv[2])
+num_samples = int(sys.argv[3])
 
 # calculate
 k = log(genome_len / (genome_len - segregating_sites))
+# k = segregating_sites
 
 # calculate a_n
 a_n = 0

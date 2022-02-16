@@ -47,12 +47,12 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed):
 
 if __name__ == '__main__':
     # Sweep 1: Recombination rate estimation
-    rho_sweep_1 = [0.005]
-    theta_sweep_1 = [0.05, 0.5, 5]
-    sample_size_sweep_1 = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
-    depth_sweep_1 = [1, 4, 8, 16]
-    genome_size_sweep_1 = [100000]
-    seed_sweep_1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    rho_sweep_1 = [0.001]
+    theta_sweep_1 = [0.1, 0.2, 0.3, 0.4, 0.5]
+    sample_size_sweep_1 = [10]
+    depth_sweep_1 = [4]
+    genome_size_sweep_1 = [10000]
+    seed_sweep_1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
     recom_tract_len = 1000
 

@@ -159,7 +159,7 @@ process SEQ_GEN {
     // program crashes if seq length is not as the one set for fastsimbac
     """
     numTrees=\$(wc -l cleanTrees.txt | awk '{ print \$1 }')
-    seq-gen -m HKY -t 4 -l ${genome_size} -z ${seed} -s 0.01 -p \$numTrees -of cleanTrees.txt > seqgenOut.fa
+    seq-gen -m HKY -t 4 -l ${genome_size} -z ${seed} -s ${theta} -p \$numTrees -of cleanTrees.txt > seqgenOut.fa
     """
 }
 
@@ -426,12 +426,12 @@ workflow {
     // params.seed_vals = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
     // Theta parametric sweep
-    params.rho_rates = [0.00005] // rho 0.05
-    params.theta_rates = [0.5]
-    params.sample_sizes = [50]
-    params.fold_cov_rates = [8]
-    params.genome_sizes = [100000]
-    params.seed_vals = [1]
+    params.rho_rates = [0.001] // rho 1
+    params.theta_rates = [0.1, 0.2, 0.3, 0.4, 0.5]
+    params.sample_sizes = [10]
+    params.fold_cov_rates = [4]
+    params.genome_sizes = [10000]
+    params.seed_vals = [1,2,3,4,5,6,7,8,9,10]
 
     // Input verification
     if (params.help) {
