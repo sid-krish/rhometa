@@ -111,8 +111,6 @@ process THETA_ESTIMATE {
 
     // maxForks 1
 
-    // echo true
-
     input:
         tuple val(prefix_filename),
             path(bam),
@@ -120,7 +118,7 @@ process THETA_ESTIMATE {
             path(vcf)
 
     output:
-        path "Aligned_sorted.pileup"
+        // path "Aligned_sorted.pileup"
         path "theta_estimates.png"
         path "depth_distribution.png"
         path "Theta_estimate_stats.csv"
