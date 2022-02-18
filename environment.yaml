@@ -18,3 +18,4 @@ dependencies:
   - seaborn
   - numba
   - fastsimbac
+  - msprime>=1.1.0
