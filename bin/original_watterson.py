@@ -6,7 +6,7 @@ genome_len = int(sys.argv[1])
 segregating_sites = int(sys.argv[2])
 num_samples = int(sys.argv[3])
 
-# calculate
+# calculate k
 k = log(genome_len / (genome_len - segregating_sites))
 # k = segregating_sites
 

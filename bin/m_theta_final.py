@@ -38,19 +38,18 @@ def watterson_estimate(segregating_sites, genome_len, samples):
     Theta per site
     """
 
-    k = 1
-    calc_sum = 0
-    while k < samples:
-        calc_sum += 1 / k
-        k += 1
+    # calculate k
+    k = log(genome_len / (genome_len - segregating_sites))
 
-    sum_inverse = 1 / calc_sum
+    # calculate a_n
+    a_n = 0
+    for i in range(1, samples):
+        a_n += 1/i
 
-    calc_log = log(genome_len / (genome_len - segregating_sites))
+    # original theta formula
+    theta = k/a_n
 
-    theta = sum_inverse * calc_log
-
-    return np.round(theta, decimals=5)  # rounding to 5 decimals, reasonable accuracy
+    return theta
 
 
 def plot_depth(pileup_df):

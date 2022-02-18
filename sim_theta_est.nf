@@ -129,7 +129,7 @@ process THETA_ESTIMATE {
     samtools mpileup Aligned_sorted.bam > Aligned_sorted.pileup
     genome_size=\$(samtools view -H Aligned_sorted.bam | grep "@SQ" | awk '{ print \$3 }' | cut -c 4-)
 
-    m_theta.py \$genome_size Aligned_sorted.pileup ${vcf}
+    m_theta_final.py \$genome_size Aligned_sorted.pileup ${vcf}
     """
 }
 
