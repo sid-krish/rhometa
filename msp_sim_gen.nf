@@ -351,20 +351,20 @@ workflow {
 
     // Rho parametric sweep
     // params.rho_rates = [0.0002, 0.0004, 0.0006, 0.0008, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05]
-    params.rho_rates = [0.0, 0.00005, 0.0001, 0.00015, 0.0002, 0.00025] // unscaled r values. rho = 2 . p . N_e . r . tractlen
-    params.theta_rates = [0.005] // unscaled u values. theta = 2 . p . N_e . u
-    params.sample_sizes = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
-    params.fold_cov_rates = [1, 4, 8, 16]
-    params.genome_sizes = [100000]
-    params.seed_vals = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    // params.rho_rates = [0.0, 0.00005, 0.0001, 0.00015, 0.0002, 0.00025] // unscaled r values. rho = 2 . p . N_e . r . tractlen
+    // params.theta_rates = [0.005] // unscaled u values. theta = 2 . p . N_e . u
+    // params.sample_sizes = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
+    // params.fold_cov_rates = [1, 4, 8, 16]
+    // params.genome_sizes = [100000]
+    // params.seed_vals = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
     // Theta parametric sweep
-    // params.rho_rates = [0.001] // rho 1
-    // params.theta_rates = [0.1, 0.2, 0.3, 0.4, 0.5]
-    // params.sample_sizes = [10]
-    // params.fold_cov_rates = [4]
-    // params.genome_sizes = [10000]
-    // params.seed_vals = [1,2,3,4,5,6,7,8,9,10]
+    params.rho_rates = [0.0] // unscaled r values. rho = 2 . p . N_e . r . tractlen
+    params.theta_rates = [0.05] // unscaled u values. theta = 2 . p . N_e . u
+    params.sample_sizes = [20]
+    params.fold_cov_rates = [1]
+    params.genome_sizes = [100000]
+    params.seed_vals = [1]
 
     // Input verification
     if (params.help) {

@@ -43,7 +43,7 @@ def watterson_estimate(segregating_sites, genome_len, samples):
 
     # calculate a_n
     a_n = 0
-    for i in range(1, samples):
+    for i in range(1, int(samples)):
         a_n += 1/i
 
     # original theta formula

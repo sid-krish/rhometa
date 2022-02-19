@@ -311,6 +311,6 @@ workflow {
 
     RECOM_RATE_ESTIMATOR(PAIRWISE_TABLE.out, downsampled_lookup_tables, params.recom_tract_len, params.depth_range, params.n_bootstrap_samples, params.ldpop_rho_range)
 
-    FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out)
+    // FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out)
 
 }
