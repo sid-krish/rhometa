@@ -17,7 +17,7 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed):
     sweep_1_combinations = mesh_grid.T.reshape(-1, 6)
 
     # Load data into dataframe
-    theta_est_results_dir = f"/Users/Sid/Documents/Github/rhometa/Misc/theta_sweep/"
+    theta_est_results_dir = f"/Users/Sid/Documents/Github/rhometa/Misc/msp_theta_sweep/Theta_Est_Output/"
 
     col_names = ["rho_sim", "theta_sim", "sample_size_sim", "depth_sim", "genome_size_sim", "seed_sim",
                  "mean_depth", "theta_per_site_at_mean_depth", "median_depth", "theta_per_site_at_median_depth"]

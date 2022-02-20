@@ -49,31 +49,27 @@ process PREFIX_FILENAME {
 }
 
 
-process LOFREQ{
-    // publishDir "Theta_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
+process GET_SAMPLE_SIZE{
+    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     // maxForks 1
+
+    // echo true
 
     input:
         tuple val(prefix_filename),
             path(bam),
             path(fasta)
-
+    
     output:
         tuple val(prefix_filename),
             path(bam),
             path(fasta),
-            path("lofreqOut.vcf")
+            stdout
 
     script:
     """
-    samtools faidx ${fasta}
-    samtools sort --threads $task.cpus ${bam} -o Aligned.csorted.bam
-    samtools index -@ $task.cpus Aligned.csorted.bam
-
-    #lofreq call -f ${fasta} -o lofreqOut.vcf Aligned.csorted.bam
-    #lofreq call-parallel --pp-threads $task.cpus --no-default-filter -f ${fasta} -o lofreqOut.vcf Aligned.csorted.bam
-    lofreq call-parallel --pp-threads $task.cpus -f ${fasta} -o lofreqOut.vcf Aligned.csorted.bam
+    get_sample_size.py ${prefix_filename}
     """
 }
 
@@ -86,13 +82,15 @@ process FREEBAYES {
     input:
         tuple val(prefix_filename),
             path(bam),
-            path(fasta)
+            path(fasta),
+            val(samples)
 
     output:
         tuple val(prefix_filename),
             path(bam),
             path(fasta),
-            path("freeBayesOut.vcf")
+            path("freeBayesOut.vcf"),
+            val(samples)
 
     script:
     """
@@ -100,8 +98,7 @@ process FREEBAYES {
     samtools sort --threads $task.cpus ${bam} -o Aligned.csorted.bam
     samtools index -@ $task.cpus Aligned.csorted.bam
 
-    # only keep SNP type entries
-    freebayes -f ${fasta} -p 1 Aligned.csorted.bam | grep -e '^#' -e 'TYPE=snp' > freeBayesOut.vcf
+    freebayes -f ${fasta} -p 1 Aligned.csorted.bam > freeBayesOut.vcf
     """
 }
 
@@ -111,25 +108,26 @@ process THETA_ESTIMATE {
 
     // maxForks 1
 
+    echo true
+
     input:
         tuple val(prefix_filename),
             path(bam),
             path(fasta),
-            path(vcf)
+            path(vcf),
+            val(samples)
 
     output:
-        // path "Aligned_sorted.pileup"
-        path "theta_estimates.png"
-        path "depth_distribution.png"
-        path "Theta_estimate_stats.csv"
+        path "theta_est.csv"
         
     script:
     """
     samtools sort ${bam} > Aligned_sorted.bam
-    samtools mpileup Aligned_sorted.bam > Aligned_sorted.pileup
     genome_size=\$(samtools view -H Aligned_sorted.bam | grep "@SQ" | awk '{ print \$3 }' | cut -c 4-)
 
-    m_theta_final.py \$genome_size Aligned_sorted.pileup ${vcf}
+    snps=\$(num_var_sites.py ${vcf})
+    echo \$snps
+    original_watterson.py \$genome_size \$snps ${samples} > theta_est.csv
     """
 }
 
@@ -158,9 +156,9 @@ workflow {
     // Process execution
     PREFIX_FILENAME(bam_and_fa, params.prefix_filename)
 
-    // LOFREQ(PREFIX_FILENAME.out)
+    GET_SAMPLE_SIZE(PREFIX_FILENAME.out)
 
-    FREEBAYES(PREFIX_FILENAME.out)
+    FREEBAYES(GET_SAMPLE_SIZE.out)
 
     THETA_ESTIMATE(FREEBAYES.out)
 
