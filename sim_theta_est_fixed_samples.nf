@@ -108,7 +108,7 @@ process THETA_ESTIMATE {
 
     // maxForks 1
 
-    echo true
+    // echo true
 
     input:
         tuple val(prefix_filename),
@@ -119,6 +119,7 @@ process THETA_ESTIMATE {
 
     output:
         path "theta_est.csv"
+        path "num_var_sites.csv"
         
     script:
     """
@@ -126,8 +127,9 @@ process THETA_ESTIMATE {
     genome_size=\$(samtools view -H Aligned_sorted.bam | grep "@SQ" | awk '{ print \$3 }' | cut -c 4-)
 
     snps=\$(num_var_sites.py ${vcf})
-    echo \$snps
-    original_watterson.py \$genome_size \$snps ${samples} > theta_est.csv
+    echo \$snps > num_var_sites.csv
+    theta=\$(original_watterson.py \$genome_size \$snps ${samples})
+    echo \$theta > theta_est.csv
     """
 }
 
