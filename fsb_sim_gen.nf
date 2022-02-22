@@ -64,7 +64,7 @@ process RATE_SELECTOR {
 }  
 
 
-process MSPRIME {
+process FAST_SIM_BAC {
     // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     // maxForks 1
@@ -88,11 +88,78 @@ process MSPRIME {
             val(depth),
             val(genome_size),
             val(seed),
-            path("msp_out.fa")
+            path("trees.txt")
              
     script:
     """
-    msp_sim_fa.py ${sample_size} ${genome_size} ${rho} ${recom_tract_len} ${seed} ${theta}
+    fastSimBac ${sample_size} ${genome_size} -s ${seed} -T -t ${theta} -r ${rho} ${recom_tract_len} > trees.txt
+    """
+}
+
+
+process CLEAN_TREES {
+    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
+
+    // maxForks 1
+
+    input:
+        tuple val(prefix_filename),
+            val(rho),
+            val(theta),
+            val(sample_size),
+            val(depth),
+            val(genome_size),
+            val(seed),
+            path("trees.txt")
+
+    output:
+        tuple val(prefix_filename),
+            val(rho),
+            val(theta),
+            val(sample_size),
+            val(depth),
+            val(genome_size),
+            val(seed),
+            path("cleanTrees.txt")
+
+    script:
+    """
+    clean_trees.py trees.txt
+    """
+}
+
+
+process SEQ_GEN {
+    // publishDir "Sim_Gen_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
+
+    // maxForks 1
+
+    input:
+        tuple val(prefix_filename),
+            val(rho),
+            val(theta),
+            val(sample_size),
+            val(depth),
+            val(genome_size),
+            val(seed),
+            path("cleanTrees.txt")
+
+    output:
+        tuple val(prefix_filename),
+            val(rho),
+            val(theta),
+            val(sample_size),
+            val(depth),
+            val(genome_size),
+            val(seed),
+            path("seqgenOut.fa")
+
+    script:
+    // 1 partition per tree
+    // program crashes if seq length is not as the one set for fastsimbac
+    """
+    numTrees=\$(wc -l cleanTrees.txt | awk '{ print \$1 }')
+    seq-gen -m HKY -t 4 -l ${genome_size} -z ${seed} -s ${theta} -p \$numTrees -of cleanTrees.txt > seqgenOut.fa
     """
 }
 
@@ -110,7 +177,7 @@ process REFORMAT_FASTA {
             val(depth),
             val(genome_size),
             val(seed),
-            path("msp_out.fa")
+            path("seqgenOut.fa")
 
     output:
         tuple val(prefix_filename),
@@ -124,8 +191,8 @@ process REFORMAT_FASTA {
 
     script:
     """
-    samtools faidx msp_out.fa
-    reformat_fasta_pysam.py msp_out.fa
+    samtools faidx seqgenOut.fa
+    reformat_fasta_pysam.py seqgenOut.fa
     """
 }
 
@@ -350,20 +417,21 @@ workflow {
     params.paired_end_std_dev = 25 // +- mean frag len
 
     // Rho parametric sweep
-    params.rho_rates = [0.005, 0.01, 0.015, 0.02, 0.025] // unscaled r values. rho = 2 . p . N_e . r . tractlen
-    params.theta_rates = [0.005] // unscaled u values. theta = 2 . p . N_e . u
-    params.sample_sizes = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
-    params.fold_cov_rates = [1, 4, 8, 16]
-    params.genome_sizes = [100000]
-    params.seed_vals = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
-
-    // Theta parametric sweep
-    // params.rho_rates = [0.0] // unscaled r values. rho = 2 . p . N_e . r . tractlen
-    // params.theta_rates = [0.0, 0.0005, 0.0015, 0.0025] // unscaled u values. theta = 2 . p . N_e . u [0,0.001,0.003,0.005]
-    // params.sample_sizes = [20, 40, 60, 80, 100]
-    // params.fold_cov_rates = [8, 16]
+    // // params.rho_rates = [0.0002, 0.0004, 0.0006, 0.0008, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05]
+    // params.rho_rates = [0.0, 0.0001, 0.0002, 0.0003, 0.0004, 0.0005]
+    // params.theta_rates = [0.01]
+    // params.sample_sizes = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
+    // params.fold_cov_rates = [1, 4, 8, 16]
     // params.genome_sizes = [100000]
     // params.seed_vals = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+
+    // Theta parametric sweep
+    params.rho_rates = [0.001] // rho 1
+    params.theta_rates = [0.1, 0.2, 0.3, 0.4, 0.5]
+    params.sample_sizes = [10]
+    params.fold_cov_rates = [4]
+    params.genome_sizes = [10000]
+    params.seed_vals = [1,2,3,4,5,6,7,8,9,10]
 
     // Input verification
     if (params.help) {
@@ -376,9 +444,13 @@ workflow {
     // Process execution
     RATE_SELECTOR(params.rho_rates, params.theta_rates, params.sample_sizes, params.fold_cov_rates, params.genome_sizes, params.seed_vals)
 
-    MSPRIME(RATE_SELECTOR.out, params.recom_tract_len)
+    FAST_SIM_BAC(RATE_SELECTOR.out, params.recom_tract_len)
 
-    REFORMAT_FASTA(MSPRIME.out)
+    CLEAN_TREES(FAST_SIM_BAC.out)
+
+    SEQ_GEN(CLEAN_TREES.out)
+
+    REFORMAT_FASTA(SEQ_GEN.out)
 
     ISOLATE_GENOME(REFORMAT_FASTA.out)
 
