@@ -17,7 +17,7 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed):
     sweep_1_combinations = mesh_grid.T.reshape(-1, 6)
 
     # Load data into dataframe
-    recom_est_results_dir = f"/Users/Sid/Documents/Github/rhometa/Misc/msp_0_05_rho_sweep/Recom_Est_Output/"
+    recom_est_results_dir = f"/Users/Sid/Documents/Github/rhometa/Misc/msp_rho_sweep/Recom_Est_Output/"
 
     col_names = ["rho_sim", "theta_sim", "sample_size_sim", "depth_sim", "genome_size_sim", "seed_sim",
                  'num_bootstraps', 'mean_rho_est-full_seq', 'median_rho_est-full_seq', 'specified_tract_len', 'mean_rho_est-per_site-full_seq_rho_div_by_tract','median_rho_est-per_site-full_seq_rho_div_by_tract']
@@ -47,7 +47,7 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed):
 
 if __name__ == '__main__':
     # Sweep 1: Recombination rate estimation
-    rho_sweep_1 = [0.0, 0.00005, 0.0001, 0.00015, 0.0002, 0.00025]
+    rho_sweep_1 = [0.005, 0.01, 0.015, 0.02, 0.025] # unscaled r values. rho = 2 . p . N_e . r . tractlen
     theta_sweep_1 = [0.005] # unscaled
     sample_size_sweep_1 = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
     depth_sweep_1 = [1, 4, 8, 16]
