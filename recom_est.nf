@@ -238,11 +238,11 @@ workflow {
 
     // Params
     params.help = false
-    params.seed = [0,1,2,3,4] // used for samtools subsamping and final bootstrap algorithm
+    params.seed = [123] // used for samtools subsamping and final bootstrap algorithm
     params.prefix_filename = "none"
-    params.recom_tract_len = 2300
+    params.recom_tract_len = 1000
     params.ldpop_rho_range = "0,0.01,1,1,100"
-    params.window_size = 5000 // For single end this is the read size, for paired end this is the max insert length
+    params.window_size = 1000 // For single end this is the read size, for paired end this is the max insert length (1000bp is a practical upper limit)
     params.single_end = false
     params.depth_range = "3,200" // min_depth, max_depth
     params.n_bootstrap_samples = 50 // number of bootstrap samples to get error bars for final results
@@ -296,6 +296,6 @@ workflow {
 
     RECOM_RATE_ESTIMATOR(PAIRWISE_TABLE.out, downsampled_lookup_tables, params.recom_tract_len, params.depth_range, params.n_bootstrap_samples, params.ldpop_rho_range)
 
-    // FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out)
+    FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out)
 
 }
