@@ -13,13 +13,13 @@ import m_pairwise_rho_estimator_intp_rect_biv
 if __name__ == '__main__':
 
     recom_tract_len = 500
-    depth_range = "3,250"
+    depth_range = "3,200"
     n_resamples = 20
     lookup_table_rho_range = "101,100"
-    pairwise_table_file = "Recom_Est_Output/pairwise_table.pkl"
+    pairwise_table_file = "../Recom_Est_Output/pairwise_table.pkl"
     num_cores = 4
     lookup_table_rho_vals = rhos_from_string(lookup_table_rho_range)
-    lookup_table = f"Lookup_tables/lk_downsampled_{5}.csv"
+    lookup_table = f"/Volumes/Backup/Lookup_tables/Lookup_tables_m_0.01_r_0-100/lk_downsampled_{5}.csv"
 
     # load pairwise table
     pairwise_table = pd.read_pickle(pairwise_table_file)
