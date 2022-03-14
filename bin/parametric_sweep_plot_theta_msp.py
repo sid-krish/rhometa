@@ -48,11 +48,11 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed):
 if __name__ == '__main__':
     # Sweep 1: Recombination rate estimation
     rho_sweep_1 = [0.0]
-    theta_sweep_1 = [0.0, 0.0005, 0.0015, 0.0025] # unscaled u values. theta = 2 . p . N_e . u
-    sample_size_sweep_1 = [20, 40, 60, 80, 100]
-    depth_sweep_1 = [8, 16]
-    genome_size_sweep_1 = [100000]
-    seed_sweep_1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    theta_sweep_1 = [0.0005, 0.0025, 0.005] # unscaled u values. theta = 2 . p . N_e . u
+    sample_size_sweep_1 = [50,100,150,200]
+    depth_sweep_1 = [8]
+    genome_size_sweep_1 = [25000]
+    seed_sweep_1 = [1,2,3,4,5,6,7,8,9,10]
 
     recom_tract_len = 1000
 
@@ -81,9 +81,9 @@ if __name__ == '__main__':
     # x-axis variable is treated as categorical
 
     ax = sns.catplot(data=collected_results_sweep_1_df, x="scaled_theta_sim", y='theta_per_site_at_median_depth', hue="genomes",
-                     col="fold_coverage", col_wrap=2, sharex=True, sharey=True, palette="mako_r", kind="box", linewidth=0.2)
+                     col="fold_coverage", col_wrap=1, sharex=True, sharey=True, palette="Blues", kind="box")
 
-    # ax.set(ylim=(0, 50), xlabel="Simulated \u03C1", ylabel="Estimated \u03C1 (median)")
+    ax.set(xlabel="Simulated \u03B8", ylabel="Estimated \u03B8 (median depth)")
 
     # ax.set(yticks=([1.0, 5.0, 15.0, 25.0, 35.0, 45.0]))
     # ax.set(yticks=(range(0,45)))
@@ -99,7 +99,7 @@ if __name__ == '__main__':
     # ax.map(plt.axhline, y=35, ls='dotted', color='g', linewidth=1)
     # ax.map(plt.axhline, y=45, ls='dotted', color='g', linewidth=1)
 
-    # ax.fig.suptitle("rhometa Simulated (scaled_rho_sim) vs Estimated Rho (median)", y=1.05)
+    ax.fig.suptitle("Rhometa", y=1.05)
 
     # ax.figure.savefig("rhometa_results.png", dpi=500)
 
@@ -112,7 +112,7 @@ if __name__ == '__main__':
                                                     "scaled_theta_sim"]
     
     ax2 = sns.catplot(data=collected_results_sweep_1_df, x="scaled_theta_sim", y="deviation", hue="genomes",
-                     col="fold_coverage", col_wrap=2, sharex=True, sharey=True, kind="box", palette="RdYlGn", linewidth=0.2)
+                     col="fold_coverage", col_wrap=1, sharex=True, sharey=True, kind="box", palette="RdYlGn")
     
     ax2.set(ylim=(-1,1), xlabel="Simulated \u03C1", ylabel="Deviation")
     
