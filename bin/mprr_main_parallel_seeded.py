@@ -24,8 +24,6 @@ def steps_1_to_7(arg_list):
     # The pipeline isolates pairwise entries based on depth and uses the appropriate lookup table for each depth.
     # note: after isolation some files will be empty
 
-    print('Processing steps 1-7 for depth: {}'.format(depth))
-
     lookup_table = f"lk_downsampled_{depth}.csv"
     pairwise_table_slice = m_isolate_by_depth.main(pairwise_table,
                                                    depth)
@@ -34,11 +32,11 @@ def steps_1_to_7(arg_list):
     # note: after bi-allelic filtering some files will be empty
     # copy to create a new df using slice
     if not pairwise_table_slice.empty:
-        print('Slice at {} contained {} pairs'.format(depth, len(pairwise_table_slice)))
+        print('Process for depth slice {:,} contained {:,} pairs'.format(depth, len(pairwise_table_slice)))
         pairwise_biallelic_table = m_biallelic_filter_pairwise_table.main(pairwise_table_slice.copy())
 
     else:
-        print('Slice at {} was empty'.format(depth))
+        print('Process for depth slice {:,} skipped, no data'.format(depth))
         return None 
 
     # Step 4: convert to lookup format to match against likelihood tables
@@ -110,9 +108,9 @@ if __name__ == '__main__':
 
     depth_vals = [_dp for _dp in range(depth_lower_limit, depth_upper_limit + 1)]
 
+    print('Setting up run for depth range: {}'.format(depth_range))
     steps_1_to_7_arg_list = []
     for _dp in depth_vals:
-        print('Setting up for depth: {}'.format(_dp))
         steps_1_to_7_arg_list.append([_dp, recom_tract_len, pairwise_table, lookup_table_rho_vals])
 
     # Parallel execution of step 1 through 7
