@@ -32,6 +32,6 @@ def main(pairwise_biallelic_table, lookup_formatted_table, lookup_table_rho_vals
 
     df_likelihoods.columns = lookup_table_rho_vals
 
-    df_likelihoods["d_ij"] = [b-a for a,b in pairwise_biallelic_table.index.to_series()]
+    df_likelihoods["d_ij"] = [pos_b - pos_a for ref, pos_a, pos_b in pairwise_biallelic_table.index.to_series()]
 
     return df_likelihoods, table_ids_for_eq3
