@@ -262,7 +262,7 @@ def main(bam, vcf_file, num_cores, fragment_len):
     read_count = count_bam_reads(bam, max_cpu=num_cores)
     print("The BAM file contains {:,} reads".format(read_count))
 
-    variant_positions = get_var_pos_from_vcf(vcf_file, 20)
+    variant_positions = get_var_pos_from_vcf(vcf_file)
     print('Number of variant positions to analyze: {:,}'.format(
         sum(len(v) for v in variant_positions.values())))
 
