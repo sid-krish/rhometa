@@ -1,109 +1,275 @@
 #!/usr/bin/env python
-
+import multiprocessing
+import numpy as np
+import os
 import pandas as pd
 import pysam
+import re
+import subprocess
+import tqdm
+
+from collections import defaultdict, namedtuple
+from itertools import combinations
+from numba import njit, prange
+from numba.typed import List
+
 
 def get_var_pos_from_vcf(vcf_file):
+    """
+    Extract variants from the VCF file.
+    :param vcf_file: the vcf file to read
+    :return: a per-reference dict of unique variant positions
+    """
     f = pysam.VariantFile(vcf_file)
 
-    var_pos = list({i.pos for i in f.fetch()})  # set comprehension to remove duplicates, then back to list
-    var_pos.sort()
+    var_pos = defaultdict(set)
+    for snp in f.fetch():
+        var_pos[snp.chrom].add(snp.pos)
 
     return var_pos
 
 
-def get_final_ref_pos_list(var_pos, windows_size):
-    final_ref_pos_list = []
-    while var_pos:  # while list not empty
-        start = var_pos.pop(0)
-        for i in var_pos:  # once last item is popped this will stop
-            difference = i - start
-            # this version of the program is limited to looking at positions within reads as such if the distance
-            # between position pairs are beyond read length it won't find anything
-            if difference <= windows_size:
-                # final_ref_pos_list.append((start, i))
-                # pysam uses 0-based index. Above line used earlier is wrong.
-                final_ref_pos_list.append((start - 1, i - 1))
-
-    return final_ref_pos_list
-
-
-def get_init_df(final_ref_pos_list, baseCombinations):
-    init_df = pd.DataFrame(index=final_ref_pos_list, columns=baseCombinations)
-    init_df = init_df.fillna(value=0)  # all values will be NaN, convert to 0 instead
-
-    return init_df
+@njit(parallel=True, nogil=True)
+def find_nearby(sites, window):
+    """
+    Create candidate variant pairs based on a window of separation. Performance
+    is gained by writing a Numba compliant method.
+    :param sites: the list of sites from a reference
+    :param window: the window range measured in nucleotides
+    :return: a list of unique pair tuples
+    """
+    ret = List()
+    for i in prange(len(sites)):
+        for j in prange(i+1, len(sites)):
+            dij = sites[j] - sites[i]
+            if dij <= window:
+                ret.append((sites[i]-1, sites[j]-1))
+    return ret
 
 
-def pattern_match(bam_File, final_ref_pos_list, df):
-    read_1 = read_2 = None  # initialise before loop
+def get_final_ref_pos_list(ref_sites, window, n_proc=1):
+    ref_pairs = {}
+    for ref, sites in ref_sites.items():
+        # re-wrap Numba array as a regular list as returned object is
+        # 5x slower to access and cannot be pickled
+        ref_pairs[ref] = list(find_nearby(np.sort(np.array(list(sites), dtype=np.int64)), window))
+    return ref_pairs
 
-    # until_eof=True, also includes unmapped. Perhaps these should be filtered before hand?
-    # needed if bam is not indexed
-    for read in bam_File.fetch(until_eof=True):
-        # Given that the reads are next to each other the pair are combined and processed accordingly
 
-        if read.is_read1:
-            read_1 = read
-            read_1_ref_positions = read_1.get_reference_positions(full_length=True)
-            # By default, this method only returns positions in the reference that are within the alignment.
-            # If full_length is set, None values will be included for any soft-clipped or unaligned positions
-            # within the read. The returned list will thus be of the same length as the read.
+def exe_exists(exe_name: str) -> bool:
+    """
+    Check that a executable exists on the Path.
+    :param exe_name: the base executable name
+    :return: True, an executable file named exe_name exists and has executable bit set
+    """
+    p, f = os.path.split(exe_name)
+    assert not p, 'include only the base file name, no path specification'
 
-            # positions that are being looked at will be non soft-clipped
-            # as those ref pos will be none as mentioned above and will be ignored
-            read_1_query_seq = read_1.query_sequence
+    for pn in os.environ["PATH"].split(':'):
+        full_path = os.path.join(pn, exe_name)
+        if os.path.isfile(full_path) and os.access(full_path, os.X_OK):
+            return True
+    return False
 
-        elif read.is_read2:
-            read_2 = read
-            read_2_ref_positions = read_2.get_reference_positions()
-            read_2_query_seq = read_2.query_sequence
 
-        if read_1 and read_2:
-            # Combine and process
+def count_bam_reads(file_name: str, paired: bool = False, mapped: bool = False,
+                    mapq: int = None, max_cpu: int = None) -> int:
+    """
+    Use samtools to quickly count the number of non-header lines in a bam file. This is assumed to equal
+    the number of mapped reads.
+    :param file_name: a bam file to scan (neither sorted nor an index is required)
+    :param paired: when True, count only reads of mapped pairs (primary alignments only)
+    :param mapped: when True, count only reads which are mapped
+    :param mapq: count only reads with mapping quality greater than this value
+    :param max_cpu: set the maximum number of CPUS to use in counting (otherwise all cores)
+    :return: estimated number of mapped reads
+    """
+    assert exe_exists('samtools'), 'required tool samtools was not found on path'
+    assert exe_exists('wc'), 'required tool wc was not found on path'
+    assert not (paired and mapped), 'Cannot set paired and mapped simultaneously'
 
-            # combined read 1 and read 2 ref positions, the 2 ref positions we are searching should be in here
-            combined_ref_positions = read_1_ref_positions + read_2_ref_positions
-            combined_ref_positions_set = set(combined_ref_positions)  # for searching
-            combined_query_sequences = read_1_query_seq + read_2_query_seq
+    if not os.path.exists(file_name):
+        raise IOError('{} does not exist'.format(file_name))
+    if not os.path.isfile(file_name):
+        raise IOError('{} is not a file'.format(file_name))
 
-            zip_ref_pos_and_query_seq = zip(combined_ref_positions, combined_query_sequences)
+    opts = ['samtools', 'view', '-c']
+    if max_cpu is None:
+        max_cpu = multiprocessing.cpu_count()
+    opts.append('-@{}'.format(max_cpu))
 
-            req_pos_and_query_seq_dict = {ref_pos: query_seq for ref_pos, query_seq in zip_ref_pos_and_query_seq}
+    if paired:
+        opts.append('-F0xC0C')
+    elif mapped:
+        opts.append('-F0xC00')
 
-            for pos1, pos2 in final_ref_pos_list:
-                if pos1 in combined_ref_positions_set and pos2 in combined_ref_positions_set:
-                    base_at_pos1 = req_pos_and_query_seq_dict.get(pos1)
-                    base_at_pos2 = req_pos_and_query_seq_dict.get(pos2)
+    if mapq is not None:
+        assert 0 <= mapq <= 60, 'mapq must be in the range [0,60]'
+        opts.append('-q{}'.format(mapq))
 
-                    if base_at_pos1 != 'N' and base_at_pos2 != 'N':
-                        pair = f"{base_at_pos1}{base_at_pos2}"
-                        df.at[(pos1, pos2), pair] += 1  # get value by index and column
+    proc = subprocess.Popen(opts + [file_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-            # Reset for next pair of reads
-            read_1 = read_2 = None
+    value_txt = proc.stdout.readline().strip()
+    try:
+        count = int(value_txt)
+        if paired and count % 2 != 0:
+            print('When counting paired reads, the total was not divisible by 2.')
+        return count
+    except ValueError:
+        raise RuntimeError('Encountered a problem determining alignment count. samtools returned [{}]'
+                           .format(value_txt))
 
-    bam_File.close()
 
-    return df
+def remove_unaligned(in_pos, in_seq):
+    """
+    Conveinence method for removing elements from both position and sequence
+    lists when the position is reported as "None". This indicates an unaligned
+    position, which is of no use to this analysis.
+    
+    :param in_pos: input list of reference positions
+    :param in_seq: input list of read-pair nucleotides
+    :return: each list without Ns, if they occured.
+    """
+    out_pos = []
+    out_seq = []
+    for i in range(len(in_pos)):
+        if in_pos[i] is None:
+            continue
+        out_pos.append(in_pos[i])
+        out_seq.append(in_seq[i])
+    return out_pos, out_seq
+
+
+# Named tuple type for clarity.
+Pair_t = namedtuple('Pair', ['chr', 'pos1', 'pos2', 'base1', 'base2'])
+
+
+def pattern_match(bam, ref_pos_dict, read_count, n_proc):
+
+    # for performance, we prepare a nested lookup structure using
+    # dict and set so that variant existence can be quickly assessed.
+
+    # for every reference
+    ref_lookup = {}
+    for ref_name, pair_pos in ref_pos_dict.items():
+        d = defaultdict(set)
+        # pos1 indexes a map of int-to->set, while pos2 forms the set.
+        for p1, p2 in pair_pos:
+            d[p1].add(p2)
+        ref_lookup[ref_name] = d
+
+    with pysam.AlignmentFile(bam, "rb", threads=n_proc) as bam_file:
+
+        # check BAM file ordering is query-name
+        try:
+            _header = bam_file.header['HD']
+        except KeyError as ex:
+            raise RuntimeError('no header information in bam: {}'.format(bam))
+        if 'SO' not in _header:
+            raise RuntimeError('No sorting defined in bam: {}'.format(bam))
+        elif _header['SO'] != 'queryname':
+            raise RuntimeError('BAM file must be query-name sorted')
+
+        # quick reference id to name lookup
+        id_to_name = {i: bam_file.references[i] for i in range(len(bam_file.references))}
+
+        pair_table = defaultdict(int)
+        
+        with tqdm.tqdm(total=read_count) as progress:
+
+            bam_iter = bam_file.fetch(until_eof=True)
+
+            while True:
+
+                # keep traversing file until we get a consecutive pair
+                try:
+                    r1 = next(bam_iter)
+                    progress.update()
+                    while True:
+                        r2 = next(bam_iter)
+                        progress.update()
+                        if r1.query_name == r2.query_name:
+                            break
+                        r1 = r2
+                except StopIteration:
+                    break
+
+                # both reads must map to the same reference
+                ref_id = r1.reference_id
+                if ref_id != r2.reference_id:
+                    continue
+
+                # keep a consistent R1/R2 order
+                if r1.is_read2:
+                    r1, r2 = r2, r1
+
+
+                # prepare lookup map of position on reference to read nucleotide
+                ref_positions = r1.get_reference_positions(full_length=True) + \
+                                r2.get_reference_positions(full_length=True)
+                query_sequences = r1.query_sequence + r2.query_sequence
+
+                ref_positions, query_sequences = remove_unaligned(ref_positions, query_sequences)
+
+                # quick lookup of reference position to read nucleotide
+                pos_to_seq = dict(zip(ref_positions, query_sequences))
+
+                ref_name = id_to_name[ref_id]
+                # next read-pair if reference has no variants
+                if ref_name not in ref_pos_dict:
+                    continue
+
+                # get the variant map for this reference
+                snp_lookup = ref_lookup[ref_name]
+
+                # check whether the mapped read-pair covers a variant pair
+                # keep a tally each time we find one.
+                # the nested loops will traverse only unique combinations of pairs
+                pos = sorted(ref_positions)
+                for i in range(len(pos)):
+                    pos1 = pos[i]
+                    if pos1 not in snp_lookup:
+                        continue
+                    for j in range(i+1, len(pos)):
+                        pos2 = pos[j]
+                        if pos2 not in snp_lookup[pos1]:
+                            continue
+                        base1 = pos_to_seq[pos1]
+                        base2 = pos_to_seq[pos2]
+                        # tally is indexed by 5 parameters
+                        pair_table[Pair_t(ref_name, pos1, pos2, base1, base2)] += 1
+
+        # convert the dict-based pairs table into a dataframe for downstream tools
+        base_combinations = ["AA", "AC", "AG", "AT", "CA", "CC", "CG", "CT", 
+                             "GA", "GC", "GG", "GT", "TA", "TC", "TG", "TT"]
+        d = {}
+        for _pair, _count in pair_table.items():
+            # rows are uniquely indexed by 3 parameters
+            ix = (_pair.chr, _pair.pos1, _pair.pos2)
+            if ix not in d:
+                d[ix] = dict(zip(base_combinations, [0]*16))
+            d[ix][f'{_pair.base1}{_pair.base2}'] = _count
+        # initialise the dataframe in one go
+        pair_table = pd.DataFrame.from_dict(d, orient='index')
+
+        return pair_table
 
 
 def main(bam, vcf_file, num_cores, fragment_len):
     window_size = fragment_len
 
-    bam_file = pysam.AlignmentFile(bam, "rb", threads=num_cores)
-
-    # genomeSize = int(bamfile.header.get("SQ")[0].get("LN"))  # Header information can be accessed like a dictionary
-
-    base_combinations = ["AA", "AC", "AG", "AT", "CA", "CC",
-                         "CG", "CT", "GA", "GC", "GG", "GT", "TA", "TC", "TG", "TT"]
+    # get number of aligned reads for progress tracking
+    read_count = count_bam_reads(bam, max_cpu=num_cores)
+    print("The BAM file contains {:,} reads".format(read_count))
 
     variant_positions = get_var_pos_from_vcf(vcf_file)
+    print('Number of variant positions to analyze: {:,}'.format(
+        sum(len(v) for v in variant_positions.values())))
 
-    final_ref_pos_list = get_final_ref_pos_list(variant_positions, window_size)
+    reference_pair_positions = get_final_ref_pos_list(variant_positions, window_size, num_cores)
+    print('Number of pair positions across references: {:,}'.format(
+        sum(len(v) for v in reference_pair_positions.values())))
 
-    init_df = get_init_df(final_ref_pos_list, base_combinations)
-
-    pairwise_table = pattern_match(bam_file, final_ref_pos_list, init_df)
+    pairwise_table = pattern_match(bam, reference_pair_positions, read_count, num_cores)
 
     return pairwise_table
