@@ -10,12 +10,12 @@ dependencies:
   - biopython
   - scipy
   - future
-  - seq-gen
   - bwa
-  - samtools=1.12
-  - lofreq
+  - samtools>=1.15
   - pysam
   - seaborn
   - numba
-  - fastsimbac
   - msprime>=1.1.0
+  - tqdm
+  - bcftools
+  - freebayes>=1.3.6
