@@ -273,3 +273,11 @@ def main(bam, vcf_file, num_cores, fragment_len):
     pairwise_table = pattern_match(bam, reference_pair_positions, read_count, num_cores)
 
     return pairwise_table
+
+
+# if __name__ == '__main__':
+#     bam = "subsampled.bam"
+#     vcf_file = "freeBayesOut.vcf"
+#     num_cores = 4
+#     fragment_len = 1000
+#     main(bam, vcf_file, num_cores, fragment_len)
