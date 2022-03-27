@@ -12,7 +12,7 @@ RUN conda install -c defaults -c bioconda -c conda-forge \
     scipy \
     future \
     bwa \
-    samtools>=1.15 \
+    samtools=1.12 \
     pysam>=0.18.0 \
     seaborn \
     numba \
