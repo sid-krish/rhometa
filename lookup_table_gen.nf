@@ -63,13 +63,33 @@ process DOWNSAMPLE_LOOKUP_TABLE {
         path lookup_table
         val ldpop_rho_range
         each downsample_val
+        val table_fmt
 
     output:
-        path "lk_downsampled_${downsample_val}.csv"
+        path "lk_downsampled_${downsample_val}.pkl"
 
     script:
     """
-    m_downsample_lk_table.py ${lookup_table} ${ldpop_rho_range} ${downsample_val}
+    m_downsample_lk_table.py ${lookup_table} ${ldpop_rho_range} ${downsample_val} ${table_fmt}
+    """
+}
+
+process TABLE_STORE {
+    publishDir params.output_dir, mode: 'copy'
+
+    input:
+        path downsampled_table
+        val table_fmt
+        val theta
+        val ldpop_rho_range
+        val store_name
+
+    output:
+        path "${store_name}"
+
+    script:
+    """
+    m_hdf5.py --table-format ${table_fmt} --init -t ${theta} -r ${ldpop_rho_range} . ${store_name}
     """
 }
 
@@ -83,6 +103,8 @@ workflow {
     params.theta = 0.01 // Theta can be based on estimate or as desired
     params.ldpop_rho_range = "0,0.01,1,1,100"
     params.lk_table_max_depth = 200
+    params.table_fmt = 'csv'
+    params.store_name = 'lookup_tables.h5'
 
     depth_range = Channel.of(3 .. params.lk_table_max_depth) // 3 to max_depth val
 
@@ -97,15 +119,13 @@ workflow {
     // Process execution
     if (params.lk_table == 'none') {
         LDPOP_TABLE_GEN(params.lk_table_max_depth, params.theta, params.ldpop_rho_range)
-
-        DOWNSAMPLE_LOOKUP_TABLE(LDPOP_TABLE_GEN.out.lookup_table_txt, params.ldpop_rho_range, depth_range)
+        DOWNSAMPLE_LOOKUP_TABLE(LDPOP_TABLE_GEN.out.lookup_table_txt, params.ldpop_rho_range, depth_range, params.table_fmt)
     }
 
     else {
         lk_table_file = Channel.fromPath(params.lk_table)
-        DOWNSAMPLE_LOOKUP_TABLE(lk_table_file, params.ldpop_rho_range, depth_range)
+        DOWNSAMPLE_LOOKUP_TABLE(lk_table_file, params.ldpop_rho_range, depth_range, params.table_fmt)
     }
 
-    
-
+    TABLE_STORE(DOWNSAMPLE_LOOKUP_TABLE.out.collect(), params.table_fmt, params.theta, params.ldpop_rho_range, params.store_name)
 }

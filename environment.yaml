@@ -5,17 +5,20 @@ channels:
   - conda-forge
 dependencies:
   - python
-  - numpy
+  - numpy>=1.21,<1.22
   - pandas
   - biopython
   - scipy
   - future
   - seq-gen
   - bwa
-  - samtools=1.12
+  - samtools=1.15
   - lofreq
   - pysam
   - seaborn
   - numba
   - fastsimbac
   - msprime>=1.1.0
+  - bcftools
+  - freebayes
+  - tqdm
