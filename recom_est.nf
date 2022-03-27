@@ -240,7 +240,7 @@ workflow {
     params.help = false
     params.seed = [123] // used for samtools subsamping and final bootstrap algorithm
     params.prefix_filename = "none"
-    params.recom_tract_len = 500
+    params.recom_tract_len = 1000
     params.ldpop_rho_range = "0,0.01,1,1,100"
     params.window_size = 1000 // For single end this is the read size, for paired end this is the max insert length (1000bp is a practical upper limit)
     params.single_end = false
