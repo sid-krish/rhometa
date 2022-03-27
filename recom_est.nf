@@ -150,7 +150,7 @@ process FREEBAYES {
 
 
 process PAIRWISE_TABLE{
-    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
+    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     // maxForks 1
 

@@ -11,6 +11,7 @@ import m_pij_grid_vectorised
 import m_pairwise_rho_estimator_intp_rect_biv
 
 if __name__ == '__main__':
+    depth = 5
 
     recom_tract_len = 500
     depth_range = "3,200"
@@ -19,7 +20,7 @@ if __name__ == '__main__':
     pairwise_table_file = "../Recom_Est_Output/pairwise_table.pkl"
     num_cores = 4
     lookup_table_rho_vals = rhos_from_string(lookup_table_rho_range)
-    lookup_table = f"/Volumes/Backup/Lookup_tables/Lookup_tables_m_0.01_r_0-100/lk_downsampled_{5}.csv"
+    lookup_table = f"/Volumes/Backup/Lookup_tables/Lookup_tables_m_0.01_r_0-100/lk_downsampled_{depth}.csv"
 
     # load pairwise table
     pairwise_table = pd.read_pickle(pairwise_table_file)
@@ -27,7 +28,7 @@ if __name__ == '__main__':
     pairwise_table.to_csv("testing_pairwise.csv")
 
     # isolate a single depth for testing
-    pairwise_table_slice = m_isolate_by_depth.main(pairwise_table, 5)
+    pairwise_table_slice = m_isolate_by_depth.main(pairwise_table, depth)
     
     # perform bi-allelic filtering
     pairwise_biallelic_table = m_biallelic_filter_pairwise_table.main(pairwise_table_slice.copy())
@@ -49,7 +50,7 @@ if __name__ == '__main__':
                                                                       table_ids_for_eq3.copy(),
                                                                       p_ij_grid.copy(),
                                                                       lookup_table,
-                                                                      5)
+                                                                      depth)
     # Collect pairwise likelihoods across depths
 
     # Bootstrap to get final results with confidence interval
