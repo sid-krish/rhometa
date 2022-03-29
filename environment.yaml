@@ -4,17 +4,11 @@ channels:
   - bioconda
   - conda-forge
 dependencies:
-  - python
-  - numpy>=1.21
-  - pandas>=1.4.0
-  - biopython
+  - numpy
+  - pandas
   - scipy
-  - future
-  - bwa
-  - samtools>=1.15
   - pysam
   - seaborn
   - numba
-  - msprime>=1.1.0
-  - tqdm
-  - bcftools
+  - samtools=1.12
+  - freebayes>=1.3.5
