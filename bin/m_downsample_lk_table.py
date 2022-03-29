@@ -23,16 +23,17 @@ def downsample_lookup_table(lookup_table, lookup_table_rho_range, downsample_val
 
     df_lookup_table.drop(
         columns=["Type", "#", "00", "01", "10", "11", "Rho"], inplace=True)
-    df_lookup_table.index.set_names("00 01 10 11", inplace=True)
+        
+    df_lookup_table.set_index("00 01 10 11", inplace=True)
 
     downsampled_lookuptable_df = downsample(df_lookup_table, downsample_value)
 
-    lk_downsampled_out_dir = f"lk_downsampled_{downsample_value}.csv"
+    downsample_basename = f"lk_downsampled_{downsample_value}"
 
     if output_fmt == 'pickle':
-        downsampled_lookuptable_df.to_pickle(lk_downsampled_out_dir)
+        downsampled_lookuptable_df.to_pickle(f"{downsample_basename}.pkl")
     elif output_fmt == 'csv':
-        downsampled_lookuptable_df.to_csv(lk_downsampled_out_dir)
+        downsampled_lookuptable_df.to_csv(f"{downsample_basename}.csv")
     else:
         raise RuntimeError('unimplemented format: {}'.formt(output_fmt))
 
