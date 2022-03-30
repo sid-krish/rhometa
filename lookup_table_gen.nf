@@ -17,10 +17,10 @@ def helpMessage() {
     nextflow run lookup_table_gen.nf --help
 
     Options:
-    --ldpop_rho_range [str], default:["0,0.01,1,1,100"], ["num_rh,max_rh"] The grid of rho values used to generate lookup tables for using the ldpop algorithm.
-                                                        ldpop help: The grid has num_rh uniformly spaced points from 0 to max_rh, inclusive. (((Alternatively, to create 
-                                                        a non-uniform grid, use r0,step0,r1,step1,r2,...rK. This creates a grid {r0,r0+step0,r0+2*step0,...,r1,r1+step1,...,rK}
-                                                        similar to ldhelmet. Note that non-uniform grid is incompatible with vanilla ldhat.)))
+    --ldpop_rho_range [str], default:["201,100"], ["num_rh,max_rh"] The grid of rho values used to generate lookup tables for using the ldpop algorithm.
+                                                   ldpop help: The grid has num_rh uniformly spaced points from 0 to max_rh, inclusive. (((Alternatively, to create 
+                                                   a non-uniform grid, use r0,step0,r1,step1,r2,...rK. This creates a grid {r0,r0+step0,r0+2*step0,...,r1,r1+step1,...,rK}
+                                                   similar to ldhelmet. Note that non-uniform grid is incompatible with vanilla ldhat.)))
     --lk_table_max_depth [int], default:[100], The max depth to generate lookup tables for
     --lk_table [str], Provide lookup table to run downsample step only
     --theta [int], default:[0.01], Population mutation rate, can be estimated value from theta_est.nf or a different value
@@ -99,8 +99,8 @@ workflow {
     params.help = false
     params.lk_table = 'none'
     params.theta = 0.01 // Theta can be based on estimate or as desired
-    params.ldpop_rho_range = "0,0.01,1,1,100"
-    params.lk_table_max_depth = 200
+    params.ldpop_rho_range = "201,100"
+    params.lk_table_max_depth = 100
     params.store_name = 'lookup_tables.h5'
 
     depth_range = Channel.of(3 .. params.lk_table_max_depth) // 3 to max_depth val

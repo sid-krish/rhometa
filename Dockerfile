@@ -1,24 +1,31 @@
-FROM continuumio/miniconda3
+FROM continuumio/miniconda3:latest
 
-RUN apt-get update && apt-get dist-upgrade --yes
-RUN apt-get install -y procps
+# update the base system
+RUN apt-get update && \
+    apt-get dist-upgrade --yes && \
+    apt-get install -y procps && \
+    apt-get clean
 
-RUN conda update conda --yes
-RUN conda install -c defaults -c bioconda -c conda-forge \
-    python \
-    numpy>=1.22 \
-    pandas>=1.4.0 \
-    biopython \
-    scipy \
-    future \
-    bwa \
-    samtools>=1.15 \
-    pysam>=0.18.0 \
-    seaborn \
-    numba \
-    msprime>=1.1.0 \
-    tqdm \
-    bcftools \
-    freebayes>=1.3.6 \
-    libopenblas --yes
-RUN conda clean --all --yes
+# just install non-python deps with conda
+RUN conda update conda --yes && \
+    conda install --yes  -c conda-forge -c bioconda \
+        bcftools \
+        bwa \
+        "freebayes>=1.3.6" \
+        "msprime>=1.1.0" \
+        python \
+        "samtools>=1.15" && \
+    conda clean --all
+
+# install all python modules using pip
+RUN pip install --no-cache-dir \
+        biopython \
+        future \
+        scipy \
+        seaborn \
+        tqdm \
+        pandas \
+        tables \
+        pysam \
+        numba \
+        numpy
