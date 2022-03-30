@@ -203,7 +203,7 @@ process RECOM_RATE_ESTIMATOR {
 
     script:
     """
-    mprr_main_parallel_seeded.py ${recom_tract_len} ${depth_range} ${n_bootstrap_samples} ${ldpop_rho_range} ${pairwise_table_pkl} $task.cpus ${seed}
+    main_parallel_seeded.py ${recom_tract_len} ${depth_range} ${n_bootstrap_samples} ${ldpop_rho_range} ${pairwise_table_pkl} $task.cpus ${seed}
     """
 
 }
