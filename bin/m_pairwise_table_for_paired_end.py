@@ -29,7 +29,7 @@ def get_var_pos_from_vcf(vcf_file):
     return var_pos
 
 
-@njit(parallel=True, nogil=True)
+@njit(nogil=True)
 def find_nearby(sites, window):
     """
     Create candidate variant pairs based on a window of separation. Performance
@@ -39,8 +39,8 @@ def find_nearby(sites, window):
     :return: a list of unique pair tuples
     """
     ret = List()
-    for i in prange(len(sites)):
-        for j in prange(i+1, len(sites)):
+    for i in range(len(sites)):
+        for j in range(i+1, len(sites)):
             dij = sites[j] - sites[i]
             if dij <= window:
                 ret.append((sites[i]-1, sites[j]-1))
@@ -149,6 +149,13 @@ def pattern_match(bam, ref_pos_dict, read_count, n_proc):
     # for performance, we prepare a nested lookup structure using
     # dict and set so that variant existence can be quickly assessed.
 
+    def _accept(_read):
+        """
+        Acceptance criteria for reads. At a minimum, reads must be mapped to be relevant. Supplied
+        BAM files may not be filtered to exclude unmapped reads.
+        """
+        return not _read.is_unmapped
+        
     # for every reference
     ref_lookup = {}
     for ref_name, pair_pos in ref_pos_dict.items():
@@ -178,7 +185,6 @@ def pattern_match(bam, ref_pos_dict, read_count, n_proc):
         with tqdm.tqdm(total=read_count) as progress:
 
             bam_iter = bam_file.fetch(until_eof=True)
-
             while True:
 
                 # keep traversing file until we get a consecutive pair
@@ -188,7 +194,7 @@ def pattern_match(bam, ref_pos_dict, read_count, n_proc):
                     while True:
                         r2 = next(bam_iter)
                         progress.update()
-                        if r1.query_name == r2.query_name:
+                        if _accept(r1) and _accept(r2) and r1.query_name == r2.query_name:
                             break
                         r1 = r2
                 except StopIteration:
@@ -202,7 +208,6 @@ def pattern_match(bam, ref_pos_dict, read_count, n_proc):
                 # keep a consistent R1/R2 order
                 if r1.is_read2:
                     r1, r2 = r2, r1
-
 
                 # prepare lookup map of position on reference to read nucleotide
                 ref_positions = r1.get_reference_positions(full_length=True) + \

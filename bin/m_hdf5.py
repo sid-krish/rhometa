@@ -2,6 +2,7 @@
 import glob
 import logging
 import os
+from numpy import index_exp
 import pandas as pd
 import warnings
 from collections import namedtuple
@@ -136,6 +137,7 @@ class TableStore(object):
         for _depth, _fn in input_tables:
             logger.info('Reading depth: {}, from file: {}'.format(_depth, _fn))
             _df = _reader(_fn)
+            _df.index.set_names('00 01 10 11', inplace=True)
             depth_list.append(_depth)
             rho_range = tuple(_df.columns.astype(float).to_series().agg([min, max]))
             assert rho_range == (min(rhos), max(rhos)), 'rho range in table disagrees with arguments: {}'.format(_fn)
@@ -169,8 +171,8 @@ if __name__ == '__main__':
     parser.add_argument('h5_store_file', help='Output file name for H5 store')
     args = parser.parse_args()
 
-    _mode = 'w' if args.init else 'r+'
-    
+    _mode = 'w' if args.init else 'a'
+
     logging.captureWarnings(True)
     logger = logging.getLogger('main')
 
