@@ -84,6 +84,7 @@ def step_9(arg_list):
 
 
 if __name__ == '__main__':
+    
     recom_tract_len = int(sys.argv[1])
     depth_range = sys.argv[2]
     n_resamples = int(sys.argv[3])
@@ -125,7 +126,7 @@ if __name__ == '__main__':
     
     rng = np.random.default_rng(seed=seed_val)
 
-    resample_vals = rng.integers(low=0,high=100, size=n_resamples)
+    resample_vals = rng.choice(range(10000, 99999), size=n_resamples, replace=False)
 
     for _rv in resample_vals:
         steps_9_arg_list.append([_rv, results_across_depths, lookup_table_rho_vals])
