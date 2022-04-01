@@ -60,25 +60,44 @@ def steps_1_to_7(arg_list):
                                                                       lookup_table,
                                                                       depth)
 
-    return interpolated_eq2_df
+    ### Performing weighting
+    ### This should be moved to a seperate function later and optimised
+    # Step 1: Convert log-likelihoods to likelihoods
+    interpolated_eq2_np = interpolated_eq2_df.to_numpy(dtype=np.float128, copy=True)
+    exp_np = np.exp(interpolated_eq2_np)
 
+    # Step 2: We normalise the likelihood values such that the values add up to 1. We do this by dividing each value by the sum of all values.
+    exp_norm_np = exp_np / np.sum(exp_np)
 
-def step_9(arg_list):
-    rng_val = arg_list[0]
-    results_across_depths = arg_list[1]
-    lookup_table_rho_vals = arg_list[2]
+    # Step 3: Multiply the values by the depth and the number of observations. 
+    # This scaling is the “weighting” procedure, the higher the number of observations or depth the more it will be weighted for the final log sum calculation.
+    observations = exp_norm_np.shape[0]
+    exp_norm_scaled_np = depth * observations * exp_norm_np
 
-    #the resampled df will have the same num of rows as the original
-    bootstrap_results = results_across_depths.sample(frac=1, replace=True, random_state=rng_val, axis=0)
+    # Step 4: Following this weighting step, we convert back to log space by taking the log of the values
+    weighted_log_np = np.log(exp_norm_scaled_np)
 
-    bootstrap_results_sums = bootstrap_results.sum(axis=0)
+    # Step 5: Back to df
+    weighted_log_df = pd.DataFrame(weighted_log_np)
+    
+    return weighted_log_df
 
-    bootstrap_results_finalised = pd.DataFrame()
-    bootstrap_results_finalised["rho"] = lookup_table_rho_vals
-    bootstrap_results_finalised["likelihood_sums"] = list(bootstrap_results_sums)
-    bootstrap_results_finalised["bootstrap_sample"] = rng_val
+# def step_9(arg_list):
+#     rng_val = arg_list[0]
+#     results_across_depths = arg_list[1]
+#     lookup_table_rho_vals = arg_list[2]
 
-    return bootstrap_results_finalised
+#     #the resampled df will have the same num of rows as the original
+#     bootstrap_results = results_across_depths.sample(frac=1, replace=True, random_state=rng_val, axis=0)
+
+#     bootstrap_results_sums = bootstrap_results.sum(axis=0)
+
+#     bootstrap_results_finalised = pd.DataFrame()
+#     bootstrap_results_finalised["rho"] = lookup_table_rho_vals
+#     bootstrap_results_finalised["likelihood_sums"] = list(bootstrap_results_sums)
+#     bootstrap_results_finalised["bootstrap_sample"] = rng_val
+
+#     return bootstrap_results_finalised
 
 
 if __name__ == '__main__':
