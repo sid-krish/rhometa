@@ -181,6 +181,8 @@ process PAIRWISE_TABLE{
 process RECOM_RATE_ESTIMATOR {
     publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
+    echo true
+
     // maxForks 1
 
     input:
@@ -198,12 +200,12 @@ process RECOM_RATE_ESTIMATOR {
     output:
         tuple val(prefix_filename),
             path("final_results.csv"),
-            path("final_results_max_vals.csv"),
-            path("final_results_summary.csv")
+            path("final_results_max_vals.csv")
+            // path("final_results_summary.csv")
 
     script:
     """
-    main_parallel_seeded.py ${recom_tract_len} ${depth_range} ${n_bootstrap_samples} ${ldpop_rho_range} ${pairwise_table_pkl} $task.cpus ${seed}
+    main_weighted.py ${recom_tract_len} ${depth_range} ${n_bootstrap_samples} ${ldpop_rho_range} ${pairwise_table_pkl} $task.cpus ${seed}
     """
 
 }
@@ -217,8 +219,8 @@ process FINAL_RESULTS_PLOT {
     input:
         tuple val(prefix_filename),
             path("final_results.csv"),
-            path("final_results_max_vals.csv"),
-            path("final_results_summary.csv")
+            path("final_results_max_vals.csv")
+            // path("final_results_summary.csv")
 
     output:
         path "final_results_plot.png", emit: final_results_plot_png
@@ -296,6 +298,6 @@ workflow {
 
     RECOM_RATE_ESTIMATOR(PAIRWISE_TABLE.out, downsampled_lookup_tables, params.recom_tract_len, params.depth_range, params.n_bootstrap_samples, params.ldpop_rho_range)
 
-    FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out)
+    // FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out)
 
 }
