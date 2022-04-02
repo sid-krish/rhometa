@@ -32,8 +32,6 @@ def helpMessage() {
 
 process LDPOP_TABLE_GEN {
     publishDir "Lookup_tables", mode: "copy"
-
-    label 'ldpop_table_gen'
     
     maxForks 1
 
@@ -56,8 +54,6 @@ process LDPOP_TABLE_GEN {
 
 process DOWNSAMPLE_LOOKUP_TABLE {
     publishDir "Lookup_tables", mode: "copy"
-
-    label 'downsample_lookup_table'
 
     input:
         path lookup_table
