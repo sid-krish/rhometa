@@ -181,8 +181,6 @@ process PAIRWISE_TABLE{
 process RECOM_RATE_ESTIMATOR {
     publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
-    echo true
-
     // maxForks 1
 
     input:
@@ -193,19 +191,17 @@ process RECOM_RATE_ESTIMATOR {
         path downsampled_lookup_tables
         val recom_tract_len
         val depth_range
-        val n_bootstrap_samples
         val ldpop_rho_range
 
 
     output:
         tuple val(prefix_filename),
-            path("final_results.csv"),
-            path("final_results_max_vals.csv")
-            // path("final_results_summary.csv")
+            path("final_sums.csv"),
+            path("final_estimate.csv")
 
     script:
     """
-    main_weighted.py ${recom_tract_len} ${depth_range} ${n_bootstrap_samples} ${ldpop_rho_range} ${pairwise_table_pkl} $task.cpus ${seed}
+    main_weighted.py ${recom_tract_len} ${depth_range} ${ldpop_rho_range} ${pairwise_table_pkl} $task.cpus
     """
 
 }
@@ -240,14 +236,13 @@ workflow {
 
     // Params
     params.help = false
-    params.seed = [123] // used for samtools subsamping and final bootstrap algorithm
+    params.seed = [123] // used for samtools subsamping
     params.prefix_filename = "none"
     params.recom_tract_len = 1000
     params.ldpop_rho_range = "0,0.01,1,1,100"
     params.window_size = 1000 // For single end this is the read size, for paired end this is the max insert length (1000bp is a practical upper limit)
     params.single_end = false
     params.depth_range = "3,200" // min_depth, max_depth
-    params.n_bootstrap_samples = 50 // number of bootstrap samples to get error bars for final results
 
     params.bam_file = 'none'
     params.reference_genome = 'none'
@@ -296,7 +291,7 @@ workflow {
 
     PAIRWISE_TABLE(FREEBAYES.out, params.single_end, params.window_size)
 
-    RECOM_RATE_ESTIMATOR(PAIRWISE_TABLE.out, downsampled_lookup_tables, params.recom_tract_len, params.depth_range, params.n_bootstrap_samples, params.ldpop_rho_range)
+    RECOM_RATE_ESTIMATOR(PAIRWISE_TABLE.out, downsampled_lookup_tables, params.recom_tract_len, params.depth_range, params.ldpop_rho_range)
 
     // FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out)
 
