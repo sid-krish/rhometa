@@ -106,18 +106,14 @@ if __name__ == '__main__':
 
     depth_vals = [i for i in range(depth_lower_limit, depth_upper_limit + 1)]
 
-    steps_1_to_6_arg_list = []
-    for i in depth_vals:
-        steps_1_to_6_arg_list.append([i, recom_tract_len, pairwise_table, lookup_table_rho_vals])
+    steps_1_to_6_arg_list = [[i, recom_tract_len, pairwise_table, lookup_table_rho_vals] for i in depth_vals]
 
     # Parallel execution of steps 1 through 6
     with Pool(processes=num_cores) as p:
         steps_1_to_6_results = p.map(steps_1_to_6, steps_1_to_6_arg_list)
 
     # Step 8: Collect pairwise likelihoods across depths
-    results_across_depths = pd.DataFrame()  # Pairwise likelihoods across depths
-    for i in steps_1_to_6_results:
-        results_across_depths = results_across_depths.append(i, ignore_index=True)
+    results_across_depths = pd.concat(steps_1_to_6_results, ignore_index=True)
 
     # Step 9: Export results
     # results_across_depths.to_csv("final_results.csv", index=False)
