@@ -15,7 +15,7 @@ import m_pij_grid_vectorised
 from ldpop import rhos_from_string
 
 
-def steps_1_to_6(arg_list):
+def module_calls(arg_list):
     depth = arg_list[0]
     recom_tract_len = arg_list[1]
     pairwise_table = arg_list[2]
@@ -62,8 +62,7 @@ def steps_1_to_6(arg_list):
                                                                       lookup_table,
                                                                       depth)
 
-    ### Performing weighting
-    ### This should be moved to a seperate function later and optimised
+    ### Performing weighting of log_likelihoods
     # Step 1: Convert log-likelihoods to likelihoods
     interpolated_eq2_np = interpolated_eq2_df.to_numpy(dtype=np.float128, copy=True)
     exp_np = np.exp(interpolated_eq2_np)
@@ -106,14 +105,14 @@ if __name__ == '__main__':
 
     depth_vals = [i for i in range(depth_lower_limit, depth_upper_limit + 1)]
 
-    steps_1_to_6_arg_list = [[i, recom_tract_len, pairwise_table, lookup_table_rho_vals] for i in depth_vals]
+    module_calls_arg_list = [[i, recom_tract_len, pairwise_table, lookup_table_rho_vals] for i in depth_vals]
 
     # Parallel execution of steps 1 through 6
     with Pool(processes=num_cores) as p:
-        steps_1_to_6_results = p.map(steps_1_to_6, steps_1_to_6_arg_list)
+        module_calls_results = p.map(module_calls, module_calls_arg_list)
 
     # Step 8: Collect pairwise likelihoods across depths
-    results_across_depths = pd.concat(steps_1_to_6_results, ignore_index=True)
+    results_across_depths = pd.concat(module_calls_results, ignore_index=True)
 
     # Step 9: Export results
     # results_across_depths.to_csv("final_results.csv", index=False)
