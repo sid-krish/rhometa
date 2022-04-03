@@ -35,6 +35,8 @@ process LDPOP_TABLE_GEN {
     
     maxForks 1
 
+    label 'LDPOP_TABLE_GEN'
+
     input:
         val lk_table_max_depth
         val theta
@@ -54,6 +56,8 @@ process LDPOP_TABLE_GEN {
 
 process DOWNSAMPLE_LOOKUP_TABLE {
     publishDir "Lookup_tables", mode: "copy"
+
+    label 'DOWNSAMPLE_LOOKUP_TABLE'
 
     input:
         path lookup_table
