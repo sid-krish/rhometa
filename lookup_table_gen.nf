@@ -99,7 +99,7 @@ workflow {
     params.help = false
     params.lk_table = 'none'
     params.theta = 0.01 // Theta can be based on estimate or as desired
-    params.ldpop_rho_range = "201,100"
+    params.ldpop_rho_range = "101,100"
     params.lk_table_max_depth = 100
 
     depth_range = Channel.of(3 .. params.lk_table_max_depth) // 3 to max_depth val
