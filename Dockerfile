@@ -1,4 +1,4 @@
-FROM continuumio/miniconda3
+FROM continuumio/miniconda3:latest
 
 RUN apt-get install -y procps
 

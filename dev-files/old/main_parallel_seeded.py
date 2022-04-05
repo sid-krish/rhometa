@@ -32,10 +32,12 @@ def steps_1_to_7(arg_list):
     # note: after bi-allelic filtering some files will be empty
     # copy to create a new df using slice
     if not pairwise_table_slice.empty:
+        print('Process for depth slice {:,} contained {:,} pairs'.format(depth, len(pairwise_table_slice)))
         pairwise_biallelic_table = m_biallelic_filter_pairwise_table.main(pairwise_table_slice.copy())
 
     else:
-        return None
+        print('Process for depth slice {:,} skipped, no data'.format(depth))
+        return None 
 
     # Step 4: convert to lookup format to match against likelihood tables
     if not pairwise_biallelic_table.empty:
@@ -82,6 +84,7 @@ def step_9(arg_list):
 
 
 if __name__ == '__main__':
+    
     recom_tract_len = int(sys.argv[1])
     depth_range = sys.argv[2]
     n_resamples = int(sys.argv[3])
@@ -104,45 +107,39 @@ if __name__ == '__main__':
 
     depth_lower_limit, depth_upper_limit = [int(i) for i in depth_range.split(',')]
 
-    depth_vals = [i for i in range(depth_lower_limit, depth_upper_limit + 1)]
+    depth_vals = [_dp for _dp in range(depth_lower_limit, depth_upper_limit + 1)]
 
+    print('Setting up run for depth range: {}'.format(depth_range))
     steps_1_to_7_arg_list = []
-    for i in depth_vals:
-        steps_1_to_7_arg_list.append([i, recom_tract_len, pairwise_table, lookup_table_rho_vals])
+    for _dp in depth_vals:
+        steps_1_to_7_arg_list.append([_dp, recom_tract_len, pairwise_table, lookup_table_rho_vals])
 
     # Parallel execution of step 1 through 7
     with Pool(processes=num_cores) as p:
         steps_1_to_7_results = p.map(steps_1_to_7, steps_1_to_7_arg_list)
 
     # Step 8: Collect pairwise likelihoods across depths
-    results_across_depths = pd.DataFrame()  # Pairwise likelihoods across depths
-    for i in steps_1_to_7_results:
-        results_across_depths = results_across_depths.append(i, ignore_index=True)
+    results_across_depths = pd.concat(steps_1_to_7_results, ignore_index=True)
 
     # Step 9: Bootstrap to get final results with confidence interval
     steps_9_arg_list = []
     
     rng = np.random.default_rng(seed=seed_val)
 
-    resample_vals = rng.integers(low=0,high=100, size=n_resamples)
+    resample_vals = rng.choice(range(10000, 99999), size=n_resamples, replace=False)
 
-    for i in resample_vals:
-        steps_9_arg_list.append([i, results_across_depths, lookup_table_rho_vals])
+    for _rv in resample_vals:
+        steps_9_arg_list.append([_rv, results_across_depths, lookup_table_rho_vals])
 
     # Parallel execution of step 9
     with Pool(processes=num_cores) as p:
         steps_9_results = p.map(step_9, steps_9_arg_list)
 
-    final_results_df = pd.DataFrame()
-    final_results_max_rho_and_likelihoods_df = pd.DataFrame()
-
-    for i in steps_9_results:
-        final_results_df = final_results_df.append(i, ignore_index=True)
-
-        # Get max rho and likelihood for each bootstrap
-        i = i.sort_values(by=["likelihood_sums", "rho"], ascending=[False, True])
-        final_results_max_rho_and_likelihoods_df = final_results_max_rho_and_likelihoods_df.append(i.iloc[0],
-                                                                                                   ignore_index=True)
+    # combine bootstrap results
+    final_results_df = pd.concat(steps_9_results, ignore_index=True)
+    # for each bootstrap, determine rho at max likeilhood
+    ix_max = final_results_df.groupby('bootstrap_sample').idxmax()['likelihood_sums']
+    final_results_max_rho_and_likelihoods_df = final_results_df.loc[ix_max]
 
     # Step 10: Export results
     final_results_df.to_csv("final_results.csv", index=False)

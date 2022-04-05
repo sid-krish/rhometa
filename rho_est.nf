@@ -34,10 +34,6 @@ def helpMessage() {
 
 process PREFIX_FILENAME {
 
-    // maxForks 1
-
-    // echo true
-
     input:
         tuple path(bam),
             path(fasta)
@@ -57,72 +53,94 @@ process PREFIX_FILENAME {
     """
 }
 
+process FILTER_BAM {
+    /**
+      * Filter input BAM files to assure that reported alignments will be of acceptable quality.
+      * - filters on mapping quality and alignment-score relative to read-length.
+      * - publishes a flagstat report of before and after.
+      **/
 
-process SUBSAMPLE_BAM{
-    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
-
-    // maxForks 1
-
-    // echo true
+    publishDir params.output_dir, mode: 'copy', pattern: 'flagstat.*.txt', saveAs: {filename -> "filter_bam/${filename}"}
 
     input:
         tuple val(prefix_filename),
             path(bam),
             path(fasta),
             val(seed)
-
-            
-        val depth_range
     
     output:
         tuple val(prefix_filename),
-            path("subsampled.bam"),
+            path("filtered.bam"),
             path(fasta),
             val(seed)
 
+        path 'flagstat.*.txt'
+
     script:
     """
-    samtools sort ${bam} > Aligned_sorted.bam
-    samtools mpileup Aligned_sorted.bam > Aligned_sorted.pileup
+    samtools view -b -e "mapq>=40 && [AS]/rlen>0.75" $bam > filtered.bam
+    samtools flagstat $bam > flagstat.before.txt
+    samtools flagstat filtered.bam > flagstat.after.txt
+    """
+}
 
+process SORT_BAM {
+    /**
+      * Simply sort the BAM in coordinate-name order.
+      **/
+    
+    input:
+    tuple val(prefix_filename), path(bam), path(fasta), val(seed)
+
+    output:
+    tuple val(prefix_filename), path('Aligned_sorted.bam'), path(fasta), val(seed)
+
+    """
+    samtools sort -@${task.cpus} -o Aligned_sorted.bam ${bam}
+    """
+}
+
+process MAKE_PILEUP {
+    /**
+      * Create a mpileup file, a pre-req for down-sampling
+      **/
+
+    input:
+    tuple val(prefix_filename), path('Aligned_sorted.bam'), path(fasta), val(seed)
+
+    output:
+    tuple val(prefix_filename), path('Aligned_sorted.bam'), path('Aligned_sorted.pileup'), path(fasta), val(seed)
+
+    """
+    samtools mpileup -o Aligned_sorted.pileup Aligned_sorted.bam
+    """
+}
+
+process SUBSAMPLE {
+    /**
+      * Down-sample the BAM file to a given maximum depth.
+      **/
+    
+    input:
+    tuple val(prefix_filename), path('Aligned_sorted.bam'), path('Aligned_sorted.pileup'), path(fasta), val(seed)
+    val depth_range
+
+    output:
+    tuple val(prefix_filename), path("subsampled.bam"), path(fasta), val(seed)
+
+    """
     subsample_bam_seeded.py Aligned_sorted.pileup ${depth_range} Aligned_sorted.bam ${seed}
     """
 }
 
-
-process LOFREQ{
-    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
-
-    // maxForks 1
-
-    input:
-        tuple val(prefix_filename),
-            path(bam),
-            path(fasta)
-
-    output:
-        tuple val(prefix_filename),
-            path(bam),
-            path(fasta),
-            path("lofreqOut.vcf")
-
-    script:
-    """
-    samtools faidx ${fasta}
-    samtools sort --threads $task.cpus ${bam} -o Aligned.csorted.bam
-    samtools index -@ $task.cpus Aligned.csorted.bam
-
-    #lofreq call -f ${fasta} -o lofreqOut.vcf Aligned.csorted.bam
-    #lofreq call-parallel --pp-threads $task.cpus --no-default-filter -f ${fasta} -o lofreqOut.vcf Aligned.csorted.bam
-    lofreq call-parallel --pp-threads $task.cpus -f ${fasta} -o lofreqOut.vcf Aligned.csorted.bam
-    """
-}
-
-
 process FREEBAYES {
-    // publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
-
-    // maxForks 1
+    /**
+      * Call variants using FreeBayes and filter the result VCF for quality follow FreeBayes reccomendations.
+      * - Only snps
+      * - Variant quality minimum
+      * - Depths: "DP, AO and RO" minimums
+      **/
+    publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename}"}
 
     input:
         tuple val(prefix_filename),
@@ -134,8 +152,10 @@ process FREEBAYES {
         tuple val(prefix_filename),
             path(bam),
             path(fasta),
-            path("freeBayesOut.vcf"),
+            path("freebayes_filt.vcf"),
             val(seed)
+        
+        path 'freebayes_raw.vcf'
 
     script:
     """
@@ -143,16 +163,20 @@ process FREEBAYES {
     samtools sort --threads $task.cpus ${bam} -o Aligned.csorted.bam
     samtools index -@ $task.cpus Aligned.csorted.bam
 
-    # only keep SNP type entries
-    freebayes -f ${fasta} -p 1 Aligned.csorted.bam | grep -e '^#' -e 'TYPE=snp' > freeBayesOut.vcf
+    # call variants with freebayes
+    freebayes -f ${fasta} -p 1 Aligned.csorted.bam > freebayes_raw.vcf
+    # keep only SNPs and remove low quality calls
+    bcftools filter --threads ${task.cpus} \
+        -i 'TYPE="snp" && QUAL>=${params.min_snp_depth} && FORMAT/DP>20 && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
     """
 }
 
 
 process PAIRWISE_TABLE{
-    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
-
-    // maxForks 1
+    /**
+      * Create pair-wise table for final stage of rhometa analysis.
+      **/
+    publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "pairwise_table/${filename}"}
 
     input:
         tuple val(prefix_filename),
@@ -172,16 +196,17 @@ process PAIRWISE_TABLE{
     script:
     // -n Sort by read names (i.e., the QNAME field) rather than by chromosomal coordinates.
     """
-    samtools sort -n --threads $task.cpus ${bam} -o qsorted.bam
+    samtools sort -n --threads $task.cpus -o qsorted.bam ${bam}
     gen_pairwise_table.py ${single_end} qsorted.bam ${vcf_file} $task.cpus ${window_size}
     """
 }
 
 
 process RECOM_RATE_ESTIMATOR {
-    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
-
-    // maxForks 1
+    /**
+      * Maximum likelihood estimation of recombination rate.
+      **/
+    publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "${filename}"}
 
     input:
         tuple val(prefix_filename),
@@ -191,32 +216,35 @@ process RECOM_RATE_ESTIMATOR {
         path downsampled_lookup_tables
         val recom_tract_len
         val depth_range
+        val n_bootstrap_samples
         val ldpop_rho_range
 
 
     output:
         tuple val(prefix_filename),
-            path("final_sums.csv"),
-            path("final_estimate.csv")
+            path("final_results.csv"),
+            path("final_results_max_vals.csv"),
+            path("final_results_summary.csv")
 
     script:
     """
-    main_weighted.py ${recom_tract_len} ${depth_range} ${ldpop_rho_range} ${pairwise_table_pkl} $task.cpus
+    mprr_main_parallel_seeded.py ${recom_tract_len} ${depth_range} ${n_bootstrap_samples} ${ldpop_rho_range} ${pairwise_table_pkl} $task.cpus ${seed}
     """
 
 }
 
 
 process FINAL_RESULTS_PLOT {
-    publishDir "Recom_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
-
-    // maxForks 1
+    /**
+      * Plot of maximum likelihood search over requested rho range
+      **/
+    publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "${filename}"}
 
     input:
         tuple val(prefix_filename),
             path("final_results.csv"),
-            path("final_results_max_vals.csv")
-            // path("final_results_summary.csv")
+            path("final_results_max_vals.csv"),
+            path("final_results_summary.csv")
 
     output:
         path "final_results_plot.png", emit: final_results_plot_png
@@ -236,16 +264,19 @@ workflow {
 
     // Params
     params.help = false
-    params.seed = [123] // used for samtools subsamping
+    params.seed = [123] // used for samtools subsamping and final bootstrap algorithm
     params.prefix_filename = "none"
     params.recom_tract_len = 1000
     params.ldpop_rho_range = "0,0.01,1,1,100"
-    params.window_size = 1000 // For single end this is the read size, for paired end this is the max insert length (1000bp is a practical upper limit)
+    params.window_size = 400 // For single end this is the read size, for paired end this is the max insert length (1000bp is a practical upper limit)
     params.single_end = false
     params.depth_range = "3,200" // min_depth, max_depth
+    params.n_bootstrap_samples = 50 // number of bootstrap samples to get error bars for final results
+    params.min_snp_depth = 20
 
     params.bam_file = 'none'
     params.reference_genome = 'none'
+    
     params.lookup_tables = "/Volumes/Backup/Lookup_tables/Lookup_tables_stp"
     // params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_stp"
     // params.lookup_tables = "/shared/homes/11849395/lookup_table_gen/Lookup_tables(0.00126)" // hpylori
@@ -253,6 +284,7 @@ workflow {
     // params.lookup_tables = "/shared/homes/11849395/lookup_table_gen/Lookup_tables(0.00003)" // s_pne exp1_500ng
     // params.lookup_tables = "/shared/homes/11849395/lookup_table_gen/Lookup_tables(0.00002)" // 84 samples
     // params.lookup_tables = "Lookup_tables"
+
 
     // Channels
     bam_file_channel = Channel.fromPath( params.bam_file, checkIfExists: true )
@@ -269,6 +301,11 @@ workflow {
         exit 0
     }
 
+    if (! params.output_dir) {
+        println "Users must define an output directory (Eg: --output_dir my_out)"
+        exit 1
+    }
+
     if (params.reference_genome == 'none') {
         println "No input .fa specified. Use --reference_genome [.fa]"
         exit 1
@@ -281,16 +318,33 @@ workflow {
 
     // Process execution
 
-    PREFIX_FILENAME(bam_and_fa, params.prefix_filename, params.seed)
+    PREFIX_FILENAME(bam_and_fa, 
+                    params.prefix_filename, 
+                    params.seed)
+    
+    FILTER_BAM(PREFIX_FILENAME.out)
+    
+    SORT_BAM(FILTER_BAM.out[0])
+    
+    MAKE_PILEUP(SORT_BAM.out)
+    
+    SUBSAMPLE(MAKE_PILEUP.out, 
+              params.depth_range)
+    
+    FREEBAYES(SUBSAMPLE.out)
+    
+    # freebayes returns two channels, we just need the first
+    PAIRWISE_TABLE(FREEBAYES.out[0], 
+                   params.single_end, 
+                   params.window_size)
 
-    SUBSAMPLE_BAM(PREFIX_FILENAME.out, params.depth_range)
+    RECOM_RATE_ESTIMATOR(PAIRWISE_TABLE.out, 
+                         downsampled_lookup_tables, 
+                         params.recom_tract_len, 
+                         params.depth_range, 
+                         params.n_bootstrap_samples, 
+                         params.ldpop_rho_range)
 
-    FREEBAYES(SUBSAMPLE_BAM.out)
-
-    PAIRWISE_TABLE(FREEBAYES.out, params.single_end, params.window_size)
-
-    RECOM_RATE_ESTIMATOR(PAIRWISE_TABLE.out, downsampled_lookup_tables, params.recom_tract_len, params.depth_range, params.ldpop_rho_range)
-
-    // FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out)
+    FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out)
 
 }

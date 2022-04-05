@@ -23,15 +23,16 @@ def downsample_lookup_table(lookup_table, lookup_table_rho_range, downsample_val
 
     df_lookup_table.drop(
         columns=["Type", "#", "00", "01", "10", "11", "Rho"], inplace=True)
-
+        
     df_lookup_table.set_index("00 01 10 11", inplace=True)
+    # this seems unnecessary, but where did the index name go??
+    df_lookup_table.index.set_names("00 01 10 11", inplace=True)
 
     downsampled_lookuptable_df = downsample(df_lookup_table, downsample_value)
 
-    lk_downsampled_out_dir = f"lk_downsampled_{downsample_value}.csv"
+    downsample_basename = f"lk_downsampled_{downsample_value}"
 
-    downsampled_lookuptable_df.to_csv(
-        lk_downsampled_out_dir, index_label="00 01 10 11")
+    downsampled_lookuptable_df.to_csv(f"{downsample_basename}.csv", index_label="00 01 10 11")
 
     return None
 
