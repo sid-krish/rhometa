@@ -246,7 +246,6 @@ workflow {
 
     params.bam_file = 'none'
     params.reference_genome = 'none'
-    
     params.lookup_tables = "/Volumes/Backup/Lookup_tables/Lookup_tables_stp"
     // params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_stp"
     // params.lookup_tables = "/shared/homes/11849395/lookup_table_gen/Lookup_tables(0.00126)" // hpylori
@@ -254,7 +253,6 @@ workflow {
     // params.lookup_tables = "/shared/homes/11849395/lookup_table_gen/Lookup_tables(0.00003)" // s_pne exp1_500ng
     // params.lookup_tables = "/shared/homes/11849395/lookup_table_gen/Lookup_tables(0.00002)" // 84 samples
     // params.lookup_tables = "Lookup_tables"
-
 
     // Channels
     bam_file_channel = Channel.fromPath( params.bam_file, checkIfExists: true )
