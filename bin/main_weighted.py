@@ -128,8 +128,8 @@ if __name__ == '__main__':
     # reorder columns
     final_results_max_rho_and_likelihoods_df = final_results[
         ["max_rho", "max_lk"]]
-    final_results_max_rho_and_likelihoods_df.to_csv("final_sums.csv", index=False)
+    final_results_max_rho_and_likelihoods_df.to_csv("likelihood_sums.csv", index=False)
 
     final_estimate = final_results_max_rho_and_likelihoods_df.iloc[final_results_max_rho_and_likelihoods_df['max_lk'].idxmax()]
     final_estimate = final_estimate.to_frame().T
-    final_estimate.to_csv("final_estimate.csv", index=False)
+    final_estimate.to_csv("rho_estimate.csv", index=False)

@@ -86,14 +86,20 @@ process FILTER_BAM {
 
 process SORT_BAM {
     /**
-      * Simply sort the BAM in coordinate-name order.
+      * Simply sort the BAM in coordinate order.
       **/
     
     input:
-    tuple val(prefix_filename), path(bam), path(fasta), val(seed)
+    tuple val(prefix_filename), 
+        path(bam), 
+        path(fasta), 
+        val(seed)
 
     output:
-    tuple val(prefix_filename), path('Aligned_sorted.bam'), path(fasta), val(seed)
+    tuple val(prefix_filename), 
+        path('Aligned_sorted.bam'), 
+        path(fasta), 
+        val(seed)
 
     """
     samtools sort -@${task.cpus} -o Aligned_sorted.bam ${bam}
@@ -106,10 +112,17 @@ process MAKE_PILEUP {
       **/
 
     input:
-    tuple val(prefix_filename), path('Aligned_sorted.bam'), path(fasta), val(seed)
+    tuple val(prefix_filename), 
+        path('Aligned_sorted.bam'), 
+        path(fasta), 
+        val(seed)
 
     output:
-    tuple val(prefix_filename), path('Aligned_sorted.bam'), path('Aligned_sorted.pileup'), path(fasta), val(seed)
+    tuple val(prefix_filename), 
+        path('Aligned_sorted.bam'), 
+        path('Aligned_sorted.pileup'), 
+        path(fasta), 
+        val(seed)
 
     """
     samtools mpileup -o Aligned_sorted.pileup Aligned_sorted.bam
@@ -122,11 +135,19 @@ process SUBSAMPLE {
       **/
     
     input:
-    tuple val(prefix_filename), path('Aligned_sorted.bam'), path('Aligned_sorted.pileup'), path(fasta), val(seed)
+    tuple val(prefix_filename), 
+        path('Aligned_sorted.bam'), 
+        path('Aligned_sorted.pileup'), 
+        path(fasta), 
+        val(seed)
+
     val depth_range
 
     output:
-    tuple val(prefix_filename), path("subsampled.bam"), path(fasta), val(seed)
+    tuple val(prefix_filename), 
+        path("subsampled.bam"), 
+        path(fasta), 
+        val(seed)
 
     """
     subsample_bam_seeded.py Aligned_sorted.pileup ${depth_range} Aligned_sorted.bam ${seed}
@@ -165,9 +186,13 @@ process FREEBAYES {
 
     # call variants with freebayes
     freebayes -f ${fasta} -p 1 Aligned.csorted.bam > freebayes_raw.vcf
+
+    # Using old method until bcftools issue is fixed
+    cat freebayes_raw.vcf | grep -e '^#' -e 'TYPE=snp' > freebayes_filt.vcf
+
     # keep only SNPs and remove low quality calls
-    bcftools filter --threads ${task.cpus} \
-        -i 'TYPE="snp" && QUAL>=${params.min_snp_depth} && FORMAT/DP>20 && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
+    #bcftools filter --threads ${task.cpus} \
+    #    -i 'TYPE="snp" && QUAL>=${params.min_snp_depth} && FORMAT/DP>20 && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
     """
 }
 
@@ -222,13 +247,12 @@ process RECOM_RATE_ESTIMATOR {
 
     output:
         tuple val(prefix_filename),
-            path("final_results.csv"),
-            path("final_results_max_vals.csv"),
-            path("final_results_summary.csv")
+            path("likelihood_sums.csv"),
+            path("rho_estimate.csv")
 
     script:
     """
-    mprr_main_parallel_seeded.py ${recom_tract_len} ${depth_range} ${n_bootstrap_samples} ${ldpop_rho_range} ${pairwise_table_pkl} $task.cpus ${seed}
+    main_weighted.py ${recom_tract_len} ${depth_range} ${ldpop_rho_range} ${pairwise_table_pkl} $task.cpus
     """
 
 }
@@ -274,6 +298,7 @@ workflow {
     params.n_bootstrap_samples = 50 // number of bootstrap samples to get error bars for final results
     params.min_snp_depth = 20
 
+    params.output_dir = 'rho_est_output'
     params.bam_file = 'none'
     params.reference_genome = 'none'
     
@@ -301,10 +326,10 @@ workflow {
         exit 0
     }
 
-    if (! params.output_dir) {
-        println "Users must define an output directory (Eg: --output_dir my_out)"
-        exit 1
-    }
+    // if (! params.output_dir) {
+    //     println "Users must define an output directory (Eg: --output_dir my_out)"
+    //     exit 1
+    // }
 
     if (params.reference_genome == 'none') {
         println "No input .fa specified. Use --reference_genome [.fa]"
@@ -333,7 +358,7 @@ workflow {
     
     FREEBAYES(SUBSAMPLE.out)
     
-    # freebayes returns two channels, we just need the first
+    // freebayes returns two channels, we just need the first
     PAIRWISE_TABLE(FREEBAYES.out[0], 
                    params.single_end, 
                    params.window_size)
@@ -345,6 +370,6 @@ workflow {
                          params.n_bootstrap_samples, 
                          params.ldpop_rho_range)
 
-    FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out)
+    // FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out)
 
 }

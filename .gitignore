@@ -35,3 +35,5 @@
 .nextflow.log
 
 .nextflow.log.*
+
+rho_est_output/
