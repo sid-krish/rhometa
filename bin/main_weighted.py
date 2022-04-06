@@ -62,23 +62,23 @@ def module_calls(arg_list):
                                                                       lookup_table,
                                                                       depth)
 
-    ### Performing weighting of log_likelihoods
-    # Step 1: Convert log-likelihoods to likelihoods
+    # Step 7: Performing weighting of log_likelihoods
+    # 7.1: Convert log-likelihoods to likelihoods
     interpolated_eq2_np = interpolated_eq2_df.to_numpy(dtype=np.float128, copy=True)
     exp_np = np.exp(interpolated_eq2_np)
 
-    # Step 2: We normalise the likelihood values such that the values add up to 1. We do this by dividing each value by the sum of all values.
+    # 7.2: We normalise the likelihood values such that the values add up to 1. We do this by dividing each value by the sum of all values.
     exp_norm_np = exp_np / np.sum(exp_np)
 
-    # Step 3: Multiply the values by the depth and the number of observations. 
+    # 7.3: Multiply the values by the depth and the number of observations. 
     # This scaling is the “weighting” procedure, the higher the number of observations or depth the more it will be weighted for the final log sum calculation.
     observations = exp_norm_np.shape[0]
     exp_norm_scaled_np = depth * observations * exp_norm_np
 
-    # Step 4: Following this weighting step, we convert back to log space by taking the log of the values
+    # 7.4: Following this weighting step, we convert back to log space by taking the log of the values
     weighted_log_np = np.log(exp_norm_scaled_np)
 
-    # Step 5: Back to df
+    # 7.5: Back to df
     weighted_log_df = pd.DataFrame(weighted_log_np)
 
     return weighted_log_df
@@ -107,7 +107,7 @@ if __name__ == '__main__':
 
     module_calls_arg_list = [[i, recom_tract_len, pairwise_table, lookup_table_rho_vals] for i in depth_vals]
 
-    # Parallel execution of steps 1 through 6
+    # Parallel execution of steps 1 through 7
     with Pool(processes=num_cores) as p:
         module_calls_results = p.map(module_calls, module_calls_arg_list)
 
@@ -115,21 +115,14 @@ if __name__ == '__main__':
     results_across_depths = pd.concat(module_calls_results, ignore_index=True)
 
     # Step 9: Export results
-    # results_across_depths.to_csv("final_results.csv", index=False)
     log_sums = results_across_depths.sum(axis=0)
 
-    final_results = pd.DataFrame()
-    final_results["rho"] = lookup_table_rho_vals
-    final_results["likelihood_sums"] = list(log_sums)
-    # set appropriate column names indicating they are max values
-    final_results.rename({"rho": 'max_rho', "likelihood_sums": 'max_lk'},
-                         axis=1, inplace=True)
+    results = pd.DataFrame()
+    results["rho"] = lookup_table_rho_vals
+    results["log_likelihood_sums"] = list(log_sums)
 
-    # reorder columns
-    final_results_max_rho_and_likelihoods_df = final_results[
-        ["max_rho", "max_lk"]]
-    final_results_max_rho_and_likelihoods_df.to_csv("likelihood_sums.csv", index=False)
+    results.to_csv("log_likelihood_sums.csv", index=False)
 
-    final_estimate = final_results_max_rho_and_likelihoods_df.iloc[final_results_max_rho_and_likelihoods_df['max_lk'].idxmax()]
-    final_estimate = final_estimate.to_frame().T
-    final_estimate.to_csv("rho_estimate.csv", index=False)
+    rho_estimate = results.iloc[results["log_likelihood_sums"].idxmax()]
+    rho_estimate = rho_estimate.to_frame().T
+    rho_estimate.to_csv("rho_estimate.csv", index=False)

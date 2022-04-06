@@ -247,7 +247,7 @@ process RECOM_RATE_ESTIMATOR {
 
     output:
         tuple val(prefix_filename),
-            path("likelihood_sums.csv"),
+            path("log_likelihood_sums.csv"),
             path("rho_estimate.csv")
 
     script:
@@ -258,7 +258,7 @@ process RECOM_RATE_ESTIMATOR {
 }
 
 
-process FINAL_RESULTS_PLOT {
+process RESULTS_PLOT {
     /**
       * Plot of maximum likelihood search over requested rho range
       **/
@@ -266,16 +266,15 @@ process FINAL_RESULTS_PLOT {
 
     input:
         tuple val(prefix_filename),
-            path("final_results.csv"),
-            path("final_results_max_vals.csv"),
-            path("final_results_summary.csv")
+            path("log_likelihood_sums.csv"),
+            path("rho_estimate.csv")
 
     output:
-        path "final_results_plot.png", emit: final_results_plot_png
+        path "results_plot.png"
 
     script:
     """
-    final_results_plot.py final_results.csv
+    results_plot.py log_likelihood_sums.csv
     """
 }
 
@@ -290,7 +289,7 @@ workflow {
     params.help = false
     params.seed = [123] // used for samtools subsamping and final bootstrap algorithm
     params.prefix_filename = "none"
-    params.recom_tract_len = 500
+    params.recom_tract_len = 1000
     params.ldpop_rho_range = "0,0.01,1,1,100"
     params.window_size = 1000 // For single end this is the read size, for paired end this is the max insert length (1000bp is a practical upper limit)
     params.single_end = false
@@ -298,7 +297,7 @@ workflow {
     params.n_bootstrap_samples = 50 // number of bootstrap samples to get error bars for final results
     params.min_snp_depth = 20
 
-    params.output_dir = 'rho_est_output'
+    params.output_dir = 'Rho_Est_Output'
     params.bam_file = 'none'
     params.reference_genome = 'none'
     
@@ -370,6 +369,6 @@ workflow {
                          params.n_bootstrap_samples, 
                          params.ldpop_rho_range)
 
-    // FINAL_RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out)
+    RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out)
 
 }
