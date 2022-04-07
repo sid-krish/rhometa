@@ -259,7 +259,7 @@ def main(bam, vcf_file, num_cores, fragment_len):
     print('Number of variant positions to analyze: {:,}'.format(
         sum(len(v) for v in variant_positions.values())))
 
-    reference_pair_positions = get_final_ref_pos_list(variant_positions, window_size, num_cores)
+    reference_pair_positions = get_final_ref_pos_list(variant_positions, window_size)
     print('Number of pair positions across references: {:,}'.format(
         sum(len(v) for v in reference_pair_positions.values())))
 
