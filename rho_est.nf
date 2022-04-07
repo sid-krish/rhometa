@@ -24,7 +24,6 @@ def helpMessage() {
     --window_size [int], default:[500], Window size for variant pairs. For single end this is the read size, for paired end this is the max fragment length
     --single_end, Used for single end read bams
     --depth_range [int,int], default:[3,100], Minimum and maximum depth downsampled lookup tables available. Minimum should be no less than 3
-    --n_bootstrap_samples [int], default:[20], Number of bootstrap samples to get confidence interval for recombination rate estimate
     --seed [int] , default:[123], Seed value for samtools subsamping and final bootstrap algorithm. The seed value will be displayed at the start of the output file names
 
     """.stripIndent()
@@ -200,6 +199,8 @@ process PAIRWISE_TABLE{
       **/
     publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "pairwise_table/${filename}"}
 
+    echo true
+
     input:
         tuple val(prefix_filename),
             path(bam),
@@ -238,7 +239,6 @@ process RECOM_RATE_ESTIMATOR {
         path downsampled_lookup_tables
         val recom_tract_len
         val depth_range
-        val n_bootstrap_samples
         val ldpop_rho_range
 
 
@@ -291,7 +291,6 @@ workflow {
     params.window_size = 1000 // For single end this is the read size, for paired end this is the max insert length (1000bp is a practical upper limit)
     params.single_end = false
     params.depth_range = "3,200" // min_depth, max_depth
-    params.n_bootstrap_samples = 50 // number of bootstrap samples to get error bars for final results
     params.min_snp_depth = 20
 
     params.output_dir = 'Rho_Est_Output'
@@ -362,8 +361,7 @@ workflow {
     RECOM_RATE_ESTIMATOR(PAIRWISE_TABLE.out, 
                          downsampled_lookup_tables, 
                          params.recom_tract_len, 
-                         params.depth_range, 
-                         params.n_bootstrap_samples, 
+                         params.depth_range,
                          params.ldpop_rho_range)
 
     RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out)

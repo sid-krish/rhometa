@@ -1,16 +1,14 @@
 #!/usr/bin/env python
 import multiprocessing
-import numpy as np
 import os
+import subprocess
+from collections import defaultdict, namedtuple
+
+import numpy as np
 import pandas as pd
 import pysam
-import re
-import subprocess
 import tqdm
-
-from collections import defaultdict, namedtuple
-from itertools import combinations
-from numba import njit, prange
+from numba import njit
 from numba.typed import List
 
 
@@ -40,14 +38,14 @@ def find_nearby(sites, window):
     """
     ret = List()
     for i in range(len(sites)):
-        for j in range(i+1, len(sites)):
+        for j in range(i + 1, len(sites)):
             dij = sites[j] - sites[i]
             if dij <= window:
-                ret.append((sites[i]-1, sites[j]-1))
+                ret.append((sites[i] - 1, sites[j] - 1))
     return ret
 
 
-def get_final_ref_pos_list(ref_sites, window, n_proc=1):
+def get_final_ref_pos_list(ref_sites, window):
     ref_pairs = {}
     for ref, sites in ref_sites.items():
         # re-wrap Numba array as a regular list as returned object is
@@ -145,7 +143,6 @@ Pair_t = namedtuple('Pair', ['chr', 'pos1', 'pos2', 'base1', 'base2'])
 
 
 def pattern_match(bam, ref_pos_dict, read_count, n_proc):
-
     # for performance, we prepare a nested lookup structure using
     # dict and set so that variant existence can be quickly assessed.
 
@@ -155,7 +152,7 @@ def pattern_match(bam, ref_pos_dict, read_count, n_proc):
         BAM files may not be filtered to exclude unmapped reads.
         """
         return not _read.is_unmapped
-        
+
     # for every reference
     ref_lookup = {}
     for ref_name, pair_pos in ref_pos_dict.items():
@@ -181,7 +178,7 @@ def pattern_match(bam, ref_pos_dict, read_count, n_proc):
         id_to_name = {i: bam_file.references[i] for i in range(len(bam_file.references))}
 
         pair_table = defaultdict(int)
-        
+
         with tqdm.tqdm(total=read_count) as progress:
 
             bam_iter = bam_file.fetch(until_eof=True)
@@ -235,7 +232,7 @@ def pattern_match(bam, ref_pos_dict, read_count, n_proc):
                     pos1 = pos[i]
                     if pos1 not in snp_lookup:
                         continue
-                    for j in range(i+1, len(pos)):
+                    for j in range(i + 1, len(pos)):
                         pos2 = pos[j]
                         if pos2 not in snp_lookup[pos1]:
                             continue
@@ -245,14 +242,14 @@ def pattern_match(bam, ref_pos_dict, read_count, n_proc):
                         pair_table[Pair_t(ref_name, pos1, pos2, base1, base2)] += 1
 
         # convert the dict-based pairs table into a dataframe for downstream tools
-        base_combinations = ["AA", "AC", "AG", "AT", "CA", "CC", "CG", "CT", 
+        base_combinations = ["AA", "AC", "AG", "AT", "CA", "CC", "CG", "CT",
                              "GA", "GC", "GG", "GT", "TA", "TC", "TG", "TT"]
         d = {}
         for _pair, _count in pair_table.items():
             # rows are uniquely indexed by 3 parameters
             ix = (_pair.chr, _pair.pos1, _pair.pos2)
             if ix not in d:
-                d[ix] = dict(zip(base_combinations, [0]*16))
+                d[ix] = dict(zip(base_combinations, [0] * 16))
             d[ix][f'{_pair.base1}{_pair.base2}'] = _count
         # initialise the dataframe in one go
         pair_table = pd.DataFrame.from_dict(d, orient='index')
@@ -278,7 +275,6 @@ def main(bam, vcf_file, num_cores, fragment_len):
     pairwise_table = pattern_match(bam, reference_pair_positions, read_count, num_cores)
 
     return pairwise_table
-
 
 # if __name__ == '__main__':
 #     bam = "subsampled.bam"

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 
-import m_pairwise_table_for_paired_end
+import m_pairwise_table_paired_end
 import m_pairwise_table_single_end
 
 if __name__ == '__main__':
@@ -20,6 +20,6 @@ if __name__ == '__main__':
         pairwise_table =  m_pairwise_table_single_end.main(bam_file, vcf_file, num_cores, fragment_len)
 
     elif single_end == "false":
-        pairwise_table = m_pairwise_table_for_paired_end.main(bam_file, vcf_file, num_cores, fragment_len)
+        pairwise_table = m_pairwise_table_paired_end.main(bam_file, vcf_file, num_cores, fragment_len)
 
     pairwise_table.to_pickle("pairwise_table.pkl")
