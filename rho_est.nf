@@ -199,7 +199,7 @@ process PAIRWISE_TABLE{
       **/
     publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "pairwise_table/${filename}"}
 
-    echo true
+    // echo true
 
     input:
         tuple val(prefix_filename),
