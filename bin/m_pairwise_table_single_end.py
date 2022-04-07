@@ -190,8 +190,9 @@ def pattern_match(bam, ref_pos_dict, read_count, n_proc):
                     r1 = next(bam_iter)
                     progress.update()
 
-                    if _accept(r1):
-                        break
+                    if r1.is_unmapped:
+                        continue
+
                 except StopIteration:
                     break
 
@@ -267,9 +268,14 @@ def main(bam, vcf_file, num_cores, fragment_len):
 
     return pairwise_table
 
-# if __name__ == '__main__':
-#     bam = "subsampled.bam"
-#     vcf_file = "freeBayesOut.vcf"
-#     num_cores = 4
-#     fragment_len = 1000
-#     main(bam, vcf_file, num_cores, fragment_len)
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-n', '--num-cores', type=int, default=1, help='Number of cores')
+    parser.add_argument('frag_size', metavar='FRAG_SIZE', type=int, help='Fragment size')
+    parser.add_argument('bam', metavar='BAM_FILE', help='BAM file')
+    parser.add_argument('vcf', metavar='VCF_FILE', help='VCF file')
+    parser.add_argument('output', help='Output table')
+    args = parser.parse_args()
+    df = main(args.bam, args.vcf, args.num_cores, args.frag_size)
+    df.to_csv(args.output)
