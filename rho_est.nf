@@ -187,12 +187,9 @@ process FREEBAYES {
     # call variants with freebayes
     freebayes -f ${fasta} -p 1 Aligned.csorted.bam > freebayes_raw.vcf
 
-    # Using old method until bcftools issue is fixed
-    cat freebayes_raw.vcf | grep -e '^#' -e 'TYPE=snp' > freebayes_filt.vcf
-
     # keep only SNPs and remove low quality calls
-    #bcftools filter --threads ${task.cpus} \
-    #    -i 'TYPE="snp" && QUAL>=${params.min_snp_depth} && FORMAT/DP>20 && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
+    bcftools filter --threads ${task.cpus} \
+        -i 'TYPE="snp" && QUAL>=${params.min_snp_depth} && FORMAT/DP>20 && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
     """
 }
 
