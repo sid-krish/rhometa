@@ -19,6 +19,7 @@ def helpMessage() {
 
     Options:
     --prefix_filename [str], prefix string to output filenames to help distinguish runs
+    --min_snp_depth [int], Phred-scaled quality score to filter vcf by
 
     """.stripIndent()
 
