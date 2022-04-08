@@ -63,7 +63,7 @@ process FILTER_BAM {
       * - publishes a flagstat report of before and after.
       **/
 
-    publishDir params.output_dir, mode: 'copy', pattern: 'flagstat.*.txt', saveAs: {filename -> "filter_bam/${filename}"}
+    publishDir params.output_dir, mode: 'copy', pattern: 'flagstat.*.txt', saveAs: {filename -> "filter_bam/${prefix_filename}${filename}"}
 
     input:
         tuple val(prefix_filename),
@@ -164,7 +164,7 @@ process FREEBAYES {
       * - Variant quality minimum
       * - Depths: "DP, AO and RO" minimums
       **/
-    publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename}"}
+    publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${prefix_filename}${filename}"}
 
     input:
         tuple val(prefix_filename),
@@ -201,7 +201,7 @@ process PAIRWISE_TABLE_SINGLE_END{
     /**
       * Create pair-wise table for final stage of rhometa analysis.
       **/
-    publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "pairwise_table/${filename}"}
+    publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "pairwise_table/${prefix_filename}${filename}"}
 
     // echo true
 
@@ -233,7 +233,7 @@ process PAIRWISE_TABLE_PAIRED_END{
     /**
       * Create pair-wise table for final stage of rhometa analysis.
       **/
-    publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "pairwise_table/${filename}"}
+    publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "pairwise_table/${prefix_filename}${filename}"}
 
     // echo true
 
@@ -265,7 +265,7 @@ process RECOM_RATE_ESTIMATOR {
     /**
       * Maximum likelihood estimation of recombination rate.
       **/
-    publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "${filename}"}
+    publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "${prefix_filename}${filename}"}
 
     input:
         tuple val(prefix_filename),
@@ -295,7 +295,7 @@ process RESULTS_PLOT {
     /**
       * Plot of maximum likelihood search over requested rho range
       **/
-    publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "${filename}"}
+    publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "${prefix_filename}${filename}"}
 
     input:
         tuple val(prefix_filename),
