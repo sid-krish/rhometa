@@ -24,6 +24,7 @@ def helpMessage() {
     --lk_table_max_depth [int], default:[100], The max depth to generate lookup tables for
     --lk_table [str], Provide lookup table to run downsample step only
     --theta [int], default:[0.01], Population mutation rate, can be estimated value from theta_est.nf or a different value
+    --output_dir [str], default:[Lookup_tables], Directory to save results in
 
     """.stripIndent()
 
@@ -31,7 +32,7 @@ def helpMessage() {
 
 
 process LDPOP_TABLE_GEN {
-    publishDir "Lookup_tables", mode: "copy"
+    publishDir params.output_dir, mode: "copy"
     
     maxForks 1
 
@@ -55,7 +56,7 @@ process LDPOP_TABLE_GEN {
 
 
 process DOWNSAMPLE_LOOKUP_TABLE {
-    publishDir "Lookup_tables", mode: "copy"
+    publishDir params.output_dir, mode: "copy"
 
     label 'DOWNSAMPLE_LOOKUP_TABLE'
 
@@ -101,6 +102,7 @@ workflow {
     params.theta = 0.01 // Theta can be based on estimate or as desired
     params.ldpop_rho_range = "101,100"
     params.lk_table_max_depth = 100
+    params.output_dir = 'Lookup_tables'
 
     depth_range = Channel.of(3 .. params.lk_table_max_depth) // 3 to max_depth val
 

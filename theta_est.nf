@@ -20,6 +20,7 @@ def helpMessage() {
     Options:
     --prefix_filename [str], prefix string to output filenames to help distinguish runs
     --min_snp_depth [int], Phred-scaled quality score to filter vcf by
+    --output_dir [str], default:[Theta_Est_Output], Directory to save results in
 
     """.stripIndent()
 
@@ -58,7 +59,7 @@ process FREEBAYES {
       * - Depths: "DP, AO and RO" minimums
       **/
 
-    publishDir "Theta_Est_Output", mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename}"}
+    publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename}"}
 
     // maxForks 1
 
@@ -92,7 +93,7 @@ process FREEBAYES {
 
 
 process THETA_ESTIMATE {
-    publishDir "Theta_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
+    publishDir params.output_dir, mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     // maxForks 1
 
@@ -130,6 +131,7 @@ workflow {
     params.prefix_filename = "none"
     params.min_snp_depth = 20
 
+    params.output_dir = 'Theta_Est_Output'
     params.bam_file = 'none'
     params.reference_genome = 'none'
 
