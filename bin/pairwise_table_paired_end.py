@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import sys
 import multiprocessing
 import os
 import subprocess
@@ -70,7 +71,6 @@ def exe_exists(exe_name: str) -> bool:
     return False
 
 
-# might need changes for single end
 def count_bam_reads(file_name: str, paired: bool = False, mapped: bool = False,
                     mapq: int = None, max_cpu: int = None) -> int:
     """
@@ -185,28 +185,37 @@ def pattern_match(bam, ref_pos_dict, read_count, n_proc):
             bam_iter = bam_file.fetch(until_eof=True)
             while True:
 
-                # Get read
+                # keep traversing file until we get a consecutive pair
                 try:
                     r1 = next(bam_iter)
                     progress.update()
-
-                    if r1.is_unmapped:
-                        continue
-
+                    while True:
+                        r2 = next(bam_iter)
+                        progress.update()
+                        if _accept(r1) and _accept(r2) and r1.query_name == r2.query_name:
+                            break
+                        r1 = r2
                 except StopIteration:
                     break
 
-                # Get reference_id for read
+                # both reads must map to the same reference
                 ref_id = r1.reference_id
+                if ref_id != r2.reference_id:
+                    continue
+
+                # keep a consistent R1/R2 order
+                if r1.is_read2:
+                    r1, r2 = r2, r1
 
                 # prepare lookup map of position on reference to read nucleotide
-                ref_positions = r1.get_reference_positions(full_length=True)
-                query_sequence = r1.query_sequence
+                ref_positions = r1.get_reference_positions(full_length=True) + \
+                                r2.get_reference_positions(full_length=True)
+                query_sequences = r1.query_sequence + r2.query_sequence
 
-                ref_positions, query_sequence = remove_unaligned(ref_positions, query_sequence)
+                ref_positions, query_sequences = remove_unaligned(ref_positions, query_sequences)
 
                 # quick lookup of reference position to read nucleotide
-                pos_to_seq = dict(zip(ref_positions, query_sequence))
+                pos_to_seq = dict(zip(ref_positions, query_sequences))
 
                 ref_name = id_to_name[ref_id]
                 # next read-pair if reference has no variants
@@ -266,16 +275,12 @@ def main(bam, vcf_file, num_cores, fragment_len):
 
     pairwise_table = pattern_match(bam, reference_pair_positions, read_count, num_cores)
 
-    return pairwise_table
+    pairwise_table.to_pickle("pairwise_table.pkl")
 
-# if __name__ == '__main__':
-#     import argparse
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument('-n', '--num-cores', type=int, default=1, help='Number of cores')
-#     parser.add_argument('frag_size', metavar='FRAG_SIZE', type=int, help='Fragment size')
-#     parser.add_argument('bam', metavar='BAM_FILE', help='BAM file')
-#     parser.add_argument('vcf', metavar='VCF_FILE', help='VCF file')
-#     parser.add_argument('output', help='Output table')
-#     args = parser.parse_args()
-#     df = main(args.bam, args.vcf, args.num_cores, args.frag_size)
-#     df.to_csv(args.output)
+if __name__ == '__main__':
+    bam_file = sys.argv[1]
+    vcf_file = sys.argv[2]
+    num_cores = int(sys.argv[3])
+    fragment_len = int(sys.argv[4])
+
+    main(bam_file, vcf_file, num_cores, fragment_len)

@@ -27,6 +27,7 @@ def helpMessage() {
     --seed [int] , default:[123], Seed value for samtools subsamping. 
                                 The seed value will be displayed at the start of the output file names
     --prefix_filename [str], prefix string to output filenames to help distinguish runs
+    --output_dir [str], default:[Rho_Est_Output], Directory to save results in
     --min_snp_depth [int], Phred-scaled quality score to filter vcf by
 
     """.stripIndent()
@@ -196,7 +197,7 @@ process FREEBAYES {
 }
 
 
-process PAIRWISE_TABLE{
+process PAIRWISE_TABLE_SINGLE_END{
     /**
       * Create pair-wise table for final stage of rhometa analysis.
       **/
@@ -223,7 +224,39 @@ process PAIRWISE_TABLE{
     // -n Sort by read names (i.e., the QNAME field) rather than by chromosomal coordinates.
     """
     samtools sort -n --threads $task.cpus -o qsorted.bam ${bam}
-    gen_pairwise_table.py ${single_end} qsorted.bam ${vcf_file} $task.cpus ${window_size}
+    pairwise_table_single_end.py qsorted.bam ${vcf_file} $task.cpus ${window_size}
+    """
+}
+
+
+process PAIRWISE_TABLE_PAIRED_END{
+    /**
+      * Create pair-wise table for final stage of rhometa analysis.
+      **/
+    publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "pairwise_table/${filename}"}
+
+    // echo true
+
+    input:
+        tuple val(prefix_filename),
+            path(bam),
+            path(fasta),
+            path(vcf_file),
+            val(seed)
+
+        val single_end
+        val window_size
+
+    output:
+        tuple val(prefix_filename),
+            path("pairwise_table.pkl"),
+            val(seed)
+
+    script:
+    // -n Sort by read names (i.e., the QNAME field) rather than by chromosomal coordinates.
+    """
+    samtools sort -n --threads $task.cpus -o qsorted.bam ${bam}
+    pairwise_table_paired_end.py qsorted.bam ${vcf_file} $task.cpus ${window_size}
     """
 }
 
@@ -324,11 +357,6 @@ workflow {
         exit 0
     }
 
-    // if (! params.output_dir) {
-    //     println "Users must define an output directory (Eg: --output_dir my_out)"
-    //     exit 1
-    // }
-
     if (params.reference_genome == 'none') {
         println "No input .fa specified. Use --reference_genome [.fa]"
         exit 1
@@ -354,18 +382,31 @@ workflow {
     SUBSAMPLE(MAKE_PILEUP.out, 
               params.depth_range)
     
-    FREEBAYES(SUBSAMPLE.out)
-    
-    // freebayes returns two channels, we just need the first
-    PAIRWISE_TABLE(FREEBAYES.out[0], 
-                   params.single_end, 
-                   params.window_size)
+    FREEBAYES(SUBSAMPLE.out) // freebayes returns two channels, we just need the first
 
-    RECOM_RATE_ESTIMATOR(PAIRWISE_TABLE.out, 
-                         downsampled_lookup_tables, 
-                         params.recom_tract_len, 
-                         params.depth_range,
-                         params.ldpop_rho_range)
+    if (params.single_end == true) {
+        PAIRWISE_TABLE_SINGLE_END(FREEBAYES.out[0], 
+                    params.single_end, 
+                    params.window_size)
+
+        RECOM_RATE_ESTIMATOR(PAIRWISE_TABLE_SINGLE_END.out, 
+                            downsampled_lookup_tables, 
+                            params.recom_tract_len, 
+                            params.depth_range,
+                            params.ldpop_rho_range)
+    }
+    
+    else if (params.single_end == false) {
+        PAIRWISE_TABLE_PAIRED_END(FREEBAYES.out[0], 
+                    params.single_end, 
+                    params.window_size)
+
+        RECOM_RATE_ESTIMATOR(PAIRWISE_TABLE_PAIRED_END.out, 
+                            downsampled_lookup_tables, 
+                            params.recom_tract_len, 
+                            params.depth_range,
+                            params.ldpop_rho_range)
+    }
 
     RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out)
 

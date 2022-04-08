@@ -69,27 +69,27 @@ process DOWNSAMPLE_LOOKUP_TABLE {
 
     script:
     """
-    m_downsample_lk_table.py ${lookup_table} ${ldpop_rho_range} ${downsample_val}
+    downsample_lk_table.py ${lookup_table} ${ldpop_rho_range} ${downsample_val}
     """
 }
 
-process TABLE_STORE {
-    publishDir params.output_dir, mode: 'copy'
+// process TABLE_STORE {
+//     publishDir params.output_dir, mode: 'copy'
 
-    input:
-        path downsampled_table
-        val theta
-        val ldpop_rho_range
-        val store_name
+//     input:
+//         path downsampled_table
+//         val theta
+//         val ldpop_rho_range
+//         val store_name
 
-    output:
-        path "${store_name}"
+//     output:
+//         path "${store_name}"
 
-    script:
-    """
-    m_hdf5.py --table-format ${table_fmt} --init -t ${theta} -r ${ldpop_rho_range} . ${store_name}
-    """
-}
+//     script:
+//     """
+//     m_hdf5.py --table-format ${table_fmt} --init -t ${theta} -r ${ldpop_rho_range} . ${store_name}
+//     """
+// }
 
 workflow {
     // Note: Channels can be called unlimited number of times in DSL2
