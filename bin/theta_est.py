@@ -37,8 +37,8 @@ def watterson_estimate(segregating_sites, genome_len, samples):
     """
     Theta per site
     """
-
-    # calculate k
+    # k and a_n are traditional notations
+    # calculate k (per site)
     k = log(genome_len / (genome_len - segregating_sites))
 
     # calculate a_n
@@ -46,7 +46,7 @@ def watterson_estimate(segregating_sites, genome_len, samples):
     for i in range(1, int(samples)):
         a_n += 1/i
 
-    # original theta formula
+    # ldhat watterson per site
     theta = k/a_n
 
     return theta
