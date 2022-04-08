@@ -49,35 +49,6 @@ process PREFIX_FILENAME {
 }
 
 
-process LOFREQ{
-    // publishDir "Theta_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
-
-    // maxForks 1
-
-    input:
-        tuple val(prefix_filename),
-            path(bam),
-            path(fasta)
-
-    output:
-        tuple val(prefix_filename),
-            path(bam),
-            path(fasta),
-            path("lofreqOut.vcf")
-
-    script:
-    """
-    samtools faidx ${fasta}
-    samtools sort --threads $task.cpus ${bam} -o Aligned.csorted.bam
-    samtools index -@ $task.cpus Aligned.csorted.bam
-
-    #lofreq call -f ${fasta} -o lofreqOut.vcf Aligned.csorted.bam
-    #lofreq call-parallel --pp-threads $task.cpus --no-default-filter -f ${fasta} -o lofreqOut.vcf Aligned.csorted.bam
-    lofreq call-parallel --pp-threads $task.cpus -f ${fasta} -o lofreqOut.vcf Aligned.csorted.bam
-    """
-}
-
-
 process FREEBAYES {
     // publishDir "Theta_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
