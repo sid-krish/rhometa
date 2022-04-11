@@ -136,8 +136,8 @@ workflow {
     params.reference_genome = 'none'
 
     // Channels
-    bam_file_channel = Channel.fromPath( params.bam_file )
-    reference_genome_channel = Channel.fromPath( params.reference_genome )
+    bam_file_channel = Channel.fromPath( params.bam_file, checkIfExists: true )
+    reference_genome_channel = Channel.fromPath( params.reference_genome, checkIfExists: true )
 
     bam_and_fa = bam_file_channel.combine(reference_genome_channel)
 
