@@ -114,7 +114,11 @@ if __name__ == '__main__':
     all_summary_stats_df = depth_summary_stats_df.append(theta_sum_stats_df)
     all_summary_stats_df.rename(columns={'mean': 'mean_depth', '50%': 'median_depth'}, inplace=True)
     all_summary_stats_df = pd.melt(all_summary_stats_df, value_vars=["mean_depth", "median_depth"])
-    new_idx = ["mean_depth", "theta_per_site_at_mean_depth", "median_depth", "theta_per_site_at_median_depth"]
+
+    with open("Theta_estimate_stats.csv", 'w') as f:
+        f.write(f"# tps_mean_depth = theta_per_site_at_mean_depth\n# tps_median_depth = theta_per_site_at_median_depth\n")
+        f.close()
+    new_idx = ["mean_depth", "tps_mean_depth", "median_depth", "tps_median_depth"]
     all_summary_stats_df.index = new_idx
     all_summary_stats_df = all_summary_stats_df.drop(columns=["variable"])
-    all_summary_stats_df.to_csv("Theta_estimate_stats.csv", header=False)
+    all_summary_stats_df.to_csv("Theta_estimate_stats.csv", mode='a', header=False)
