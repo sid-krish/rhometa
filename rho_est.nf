@@ -28,7 +28,8 @@ def helpMessage() {
                                 The seed value will be displayed at the start of the output file names
     --prefix_filename [str], prefix string to output filenames to help distinguish runs
     --output_dir [str], default:[Rho_Est_Output], Directory to save results in
-    --min_snp_depth [int], Phred-scaled quality score to filter vcf by
+    --snp_qual [int], default:[20], Minimum phred-scaled quality score to filter vcf by
+    --min_snp_depth [int], default:[10], Minimum read depth to filter vcf by
 
     """.stripIndent()
 
@@ -192,7 +193,7 @@ process FREEBAYES {
 
     # keep only SNPs and remove low quality calls
     bcftools filter --threads ${task.cpus} \
-        -i 'TYPE="snp" && QUAL>=${params.min_snp_depth} && FORMAT/DP>20 && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
+        -i 'TYPE="snp" && QUAL>=${params.snp_qual} && FORMAT/DP>=${params.min_snp_depth} && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
     """
 }
 
@@ -326,8 +327,10 @@ workflow {
     params.ldpop_rho_range = "0,0.01,1,1,100"
     params.window_size = 1000 // For single end this is the read size, for paired end this is the max insert length (1000bp is a practical upper limit)
     params.single_end = false
-    params.depth_range = "3,200" // min_depth, max_depth
-    params.min_snp_depth = 20
+    params.depth_range = "3,250" // min_depth, max_depth
+    // VCF filter settings
+    params.snp_qual = 20 // Minimum phred-scaled quality score to filter vcf by
+    params.min_snp_depth = 10 // Minimum read depth to filter vcf by
 
     params.output_dir = 'Rho_Est_Output'
     params.bam_file = 'none'
