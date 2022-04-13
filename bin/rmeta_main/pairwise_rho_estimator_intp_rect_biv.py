@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 import csv
-import sys
 
 import numpy as np
 import pandas as pd
 from scipy.interpolate import RectBivariateSpline
-
-from ldpop import rhos_from_string
 
 
 def eq2(x, y, z, x_new, y_new, merged_eq3_table):

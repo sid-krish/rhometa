@@ -72,7 +72,8 @@ def plot_theta(num_variant_positions, genome_size, min_depth, max_depth):
     depths = [i for i in range(min_depth, max_depth + 1)]
     f = sns.lineplot(x=depths, y=theta_vals_for_depth_range)
     f.set(xlabel='Depth', ylabel='Theta', title='Theta estimated for min-max depth range')
-    f.figure.savefig("theta_estimates.png", dpi=500)
+    # bbox_inches="tight", prevents axis labels from going out of frame
+    f.figure.savefig("theta_estimates.png", bbox_inches="tight", dpi=500)
     f.figure.clf()  # clear figure for next plot
 
     return None
