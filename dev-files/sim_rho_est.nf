@@ -355,14 +355,9 @@ workflow {
     params.min_snp_depth = 10 // Minimum read depth to filter vcf by
 
     params.output_dir = 'Rho_Est_Output'
-    params.bam_file = 'none'
-    params.reference_genome = 'none'
-    
     params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_stp"
 
     // Channels
-    bam_file_channel = Channel.fromPath( params.bam_file, checkIfExists: true )
-    reference_genome_channel = Channel.fromPath( params.reference_genome, checkIfExists: true )
     downsampled_lookup_tables = Channel.fromPath( "${params.lookup_tables}/lk_downsampled_*.csv", checkIfExists: true ).collect()
 
     bam_and_fa = Channel.fromFilePairs('./Sim_Gen_Output/*.{bam,fa}', checkIfExists: true)
@@ -375,21 +370,10 @@ workflow {
         exit 0
     }
 
-    if (params.reference_genome == 'none') {
-        println "No input .fa specified. Use --reference_genome [.fa]"
-        exit 1
-    }
-
-    if (params.bam_file == 'none') {
-        println "No input .bam specified. Use --bam_file [.bam]"
-        exit 1
-    }
-
     // Process execution
 
     PREFIX_FILENAME(bam_and_fa, 
-                    params.prefix_filename, 
-                    params.seed)
+                    params.prefix_filename)
 
     GET_SEED_VAL(PREFIX_FILENAME.out)
     
