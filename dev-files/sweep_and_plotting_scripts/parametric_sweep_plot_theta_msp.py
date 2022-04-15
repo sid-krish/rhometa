@@ -59,7 +59,6 @@ if __name__ == '__main__':
     collected_results_sweep_1_df = collect_results_sweep_1(rho_sweep_1, theta_sweep_1, sample_size_sweep_1, depth_sweep_1,genome_size_sweep_1, seed_sweep_1)
 
     # process and export df for plotting
-    # Since fastsimbac does 2n*r only scaling by tract len is needed
 
     collected_results_sweep_1_df["scaled_theta_sim"] = collected_results_sweep_1_df["theta_sim"].apply(
         lambda x: x * 2)

@@ -17,19 +17,19 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed):
     sweep_1_combinations = mesh_grid.T.reshape(-1, 6)
 
     # Load data into dataframe
-    recom_est_results_dir = f"/Users/Sid/Documents/Github/rhometa/Misc/msp_rho_sweep/Recom_Est_Output/"
+    recom_est_results_dir = f"/Users/Sid/Documents/Github/rhometa/Misc/msp_parametric_rho_sweep/"
 
     col_names = ["rho_sim", "theta_sim", "sample_size_sim", "depth_sim", "genome_size_sim", "seed_sim",
-                 'num_bootstraps', 'mean_rho_est-full_seq', 'median_rho_est-full_seq', 'specified_tract_len', 'mean_rho_est-per_site-full_seq_rho_div_by_tract','median_rho_est-per_site-full_seq_rho_div_by_tract']
+                 'rho', 'log_likelihood_sum']
 
     df_recom_est_resutls = pd.DataFrame(columns=col_names)
 
     for rho, theta, sample_size, depth, genome_size, seed in sweep_1_combinations:
         prepended_filename = f"rho_{rho}_theta_{theta}_sample_size_{int(sample_size)}_depth_{int(depth)}_genome_size_{int(genome_size)}_seed_{int(seed)}_final_"
 
-        if os.path.isfile(f"{recom_est_results_dir}{prepended_filename}final_results_summary.csv"):
-            df = pd.read_csv(f"{recom_est_results_dir}{prepended_filename}final_results_summary.csv", header=None)
-            df = df.T
+        if os.path.isfile(f"{recom_est_results_dir}{prepended_filename}rho_estimate.csv"):
+            df = pd.read_csv(f"{recom_est_results_dir}{prepended_filename}rho_estimate.csv", header=None)
+            # df = df.T
 
             results_final = df.iloc[1].to_list()
 
@@ -37,8 +37,8 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed):
             df_recom_est_resutls.loc[len(df_recom_est_resutls)] = to_append
 
         else:
-            print(f"{recom_est_results_dir}{prepended_filename}final_results_summary.csv")
-            results_final = 6 * [np.nan]
+            print(f"{recom_est_results_dir}{prepended_filename}rho_estimate.csv")
+            results_final = 2 * [np.nan]
             to_append = [rho, theta, sample_size, depth, genome_size, seed] + results_final
             df_recom_est_resutls.loc[len(df_recom_est_resutls)] = to_append
 
@@ -59,13 +59,12 @@ if __name__ == '__main__':
     collected_results_sweep_1_df = collect_results_sweep_1(rho_sweep_1, theta_sweep_1, sample_size_sweep_1, depth_sweep_1,genome_size_sweep_1, seed_sweep_1)
 
     # process and export df for plotting
-    # Since fastsimbac does 2n*r only scaling by tract len is needed
 
     collected_results_sweep_1_df["scaled_rho_sim"] = collected_results_sweep_1_df["rho_sim"].apply(
         lambda x: x * recom_tract_len * 2)
 
     reorder_cols = ["rho_sim", "scaled_rho_sim", "theta_sim", "sample_size_sim", "depth_sim", "genome_size_sim", "seed_sim",
-                     'num_bootstraps', 'mean_rho_est-full_seq', 'median_rho_est-full_seq', 'specified_tract_len', 'mean_rho_est-per_site-full_seq_rho_div_by_tract','median_rho_est-per_site-full_seq_rho_div_by_tract']
+                     'rho', 'log_likelihood_sum']
 
     collected_results_sweep_1_df = collected_results_sweep_1_df.reindex(columns=reorder_cols)
 
@@ -73,15 +72,14 @@ if __name__ == '__main__':
 
     collected_results_sweep_1_df = collected_results_sweep_1_df.astype('float64')
 
-    collected_results_sweep_1_df.rename(columns = {'sample_size_sim':'genomes', 'depth_sim':'fold_coverage',
-                                                   'mean_rho_est-full_seq':'mean_rho_est', 'median_rho_est-full_seq':'median_rho_est'}, inplace = True) # Rename for plot
+    collected_results_sweep_1_df.rename(columns = {'sample_size_sim':'genomes', 'depth_sim':'fold_coverage', 'rho' : 'rho_est'}, inplace = True) # Rename for plot
 
     # Plot results
     sns.set_theme(style="white")
 
     # x-axis variable is treated as categorical
 
-    ax = sns.catplot(data=collected_results_sweep_1_df, x="scaled_rho_sim", y='median_rho_est', hue="genomes",
+    ax = sns.catplot(data=collected_results_sweep_1_df, x="scaled_rho_sim", y='rho_est', hue="genomes",
                      col="fold_coverage", col_wrap=2, sharex=True, sharey=True, palette="mako_r", kind="box", linewidth=0.2)
 
     # ax.set(ylim=(0, 50), xlabel="Simulated \u03C1", ylabel="Estimated \u03C1 (median)")
@@ -108,7 +106,7 @@ if __name__ == '__main__':
 
     #### deviation plot
 
-    collected_results_sweep_1_df["deviation"] = (collected_results_sweep_1_df['median_rho_est'] -
+    collected_results_sweep_1_df["deviation"] = (collected_results_sweep_1_df['rho_est'] -
                                                  collected_results_sweep_1_df["scaled_rho_sim"]) / collected_results_sweep_1_df[
                                                     "scaled_rho_sim"]
     

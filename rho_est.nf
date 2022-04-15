@@ -202,7 +202,7 @@ process PAIRWISE_TABLE_SINGLE_END{
     /**
       * Create pair-wise table for final stage of rhometa analysis.
       **/
-    publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "pairwise_table/${prefix_filename}${filename}"}
+    // publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "pairwise_table/${prefix_filename}${filename}"}
 
     // echo true
 
@@ -234,7 +234,7 @@ process PAIRWISE_TABLE_PAIRED_END{
     /**
       * Create pair-wise table for final stage of rhometa analysis.
       **/
-    publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "pairwise_table/${prefix_filename}${filename}"}
+    // publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "pairwise_table/${prefix_filename}${filename}"}
 
     // echo true
 

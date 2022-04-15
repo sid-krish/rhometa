@@ -119,10 +119,10 @@ if __name__ == '__main__':
 
     results = pd.DataFrame()
     results["rho"] = lookup_table_rho_vals
-    results["log_likelihood_sums"] = list(log_sums)
+    results["log_likelihood_sum"] = list(log_sums)
 
     results.to_csv("log_likelihood_sums.csv", index=False)
 
-    rho_estimate = results.iloc[results["log_likelihood_sums"].idxmax()]
+    rho_estimate = results.iloc[results["log_likelihood_sum"].idxmax()]
     rho_estimate = rho_estimate.to_frame().T
     rho_estimate.to_csv("rho_estimate.csv", index=False)
