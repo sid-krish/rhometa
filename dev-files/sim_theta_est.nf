@@ -19,6 +19,9 @@ def helpMessage() {
 
     Options:
     --prefix_filename [str], prefix string to output filenames to help distinguish runs
+    --output_dir [str], default:[Theta_Est_Output], Directory to save results in
+    --snp_qual [int], default:[20], Minimum phred-scaled quality score to filter vcf by
+    --min_snp_depth [int], default:[10], Minimum read depth to filter vcf by
 
     """.stripIndent()
 
@@ -49,37 +52,15 @@ process PREFIX_FILENAME {
 }
 
 
-process LOFREQ{
-    // publishDir "Theta_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
-
-    // maxForks 1
-
-    input:
-        tuple val(prefix_filename),
-            path(bam),
-            path(fasta)
-
-    output:
-        tuple val(prefix_filename),
-            path(bam),
-            path(fasta),
-            path("lofreqOut.vcf")
-
-    script:
-    """
-    samtools faidx ${fasta}
-    samtools sort --threads $task.cpus ${bam} -o Aligned.csorted.bam
-    samtools index -@ $task.cpus Aligned.csorted.bam
-
-    #lofreq call -f ${fasta} -o lofreqOut.vcf Aligned.csorted.bam
-    #lofreq call-parallel --pp-threads $task.cpus --no-default-filter -f ${fasta} -o lofreqOut.vcf Aligned.csorted.bam
-    lofreq call-parallel --pp-threads $task.cpus -f ${fasta} -o lofreqOut.vcf Aligned.csorted.bam
-    """
-}
-
-
 process FREEBAYES {
-    // publishDir "Theta_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
+    /**
+      * Call variants using FreeBayes and filter the result VCF for quality follow FreeBayes reccomendations.
+      * - Only snps
+      * - Variant quality minimum
+      * - Depths: "DP, AO and RO" minimums
+      **/
+
+    publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${prefix_filename}${filename}"}
 
     // maxForks 1
 
@@ -92,7 +73,9 @@ process FREEBAYES {
         tuple val(prefix_filename),
             path(bam),
             path(fasta),
-            path("freeBayesOut.vcf")
+            path("freebayes_filt.vcf")
+        
+        path 'freebayes_raw.vcf'
 
     script:
     """
@@ -100,14 +83,18 @@ process FREEBAYES {
     samtools sort --threads $task.cpus ${bam} -o Aligned.csorted.bam
     samtools index -@ $task.cpus Aligned.csorted.bam
 
-    # only keep SNP type entries
-    freebayes -f ${fasta} -p 1 Aligned.csorted.bam | grep -e '^#' -e 'TYPE=snp' > freeBayesOut.vcf
+    # call variants with freebayes
+    freebayes -f ${fasta} -p 1 Aligned.csorted.bam > freebayes_raw.vcf
+
+    # keep only SNPs and remove low quality calls
+    bcftools filter --threads ${task.cpus} \
+        -i 'TYPE="snp" && QUAL>=${params.snp_qual} && FORMAT/DP>=${params.min_snp_depth} && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
     """
 }
 
 
 process THETA_ESTIMATE {
-    publishDir "Theta_Est_Output", mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
+    publishDir params.output_dir, mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
 
     // maxForks 1
 
@@ -129,7 +116,7 @@ process THETA_ESTIMATE {
     samtools mpileup Aligned_sorted.bam > Aligned_sorted.pileup
     genome_size=\$(samtools view -H Aligned_sorted.bam | grep "@SQ" | awk '{ print \$3 }' | cut -c 4-)
 
-    m_theta_final.py \$genome_size Aligned_sorted.pileup ${vcf}
+    theta_est.py \$genome_size Aligned_sorted.pileup ${vcf}
     """
 }
 
@@ -143,7 +130,14 @@ workflow {
     // Params
     params.help = false
     params.prefix_filename = "none"
+    // VCF filter settings
+    params.snp_qual = 20 // Minimum phred-scaled quality score to filter vcf by
+    params.min_snp_depth = 10 // Minimum read depth to filter vcf by
 
+    params.output_dir = 'Theta_Est_Output'
+    params.bam_file = 'none'
+    params.reference_genome = 'none'
+    
     // Channels
     bam_and_fa = Channel.fromFilePairs('./Sim_Gen_Output/*.{bam,fa}', checkIfExists: true)
 
@@ -158,10 +152,9 @@ workflow {
     // Process execution
     PREFIX_FILENAME(bam_and_fa, params.prefix_filename)
 
-    // LOFREQ(PREFIX_FILENAME.out)
-
     FREEBAYES(PREFIX_FILENAME.out)
 
-    THETA_ESTIMATE(FREEBAYES.out)
+    // freebayes returns two channels, we just need the first
+    THETA_ESTIMATE(FREEBAYES.out[0])
 
 }
