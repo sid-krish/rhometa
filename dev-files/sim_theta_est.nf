@@ -52,6 +52,27 @@ process PREFIX_FILENAME {
 }
 
 
+process SORT_BAM {
+    /**
+      * Simply sort the BAM in coordinate order.
+      **/
+    
+    input:
+    tuple val(prefix_filename), 
+        path(bam), 
+        path(fasta)
+
+    output:
+    tuple val(prefix_filename), 
+        path('Aligned_sorted.bam'), 
+        path(fasta)
+
+    """
+    samtools sort --threads $task.cpus -o Aligned_sorted.bam ${bam}
+    """
+}
+
+
 process FREEBAYES {
     /**
       * Call variants using FreeBayes and filter the result VCF for quality follow FreeBayes reccomendations.
@@ -80,11 +101,10 @@ process FREEBAYES {
     script:
     """
     samtools faidx ${fasta}
-    samtools sort --threads $task.cpus ${bam} -o Aligned.csorted.bam
-    samtools index -@ $task.cpus Aligned.csorted.bam
+    samtools index -@ $task.cpus ${bam}
 
     # call variants with freebayes
-    freebayes -f ${fasta} -p 1 Aligned.csorted.bam > freebayes_raw.vcf
+    freebayes -f ${fasta} -p 1 ${bam} > freebayes_raw.vcf
 
     # keep only SNPs and remove low quality calls
     bcftools filter --threads ${task.cpus} \
@@ -112,9 +132,8 @@ process THETA_ESTIMATE {
         
     script:
     """
-    samtools sort ${bam} > Aligned_sorted.bam
-    samtools mpileup Aligned_sorted.bam > Aligned_sorted.pileup
-    genome_size=\$(samtools view -H Aligned_sorted.bam | grep "@SQ" | awk '{ print \$3 }' | cut -c 4-)
+    samtools mpileup ${bam} > Aligned_sorted.pileup
+    genome_size=\$(samtools view -H ${bam} | grep "@SQ" | awk '{ print \$3 }' | cut -c 4-)
 
     theta_est.py \$genome_size Aligned_sorted.pileup ${vcf}
     """
@@ -152,7 +171,9 @@ workflow {
     // Process execution
     PREFIX_FILENAME(bam_and_fa, params.prefix_filename)
 
-    FREEBAYES(PREFIX_FILENAME.out)
+    SORT_BAM(PREFIX_FILENAME.out)
+
+    FREEBAYES(SORT_BAM.out)
 
     // freebayes returns two channels, we just need the first
     THETA_ESTIMATE(FREEBAYES.out[0])
