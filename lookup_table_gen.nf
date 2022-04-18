@@ -23,7 +23,7 @@ def helpMessage() {
                                                    similar to ldhelmet. Note that non-uniform grid is incompatible with vanilla ldhat.)))
     --lk_table_max_depth [int], default:[100], The max depth to generate lookup tables for
     --lk_table [str], Provide lookup table to run downsample step only
-    --theta [int], default:[0.01], Population mutation rate, can be estimated value from theta_est.nf or a different value
+    --theta [float], default:[0.01], Population mutation rate, can be estimated value from theta_est.nf or a different value
     --output_dir [str], default:[Lookup_tables], Directory to save results in
 
     """.stripIndent()
