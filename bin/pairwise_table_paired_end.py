@@ -237,8 +237,11 @@ def pattern_match(bam, ref_pos_dict, read_count, n_proc):
                         pos2 = pos[j]
                         if pos2 not in snp_lookup[pos1]:
                             continue
-                        base1 = pos_to_seq[pos1]
-                        base2 = pos_to_seq[pos2]
+                        if pos_to_seq[pos1] != 'N' and pos_to_seq[pos2] != 'N':
+                            base1 = pos_to_seq[pos1]
+                            base2 = pos_to_seq[pos2]
+                        else:
+                            continue
                         # tally is indexed by 5 parameters
                         pair_table[Pair_t(ref_name, pos1, pos2, base1, base2)] += 1
 
