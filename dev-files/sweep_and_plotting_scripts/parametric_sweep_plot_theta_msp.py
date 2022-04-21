@@ -17,10 +17,10 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed):
     sweep_1_combinations = mesh_grid.T.reshape(-1, 6)
 
     # Load data into dataframe
-    theta_est_results_dir = f"/Users/Sid/Documents/Github/rhometa/Misc/msp_theta_sweep/Theta_Est_Output/"
+    theta_est_results_dir = f"/Users/Sid/Documents/Github/rhometa/Misc/theta_sweep/"
 
     col_names = ["rho_sim", "theta_sim", "sample_size_sim", "depth_sim", "genome_size_sim", "seed_sim",
-                 "mean_depth", "theta_per_site_at_mean_depth", "median_depth", "theta_per_site_at_median_depth"]
+                 "mean_depth", "tps_mean_depth", "median_depth", "tps_median_depth"]
 
     df_theta_est_results = pd.DataFrame(columns=col_names)
 
@@ -28,7 +28,7 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed):
         prepended_filename = f"rho_{rho}_theta_{theta}_sample_size_{int(sample_size)}_depth_{int(depth)}_genome_size_{int(genome_size)}_seed_{int(seed)}_final_"
 
         if os.path.isfile(f"{theta_est_results_dir}{prepended_filename}Theta_estimate_stats.csv"):
-            df = pd.read_csv(f"{theta_est_results_dir}{prepended_filename}Theta_estimate_stats.csv", header=None)
+            df = pd.read_csv(f"{theta_est_results_dir}{prepended_filename}Theta_estimate_stats.csv", header=None, skiprows=2)
             df = df.T
 
             results_final = df.iloc[1].to_list()
@@ -64,7 +64,7 @@ if __name__ == '__main__':
         lambda x: x * 2)
 
     reorder_cols = ["rho_sim", "theta_sim", "scaled_theta_sim", "sample_size_sim", "depth_sim", "genome_size_sim", "seed_sim",
-                     "mean_depth", "theta_per_site_at_mean_depth", "median_depth", "theta_per_site_at_median_depth"]
+                     "mean_depth", "tps_mean_depth", "median_depth", "tps_median_depth"]
 
     collected_results_sweep_1_df = collected_results_sweep_1_df.reindex(columns=reorder_cols)
 
@@ -79,7 +79,7 @@ if __name__ == '__main__':
 
     # x-axis variable is treated as categorical
 
-    ax = sns.catplot(data=collected_results_sweep_1_df, x="scaled_theta_sim", y='theta_per_site_at_median_depth', hue="genomes",
+    ax = sns.catplot(data=collected_results_sweep_1_df, x="scaled_theta_sim", y="tps_median_depth", hue="genomes",
                      col="fold_coverage", col_wrap=1, sharex=True, sharey=True, palette="Blues", kind="box")
 
     ax.set(xlabel="Simulated \u03B8", ylabel="Estimated \u03B8 (median depth)")
@@ -106,7 +106,7 @@ if __name__ == '__main__':
 
     #### deviation plot
 
-    collected_results_sweep_1_df["deviation"] = (collected_results_sweep_1_df['theta_per_site_at_median_depth'] -
+    collected_results_sweep_1_df["deviation"] = (collected_results_sweep_1_df["tps_median_depth"] -
                                                  collected_results_sweep_1_df["scaled_theta_sim"]) / collected_results_sweep_1_df[
                                                     "scaled_theta_sim"]
     
