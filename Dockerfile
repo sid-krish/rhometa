@@ -15,5 +15,5 @@ RUN conda install -c bioconda -c conda-forge -y \
   bcftools \
   'pysam>=0.17' \
   'freebayes>=1.3.5' \
-  samtools==1.15 \
+  'samtools>=1.15' \
   'openssl>=1.1.1n'
