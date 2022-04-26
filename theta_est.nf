@@ -52,6 +52,36 @@ process PREFIX_FILENAME {
 }
 
 
+process FILTER_BAM {
+    /**
+      * Filter input BAM files to assure that reported alignments will be of acceptable quality.
+      * - filters on mapping quality and alignment-score relative to read-length.
+      * - publishes a flagstat report of before and after.
+      **/
+
+    publishDir params.output_dir, mode: 'copy', pattern: 'flagstat.*.txt', saveAs: {filename -> "filter_bam/${prefix_filename}${filename}"}
+
+    input:
+        tuple val(prefix_filename),
+            path(bam),
+            path(fasta)
+    
+    output:
+        tuple val(prefix_filename),
+            path("filtered.bam"),
+            path(fasta)
+
+        path 'flagstat.*.txt'
+
+    script:
+    """
+    samtools view -b -e "mapq>=40 && [AS]/rlen>0.75" $bam > filtered.bam
+    samtools flagstat $bam > flagstat.before.txt
+    samtools flagstat filtered.bam > flagstat.after.txt
+    """
+}
+
+
 process SORT_BAM {
     /**
       * Simply sort the BAM in coordinate order.
@@ -107,8 +137,11 @@ process FREEBAYES {
     freebayes -f ${fasta} -p 1 ${bam} > freebayes_raw.vcf
 
     # keep only SNPs and remove low quality calls
+    #bcftools filter --threads ${task.cpus} \
+    #    -i 'TYPE="snp" && QUAL>=${params.snp_qual} && FORMAT/DP>=${params.min_snp_depth} && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
+
     bcftools filter --threads ${task.cpus} \
-        -i 'TYPE="snp" && QUAL>=${params.snp_qual} && FORMAT/DP>=${params.min_snp_depth} && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
+        -i 'TYPE="snp"' freebayes_raw.vcf > freebayes_filt.vcf
     """
 }
 
@@ -184,7 +217,9 @@ workflow {
     // Process execution
     PREFIX_FILENAME(bam_and_fa, params.prefix_filename)
 
-    SORT_BAM(PREFIX_FILENAME.out)
+    FILTER_BAM(PREFIX_FILENAME.out)
+
+    SORT_BAM(FILTER_BAM.out[0])
 
     FREEBAYES(SORT_BAM.out)
 
