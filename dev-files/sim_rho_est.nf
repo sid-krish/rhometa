@@ -26,12 +26,13 @@ def helpMessage() {
     --depth_range [int,int], default:[3,100], Minimum and maximum depth downsampled lookup tables available. Minimum should be no less than 3
     --prefix_filename [str], prefix string to output filenames to help distinguish runs
     --output_dir [str], default:[Rho_Est_Output], Directory to save results in
-    --snp_qual [int], default:[20], Minimum phred-scaled quality score to filter vcf by
-    --min_snp_depth [int], default:[10], Minimum read depth to filter vcf by
-
     """.stripIndent()
+    // Testing
+    // --snp_qual [int], default:[20], Minimum phred-scaled quality score to filter vcf by
+    // --min_snp_depth [int], default:[10], Minimum read depth to filter vcf by
 
 }
+
 
 process PREFIX_FILENAME {
 
@@ -214,9 +215,12 @@ process FREEBAYES {
     # call variants with freebayes
     freebayes -f ${fasta} -p 1 Aligned.csorted.bam > freebayes_raw.vcf
 
-    # keep only SNPs and remove low quality calls
-    bcftools filter --threads ${task.cpus} \
-        -i 'TYPE="snp" && QUAL>=${params.snp_qual} && FORMAT/DP>=${params.min_snp_depth} && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
+    # keep only SNPs
+    bcftools filter --threads ${task.cpus} -i 'TYPE="snp"' freebayes_raw.vcf > freebayes_filt.vcf
+
+    # keep only SNPs and remove low quality and low depth calls
+    #bcftools filter --threads ${task.cpus} \
+    #    -i 'TYPE="snp" && QUAL>=${params.snp_qual} && FORMAT/DP>=${params.min_snp_depth} && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
     """
 }
 
@@ -351,8 +355,8 @@ workflow {
     params.single_end = false
     params.depth_range = "3,250" // min_depth, max_depth
     // VCF filter settings
-    params.snp_qual = 20 // Minimum phred-scaled quality score to filter vcf by
-    params.min_snp_depth = 10 // Minimum read depth to filter vcf by
+    // params.snp_qual = 20 // Minimum phred-scaled quality score to filter vcf by
+    // params.min_snp_depth = 10 // Minimum read depth to filter vcf by
 
     params.output_dir = 'Rho_Est_Output'
     params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_stp"
