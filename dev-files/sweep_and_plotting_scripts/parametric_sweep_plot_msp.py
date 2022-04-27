@@ -17,7 +17,7 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed):
     sweep_1_combinations = mesh_grid.T.reshape(-1, 6)
 
     # Load data into dataframe
-    recom_est_results_dir = f"/Users/Sid/Documents/Github/rhometa/Misc/msp_parametric_rho_sweep/"
+    recom_est_results_dir = f"/Users/Sid/Documents/Github/rhometa/Misc/rho_sweep/"
 
     col_names = ["rho_sim", "theta_sim", "sample_size_sim", "depth_sim", "genome_size_sim", "seed_sim",
                  'rho', 'log_likelihood_sum']
@@ -82,7 +82,8 @@ if __name__ == '__main__':
     ax = sns.catplot(data=collected_results_sweep_1_df, x="scaled_rho_sim", y='rho_est', hue="genomes",
                      col="fold_coverage", col_wrap=2, sharex=True, sharey=True, palette="mako_r", kind="box", linewidth=0.2)
 
-    # ax.set(ylim=(0, 50), xlabel="Simulated \u03C1", ylabel="Estimated \u03C1 (median)")
+    ax.set(ylim=(0, 50))
+    ax.set(xlabel="Simulated \u03C1", ylabel="Estimated \u03C1")
 
     # ax.set(yticks=([1.0, 5.0, 15.0, 25.0, 35.0, 45.0]))
     # ax.set(yticks=(range(0,45)))
