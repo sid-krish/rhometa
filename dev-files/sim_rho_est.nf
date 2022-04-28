@@ -213,14 +213,21 @@ process FREEBAYES {
     samtools index -@ $task.cpus Aligned.csorted.bam
 
     # call variants with freebayes
-    freebayes -f ${fasta} -p 1 Aligned.csorted.bam > freebayes_raw.vcf
+    #freebayes -f ${fasta} -p 1 Aligned.csorted.bam > freebayes_raw.vcf
 
     # keep only SNPs
-    bcftools filter --threads ${task.cpus} -i 'TYPE="snp"' freebayes_raw.vcf > freebayes_filt.vcf
+    #bcftools filter --threads ${task.cpus} -i 'TYPE="snp"' freebayes_raw.vcf > freebayes_filt.vcf
 
     # keep only SNPs and remove low quality and low depth calls
     #bcftools filter --threads ${task.cpus} \
-    #    -i 'TYPE="snp" && QUAL>=${params.snp_qual} && FORMAT/DP>=${params.min_snp_depth} && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
+    #    -i 'TYPE="snp" && QUAL>=${params.snp_qual} && FORMAT/DP>=3 && FORMAT/RO>=1 && FORMAT/AO>=1' freebayes_raw.vcf > freebayes_filt.vcf
+
+    freebayes -f ${fasta} --haplotype-length -1 --min-alternate-count 1 --min-alternate-fraction 0.01 \
+     --pooled-continuous Aligned.csorted.bam > freebayes_raw.vcf
+
+    # Type of allels in freebayes vcf are "The type of allele, either snp, mnp, ins, del, or complex."
+    # we keep everything except ins or del
+    bcftools filter --threads ${task.cpus} -i 'INFO/TYPE="snp" || INFO/TYPE="complex" || INFO/TYPE="mnp"' freebayes_raw.vcf > freebayes_filt.vcf
     """
 }
 
