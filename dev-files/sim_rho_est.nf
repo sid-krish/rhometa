@@ -26,13 +26,12 @@ def helpMessage() {
     --depth_range [int,int], default:[3,100], Minimum and maximum depth downsampled lookup tables available. Minimum should be no less than 3
     --prefix_filename [str], prefix string to output filenames to help distinguish runs
     --output_dir [str], default:[Rho_Est_Output], Directory to save results in
+    --snp_qual [int], default:[20], Minimum phred-scaled quality score to filter vcf by
+    --min_snp_depth [int], default:[10], Minimum read depth to filter vcf by
+
     """.stripIndent()
-    // Testing
-    // --snp_qual [int], default:[20], Minimum phred-scaled quality score to filter vcf by
-    // --min_snp_depth [int], default:[10], Minimum read depth to filter vcf by
 
 }
-
 
 process PREFIX_FILENAME {
 
@@ -213,21 +212,14 @@ process FREEBAYES {
     samtools index -@ $task.cpus Aligned.csorted.bam
 
     # call variants with freebayes
-    #freebayes -f ${fasta} -p 1 Aligned.csorted.bam > freebayes_raw.vcf
+    freebayes -f ${fasta} -p 1 Aligned.csorted.bam > freebayes_raw.vcf
 
-    # keep only SNPs
-    #bcftools filter --threads ${task.cpus} -i 'TYPE="snp"' freebayes_raw.vcf > freebayes_filt.vcf
-
-    # keep only SNPs and remove low quality and low depth calls
+    # keep only SNPs and remove low quality calls
     #bcftools filter --threads ${task.cpus} \
-    #    -i 'TYPE="snp" && QUAL>=${params.snp_qual} && FORMAT/DP>=3 && FORMAT/RO>=1 && FORMAT/AO>=1' freebayes_raw.vcf > freebayes_filt.vcf
+    #    -i 'TYPE="snp" && QUAL>=${params.snp_qual} && FORMAT/DP>=${params.min_snp_depth} && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
 
-    freebayes -f ${fasta} --haplotype-length -1 --min-alternate-count 1 --min-alternate-fraction 0.01 \
-     --pooled-continuous Aligned.csorted.bam > freebayes_raw.vcf
-
-    # Type of allels in freebayes vcf are "The type of allele, either snp, mnp, ins, del, or complex."
-    # we keep everything except ins or del
-    bcftools filter --threads ${task.cpus} -i 'INFO/TYPE="snp" || INFO/TYPE="complex" || INFO/TYPE="mnp"' freebayes_raw.vcf > freebayes_filt.vcf
+    bcftools filter --threads ${task.cpus} \
+        -i 'TYPE="snp"' freebayes_raw.vcf > freebayes_filt.vcf
     """
 }
 
@@ -357,16 +349,16 @@ workflow {
     params.help = false
     params.prefix_filename = "none"
     params.recom_tract_len = 1000
-    params.ldpop_rho_range = "0,0.01,1,1,100"
+    params.ldpop_rho_range = "201,2"
     params.window_size = 1000 // For single end this is the read size, for paired end this is the max insert length (1000bp is a practical upper limit)
     params.single_end = false
-    params.depth_range = "3,250" // min_depth, max_depth
+    params.depth_range = "3,200" // min_depth, max_depth
     // VCF filter settings
     // params.snp_qual = 20 // Minimum phred-scaled quality score to filter vcf by
     // params.min_snp_depth = 10 // Minimum read depth to filter vcf by
 
     params.output_dir = 'Rho_Est_Output'
-    params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_stp"
+    params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_0-2/Lookup_tables"
 
     // Channels
     downsampled_lookup_tables = Channel.fromPath( "${params.lookup_tables}/lk_downsampled_*.csv", checkIfExists: true ).collect()
