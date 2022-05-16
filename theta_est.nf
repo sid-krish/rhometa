@@ -8,27 +8,27 @@ def helpMessage() {
     Description:
 
     Usage:
-    nextflow run theta_est.nf --bam_file in.bam --reference_genome ref.fa [options]
+    nextflow run theta_est.nf --bam in.bam --fa ref.fa [options]
 
     Help:
     nextflow run theta_est.nf --help
 
     Required:
-    --bam_file [*.bam], Query name sorted bam file. Multi bam support via glob input e.g. "*.bam", quotes but be included for glob. Use with one fasta file only
-    --reference_genome [*.fa],  Single/Multi genome fasta file
+    --bam [*.bam], Query name sorted bam file. Multi bam support via glob input e.g. "*.bam", quotes but be included for glob. Use with one fasta file only
+    --fa [*.fa],  Single/Multi genome fasta file
 
     Options:
-    --prefix_filename [str], prefix string to output filenames to help distinguish runs
+    --filename_prefix [str], prefix string to output filenames to help distinguish runs
     --output_dir [str], default:[Theta_Est_Output], Directory to save results in
-    --snp_qual [int], default:[20], Minimum phred-scaled quality score to filter vcf by
-    --min_snp_depth [int], default:[10], Minimum read depth to filter vcf by
-
     """.stripIndent()
+    // Testing
+    // --snp_qual [int], default:[20], Minimum phred-scaled quality score to filter vcf by
+    // --min_snp_depth [int], default:[10], Minimum read depth to filter vcf by
 
 }
 
 
-process PREFIX_FILENAME {
+process FILENAME_PREFIX {
     
     // maxForks 1
 
@@ -47,7 +47,7 @@ process PREFIX_FILENAME {
 
     script:
     """
-    prefix_filename.py ${bam} ${prefix_fn} 
+    filename_prefix.py ${bam} ${prefix_fn} 
     """
 }
 
@@ -59,15 +59,15 @@ process FILTER_BAM {
       * - publishes a flagstat report of before and after.
       **/
 
-    publishDir params.output_dir, mode: 'copy', pattern: 'flagstat.*.txt', saveAs: {filename -> "filter_bam/${prefix_filename}${filename}"}
+    publishDir params.output_dir, mode: 'copy', pattern: 'flagstat.*.txt', saveAs: {filename -> "filter_bam/${filename_prefix}${filename}"}
 
     input:
-        tuple val(prefix_filename),
+        tuple val(filename_prefix),
             path(bam),
             path(fasta)
     
     output:
-        tuple val(prefix_filename),
+        tuple val(filename_prefix),
             path("filtered.bam"),
             path(fasta)
 
@@ -88,12 +88,12 @@ process SORT_BAM {
       **/
     
     input:
-    tuple val(prefix_filename), 
+    tuple val(filename_prefix), 
         path(bam), 
         path(fasta)
 
     output:
-    tuple val(prefix_filename), 
+    tuple val(filename_prefix), 
         path('Aligned_sorted.bam'), 
         path(fasta)
 
@@ -111,17 +111,17 @@ process FREEBAYES {
       * - Depths: "DP, AO and RO" minimums
       **/
 
-    publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${prefix_filename}${filename}"}
+    publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
 
     // maxForks 1
 
     input:
-        tuple val(prefix_filename),
+        tuple val(filename_prefix),
             path(bam),
             path(fasta)
 
     output:
-        tuple val(prefix_filename),
+        tuple val(filename_prefix),
             path(bam),
             path(fasta),
             path("freebayes_filt.vcf")
@@ -136,23 +136,22 @@ process FREEBAYES {
     # call variants with freebayes
     freebayes -f ${fasta} -p 1 ${bam} > freebayes_raw.vcf
 
-    # keep only SNPs and remove low quality calls
-    #bcftools filter --threads ${task.cpus} \
-    #    -i 'TYPE="snp" && QUAL>=${params.snp_qual} && FORMAT/DP>=${params.min_snp_depth} && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
-
-    bcftools filter --threads ${task.cpus} \
-        -i 'TYPE="snp"' freebayes_raw.vcf > freebayes_filt.vcf
+    bcftools filter --threads ${task.cpus} -i 'TYPE="snp"' freebayes_raw.vcf > freebayes_filt.vcf
     """
+    // Testing
+    // keep SNPs and remove low quality and low depth calls
+    // bcftools filter --threads ${task.cpus} \
+    //     -i 'TYPE="snp" && QUAL>=${params.snp_qual} && FORMAT/DP>=${params.min_snp_depth} && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
 }
 
 
 process THETA_ESTIMATE {
-    publishDir params.output_dir, mode: "copy", saveAs: {filename -> "${prefix_filename}${filename}"}
+    publishDir params.output_dir, mode: "copy", saveAs: {filename -> "${filename_prefix}${filename}"}
 
     // maxForks 1
 
     input:
-        tuple val(prefix_filename),
+        tuple val(filename_prefix),
             path(bam),
             path(fasta),
             path(vcf)
@@ -181,20 +180,20 @@ workflow {
 
     // Params
     params.help = false
-    params.prefix_filename = "none"
+    params.filename_prefix = "none"
     // VCF filter settings
-    params.snp_qual = 20 // Minimum phred-scaled quality score to filter vcf by
-    params.min_snp_depth = 10 // Minimum read depth to filter vcf by
+    // params.snp_qual = 20 // Minimum phred-scaled quality score to filter vcf by
+    // params.min_snp_depth = 10 // Minimum read depth to filter vcf by
 
     params.output_dir = 'Theta_Est_Output'
-    params.bam_file = 'none'
-    params.reference_genome = 'none'
+    params.bam = 'none'
+    params.fa = 'none'
 
     // Channels
-    bam_file_channel = Channel.fromPath( params.bam_file, checkIfExists: true )
-    reference_genome_channel = Channel.fromPath( params.reference_genome, checkIfExists: true )
+    bam_channel = Channel.fromPath( params.bam, checkIfExists: true )
+    fa_channel = Channel.fromPath( params.fa, checkIfExists: true )
 
-    bam_and_fa = bam_file_channel.combine(reference_genome_channel)
+    bam_and_fa = bam_channel.combine(fa_channel)
 
     // Input verification
     if (params.help) {
@@ -204,20 +203,20 @@ workflow {
         exit 0
     }
 
-    if (params.reference_genome == 'none') {
-        println "No input .fa specified. Use --reference_genome [.fa]"
+    if (params.fa == 'none') {
+        println "No input .fa specified. Use --fa [.fa]"
         exit 1
     }
 
-    if (params.bam_file == 'none') {
-        println "No input .bam specified. Use --bam_file [.bam]"
+    if (params.bam == 'none') {
+        println "No input .bam specified. Use --bam [.bam]"
         exit 1
     }
 
     // Process execution
-    PREFIX_FILENAME(bam_and_fa, params.prefix_filename)
+    FILENAME_PREFIX(bam_and_fa, params.filename_prefix)
 
-    FILTER_BAM(PREFIX_FILENAME.out)
+    FILTER_BAM(FILENAME_PREFIX.out)
 
     SORT_BAM(FILTER_BAM.out[0])
 
