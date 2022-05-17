@@ -101,7 +101,7 @@ workflow {
     params.lk_table = 'none'
     params.theta = 0.01 // Theta can be based on estimate or as desired
     params.lookup_grid = "101,100" // The grid of rho values used to generate lookup tables for using the ldpop algorithm.
-    params.lk_table_max_depth = 100
+    params.lk_table_max_depth = 85
     params.output_dir = 'Lookup_tables'
 
     depth_range = Channel.of(3 .. params.lk_table_max_depth) // 3 to max_depth val

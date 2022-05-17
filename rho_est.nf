@@ -327,10 +327,10 @@ workflow {
     params.seed = [123] // used for samtools subsamping and final bootstrap algorithm
     params.filename_prefix = "none"
     params.tract_len = 1000
-    params.lookup_grid = "0,0.01,1,1,100" // The range of rho values used to generate lookup tables
+    params.lookup_grid = "101,100" // The range of rho values used to generate lookup tables
     params.window_size = 1000 // For single end this is the read size, for paired end this is the max insert length (1000bp is a practical upper limit)
     params.single_end = false
-    params.depth_range = "3,250" // min_depth, max_depth
+    params.depth_range = "3,85" // min_depth, max_depth
     // VCF filter settings
     // params.snp_qual = 20 // Minimum phred-scaled quality score to filter vcf by
     // params.min_snp_depth = 10 // Minimum read depth to filter vcf by
@@ -338,13 +338,7 @@ workflow {
     params.output_dir = 'Rho_Est_Output'
     params.bam = 'none'
     params.fa = 'none'
-    
-    params.lookup_tables = "/Volumes/Backup/Lookup_tables/Lookup_tables_stp"
-    // params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_stp"
-    // params.lookup_tables = "/shared//homes/11849395/Lookup_tables/5ng_lk/Lookup_tables" // 5ng_sp
-    // params.lookup_tables = "/shared/homes/11849395/Lookup_tables/500ng_lk/Lookup_tables" // 500ng_sp
-    // params.lookup_tables = "/shared/homes/11849395/Lookup_tables/5ng_lk/Lookup_tables" // 84seq
-    // params.lookup_tables = "Lookup_tables"
+    params.lookup_tables = "Lookup_tables"
 
 
     // Channels
