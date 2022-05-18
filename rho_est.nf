@@ -5,13 +5,11 @@ nextflow.enable.dsl = 2
 def helpMessage() {
 
     log.info"""
-    Description:
-
     Usage:
-    nextflow run recom_est.nf --bam in.bam --fa ref.fa [options]
+    nextflow run rho_est.nf --bam in.bam --fa ref.fa [options]
 
     Help:
-    nextflow run recom_est.nf --help
+    nextflow run rho_est.nf --help
 
     Required:
     --bam [*.bam], Multi bam support via glob input e.g. "*.bam", quotes but be included for glob. Use with one fasta file only
@@ -20,12 +18,13 @@ def helpMessage() {
 
     Options:
     --lookup_grid [int,int], default:[101,100], The range of rho values used to generate lookup tables
-    --tract_len [int], default:[500], Recombination tract length to use
-    --window_size [int], default:[500], Window size for variant pairs. For single end this is the read size, for paired end this is the max fragment length
+    --tract_len [int], default:[1000], Recombination tract length to use
+    --window_size [int], default:[1000], Window size for variant pairs. For single end this is the read size, for paired end this is the max fragment length
     --single_end, Toggle used for single end read bams
-    --depth_range [int,int], default:[3,100], Minimum and maximum depth downsampled lookup tables available. Minimum should be no less than 3
+    --depth_range [int,int], default:[3,85], Minimum and maximum depth downsampled lookup tables available. Minimum should be no less than 3
     --seed [int] , default:[123], Seed value for samtools subsamping. 
-                                The seed value will be displayed at the start of the output file names
+                                The seed value will be displayed at the start of the output file names.
+                                A list of seed values can be used, a run will be performed for each seed.
     --filename_prefix [str], prefix string to output filenames to help distinguish runs
     --output_dir [str], default:[Rho_Est_Output], Directory to save results in
     """.stripIndent()

@@ -5,8 +5,6 @@ nextflow.enable.dsl = 2
 def helpMessage() {
 
     log.info"""
-    Description:
-
     Usage:
     nextflow run theta_est.nf --bam in.bam --fa ref.fa [options]
 
@@ -14,7 +12,7 @@ def helpMessage() {
     nextflow run theta_est.nf --help
 
     Required:
-    --bam [*.bam], Query name sorted bam file. Multi bam support via glob input e.g. "*.bam", quotes but be included for glob. Use with one fasta file only
+    --bam [*.bam], Query name sorted bam file. Multi bam support via glob input e.g. "*.bam", quotes must be included for glob. Use with one fasta file only
     --fa [*.fa],  Single/Multi genome fasta file
 
     Options:

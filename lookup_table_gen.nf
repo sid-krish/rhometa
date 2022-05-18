@@ -5,8 +5,6 @@ nextflow.enable.dsl = 2
 def helpMessage() {
 
     log.info"""
-    Description:
-
     Usage:
     nextflow run lookup_table_gen.nf [options]
 
@@ -21,9 +19,9 @@ def helpMessage() {
                                                    ldpop help: The grid has num_rh uniformly spaced points from 0 to max_rh, inclusive. (((Alternatively, to create 
                                                    a non-uniform grid, use r0,step0,r1,step1,r2,...rK. This creates a grid {r0,r0+step0,r0+2*step0,...,r1,r1+step1,...,rK}
                                                    similar to ldhelmet. Note that non-uniform grid is incompatible with vanilla ldhat.)))
-    --lk_table_max_depth [int], default:[100], The max depth to generate lookup tables for
+    --lk_table_max_depth [int], default:[85], The max depth to generate lookup tables for
     --lk_table [str], Provide lookup table to run downsample step only
-    --theta [float], default:[0.01], Population mutation rate, can be estimated value from theta_est.nf or a different value
+    --theta [float], default:[0.01], Population mutation rate per site, can be estimated value from theta_est.nf or a different value
     --output_dir [str], default:[Lookup_tables], Directory to save results in
 
     """.stripIndent()

@@ -52,7 +52,7 @@ process PREFIX_FILENAME {
 
     script:
     """
-    prefix_filename.py ${bam_and_fa[0]} ${prefix_fn}
+    filename_prefix.py ${bam_and_fa[0]} ${prefix_fn}
     """
 }
 

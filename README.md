@@ -1,45 +1,6 @@
-<div id="top"></div>
-
-<!-- PROJECT LOGO -->
-<br />
-
-[//]: # (<div align="center">)
-
-[//]: # ()
-[//]: # (  <a href="https://github.com/sid-krish/rhometa">)
-
-[//]: # ()
-[//]: # (    <img src="images/logo.png" alt="Logo" width="80" height="80">)
-
-[//]: # ()
-[//]: # (  </a>)
-
 <h1 align="center">Rhometa</h1>
-
   <p align="center">
     Metagenomic Population Recombination Rate Estimation Pipeline
-
-[//]: # (    <br />)
-
-[//]: # (    <a href="https://github.com/github_username/repo_name"><strong>Explore the docs »</strong></a>)
-
-[//]: # (    <br />)
-
-[//]: # (    <br />)
-
-[//]: # (    <a href="https://github.com/github_username/repo_name">View Demo</a>)
-
-[//]: # (    ·)
-
-[//]: # (    <a href="https://github.com/github_username/repo_name/issues">Report Bug</a>)
-
-[//]: # (    ·)
-
-[//]: # (    <a href="https://github.com/github_username/repo_name/issues">Request Feature</a>)
-  </p>
-
-[//]: # (</div>)
-
 
 
 <!-- TABLE OF CONTENTS -->
@@ -65,12 +26,8 @@
   </ol>
 </details>
 
-
-
 <!-- ABOUT THE PROJECT -->
 ## About The Project
-
-[//]: # ([![Product Name Screen Shot][product-screenshot]]&#40;https://example.com&#41;)
 
 Rhometa is a composite likelihood based population recombination rate
 estimator that can be applied directly on aligned, shotgun metagenomic read based datasets in the form of bam files.
@@ -104,7 +61,6 @@ It is also possible to install and run the program on Windows via [wsl](https://
     installed and the docker option is enabled.
   * Other container technologies such as singularity (used for HPCs) are also supported via nextflow.
 
-
 ### Set up using conda
 Instructions for installing nextflow and dependencies via conda
 1. Clone the repo
@@ -134,8 +90,12 @@ Instructions for installing nextflow and using the provided docker image for dep
 2. Install nextflow [Nextflow install](https://www.nextflow.io/index.html#GetStarted)
 3. Install docker desktop [Docker install](https://docs.docker.com/desktop/linux/).
 4. Adjust settings in nextflow.config file, by default it is configured to work with docker with modest resources.
-5. Ensure docker is running.
-6. The pipeline is now ready to run, all the required dependencies are present in the docker image, that the pipeline is preconfigured to use.
+5. In the nextflow.config file comment the following line:
+   ```
+   // conda='environment.yaml'
+   ```
+6. Ensure docker is running.
+7. The pipeline is now ready to run, all the required dependencies are present in the docker image, that the pipeline is preconfigured to use.
 
 <!-- PROGRAM COMPOSITION -->
 ## Rhometa program composition
@@ -264,7 +224,83 @@ rho,log_likelihood_sum
 ```
 <!-- Pipeline Options -->
 ## Pipeline Options and Advanced Usage
+In this section, the options for each of the pipelines will covered and further information will be provided where necessary. In general pipeline specific options are activated using "--option_name", options specfic to nextflow are activate with "-option_name". 
 
+The options for each specfic pipeline can be viewed using "nexflow run pipeline.nf --help", where as to access nextflow help the command is "nextflow -help".
+
+### theta_est.nf
+The following are the usage instructions and options for theta_est.nf.
+```
+Usage:
+nextflow run theta_est.nf --bam in.bam --fa ref.fa [options]
+
+Help:
+nextflow run theta_est.nf --help
+
+Required:
+--bam [*.bam], Query name sorted bam file. Multi bam support via glob input e.g. "*.bam", quotes must be included for glob. Use with one fasta file only
+--fa [*.fa],  Single/Multi genome fasta file
+
+Options:
+--filename_prefix [str], prefix string to output filenames to help distinguish runs
+--output_dir [str], default:[Theta_Est_Output], Directory to save results in
+```
+
+### lookup_table_gen.nf
+The following are the usage instructions and options for lookup_table_gen.nf.
+```
+Usage:
+nextflow run lookup_table_gen.nf [options]
+
+Downsample Only:
+nextflow run lookup_table_gen.nf --lk_table [str] --lookup_grid [str] --lk_table_max_depth [int]
+
+Help:
+nextflow run lookup_table_gen.nf --help
+
+Options:
+--lookup_grid [str], default:["101,100"], ["num_rh,max_rh"] The grid of rho values used to generate lookup tables for using the ldpop algorithm.
+                                               ldpop help: The grid has num_rh uniformly spaced points from 0 to max_rh, inclusive. (((Alternatively, to create 
+                                               a non-uniform grid, use r0,step0,r1,step1,r2,...rK. This creates a grid {r0,r0+step0,r0+2*step0,...,r1,r1+step1,...,rK}
+                                               similar to ldhelmet. Note that non-uniform grid is incompatible with vanilla ldhat.)))
+--lk_table_max_depth [int], default:[85], The max depth to generate lookup tables for
+--lk_table [str], Provide lookup table to run downsample step only
+--theta [float], default:[0.01], Population mutation rate per site, can be estimated value from theta_est.nf or a different value
+--output_dir [str], default:[Lookup_tables], Directory to save results in
+```
+This pipeline makes use of [ldpop](https://github.com/popgenmethods/ldpop), it has been tailored for use with rhometa.
+
+--lookup_grid, specifies the gird of rho values to generate lookup tables for, the default setting "101,100" will values from 0-100 )inclusive in steps of 1. Setting this value to "201,100" will cause the values to increase in steps of 0.5, meaning it will be more fine scale. It is also possible to create a non-uniform grid for instance "0,0.01,1,1,100" will create a grid where the rho values go from 0-1 in steps of 0.01 and 1 to 100 in steps of 100, this is useful for having fine scale values between 0-1.
+
+--lk_table, with this option if a lookup table has already by generated, just the downsampling step can be performed using it. For example if I have a table for depth of 100, I just need to change --lk_table_max_depth to 100 and use --lk_table. This will create tables for depths 3 to the max depth.
+
+### rho_est.nf
+```
+Usage:
+nextflow run rho_est.nf --bam in.bam --fa ref.fa [options]
+
+Help:
+nextflow run rho_est.nf --help
+
+Required:
+--bam [*.bam], Multi bam support via glob input e.g. "*.bam", quotes but be included for glob. Use with one fasta file only
+--fa [*.fa],  Single/Multi genome fasta file
+--lookup_tables [dir], default:[Lookup_tables], Folder containing downsampled lookup tables generated by lookup_table_gen.nf
+
+Options:
+--lookup_grid [int,int], default:[101,100], The range of rho values used to generate lookup tables
+--tract_len [int], default:[1000], Recombination tract length to use
+--window_size [int], default:[1000], Window size for variant pairs. For single end this is the read size, for paired end this is the max fragment length
+--single_end, Toggle used for single end read bams
+--depth_range [int,int], default:[3,85], Minimum and maximum depth downsampled lookup tables available. Minimum should be no less than 3
+--seed [int] , default:[123], Seed value for samtools subsamping. 
+                            The seed value will be displayed at the start of the output file names.
+                            A list of seed values can be used, a run will be performed for each seed.
+--filename_prefix [str], prefix string to output filenames to help distinguish runs
+--output_dir [str], default:[Rho_Est_Output], Directory to save results in
+```
+
+--depth_range, specfies the minimum and maximum depth to look at. Maximum depth will be used for subsampling and analysis even if higher depth lookup tables are available.
 <!-- Contributing -->
 ## Issues and Contributing
 If you have any issues please open an issue with the details and steps for reproducing the issue. If you have any questions please open a issue with the tag "question" or alternatively email one of the authors from the contact section.
@@ -286,14 +322,6 @@ Matt DeMaere - matthew.demaere@uts.edu.au
 
 <!-- ACKNOWLEDGMENTS -->
 <!-- ## Acknowledgments
-
-[//]: # (* []&#40;&#41;)
-
-[//]: # (* []&#40;&#41;)
-
-[//]: # (* []&#40;&#41;)
-
-<p align="right">(<a href="#top">back to top</a>)</p> -->
 
 
 
