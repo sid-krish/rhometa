@@ -2,52 +2,29 @@
   <p align="center">
     Metagenomic Population Recombination Rate Estimation Pipeline
 
-
-
 <!-- TABLE OF CONTENTS -->
-<!-- The IDs are generated from the content of the header according to the following rules:
-    All text is converted to lowercase.
-    All non-word text (e.g., punctuation, HTML) is removed.
-    All spaces are converted to hyphens.
-    Two or more hyphens in a row are converted to one.
-    If a header with the same ID has already been generated, a unique incrementing number is appended, starting at 1. 
-    https://docs.gitlab.com/ee/user/markdown.html#header-ids-and-links
-    -->
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#requirements">Requirements</a></li>
-        <li><a href="#set-up-using-conda">Set up using conda</a></li>
-        <li><a href="#set-up-using-docker">Set up using docker</a></li>
-      </ul>
-    </li>
-    <li><a href="#rhometa-program-composition">Rhometa program composition</a></li>
-    <li>
-      <a href="#quick-start-and-output">Quick Start and Output</a>
-      <ul>
-        <li><a href="#estimating-theta">Estimating theta</a></li>
-        <li><a href="#generating-lookup-tables">Generating lookup tables</a></li>
-        <li><a href="#estimating-rho">Estimating rho</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#pipeline-options-and-advanced-usage">Pipeline Options and Advanced Usage</a>
-      <ul>
-        <li><a href="#thetaestnf">theta_est.nf</a></li>
-        <li><a href="#lookuptablegennf">lookup_table_gen.nf</a></li>
-        <li><a href="#rhoestnf">rho_est.nf</a></li>
-      </ul>
-    </li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-  </ol>
-</details>
+- [About The Project](#about-the-project)
+  - [Built With](#built-with)
+- [Getting Started](#getting-started)
+  - [Requirements](#requirements)
+  - [Set up using conda](#set-up-using-conda)
+  - [Set up using docker](#set-up-using-docker)
+- [Rhometa program composition](#rhometa-program-composition)
+- [Quick Start and Output](#quick-start-and-output)
+  - [Estimating theta](#estimating-theta)
+    - [Paired end reads](#paired-end-reads)
+    - [Single end reads](#single-end-reads)
+  - [Generating lookup tables](#generating-lookup-tables)
+  - [Estimating rho](#estimating-rho)
+    - [Paired end reads](#paired-end-reads-1)
+    - [Single end reads](#single-end-reads-1)
+- [Pipeline Options and Advanced Usage](#pipeline-options-and-advanced-usage)
+  - [theta_est.nf](#theta_estnf)
+  - [lookup_table_gen.nf](#lookup_table_gennf)
+  - [rho_est.nf](#rho_estnf)
+- [Issues and Contributing](#issues-and-contributing)
+- [License](#license)
+- [Contact](#contact)
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
