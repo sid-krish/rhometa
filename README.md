@@ -3,7 +3,16 @@
     Metagenomic Population Recombination Rate Estimation Pipeline
 
 
+
 <!-- TABLE OF CONTENTS -->
+<!-- The IDs are generated from the content of the header according to the following rules:
+    All text is converted to lowercase.
+    All non-word text (e.g., punctuation, HTML) is removed.
+    All spaces are converted to hyphens.
+    Two or more hyphens in a row are converted to one.
+    If a header with the same ID has already been generated, a unique incrementing number is appended, starting at 1. 
+    https://docs.gitlab.com/ee/user/markdown.html#header-ids-and-links
+    -->
 <details>
   <summary>Table of Contents</summary>
   <ol>
@@ -13,16 +22,30 @@
     <li>
       <a href="#getting-started">Getting Started</a>
       <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
+        <li><a href="#requirements">Requirements</a></li>
+        <li><a href="#set-up-using-conda">Set up using conda</a></li>
+        <li><a href="#set-up-using-docker">Set up using docker</a></li>
       </ul>
     </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
+    <li><a href="#rhometa-program-composition">Rhometa program composition</a></li>
+    <li>
+      <a href="#quick-start-and-output">Quick Start and Output</a>
+      <ul>
+        <li><a href="#estimating-theta">Estimating theta</a></li>
+        <li><a href="#generating-lookup-tables">Generating lookup tables</a></li>
+        <li><a href="#estimating-rho">Estimating rho</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#pipeline-options-and-advanced-usage">Pipeline Options and Advanced Usage</a>
+      <ul>
+        <li><a href="#thetaestnf">theta_est.nf</a></li>
+        <li><a href="#lookuptablegennf">lookup_table_gen.nf</a></li>
+        <li><a href="#rhoestnf">rho_est.nf</a></li>
+      </ul>
+    </li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
   </ol>
 </details>
 
@@ -97,7 +120,7 @@ Instructions for installing nextflow and using the provided docker image for dep
 6. Ensure docker is running.
 7. The pipeline is now ready to run, all the required dependencies are present in the docker image, that the pipeline is preconfigured to use.
 
-<!-- PROGRAM COMPOSITION -->
+<!-- RHOMETA PROGRAM COMPOSITION -->
 ## Rhometa program composition
 
 The rhometa program is made up of 3 separate pipelines. Each of which can be used independently as necessary.
@@ -121,11 +144,11 @@ Pipeline specific help for any pipeline can be accessed with:
 The pipeline specific help also provides instructions on how to run it and the parameter options.
 
 
-<!-- Quick Start -->
+<!-- QUICK START AND OUTPUT -->
 ## Quick Start and Output
 The following quick start example makes use of the files in [toy_dataset.zip](https://github.com/sid-krish/rhometa/blob/main/toy_dataset.zip). The section should be followed in sequence.
 This example is designed to help ensure that rhometa and it's pipelines are configured properly and to demonstrate a typical workflow.
-The toy datasets were simulated using the simulation pipeline [rhometa_sim]()
+The toy datasets were simulated using the simulation pipeline [rhometa_sim](https://github.com/sid-krish/rhometa_sim)
 
 There are 2 examples one for paired_end and one for single_end reads. 
 When using the rho_est.nf pipeline a toggle is used for the appropriate read type, this will be demonstrated.
@@ -222,7 +245,7 @@ and the paired end results are:
 rho,log_likelihood_sum
 17.0,-95079.46655795292463
 ```
-<!-- Pipeline Options -->
+<!-- PIPELINE OPTIONS AND ADVANCED USAGE -->
 ## Pipeline Options and Advanced Usage
 In this section, the options for each of the pipelines will covered and further information will be provided where necessary. In general pipeline specific options are activated using "--option_name", options specfic to nextflow are activate with "-option_name". 
 
@@ -301,7 +324,9 @@ Options:
 ```
 
 --depth_range, specfies the minimum and maximum depth to look at. Maximum depth will be used for subsampling and analysis even if higher depth lookup tables are available.
-<!-- Contributing -->
+
+
+<!-- ISSUES AND CONTRIBUTING -->
 ## Issues and Contributing
 If you have any issues please open an issue with the details and steps for reproducing the issue. If you have any questions please open a issue with the tag "question" or alternatively email one of the authors from the contact section.
 
