@@ -54,7 +54,7 @@ It is also possible to install and run the program on Windows via [wsl](https://
 * Nextflow: [Nextflow install](https://www.nextflow.io/index.html#GetStarted) 
   * Installing nextflow via conda is recommended, since with conda other dependencies can also be resolved.
 * Conda or containerization platform
-  * If using conda, the conda package manager available from: [Anaconda download](https://www.anaconda.com/products/individual).
+  * If using conda, the conda package manager available from: [Miniconda download](https://conda.io/en/latest/miniconda.html).
   * If using containers, docker is recommended and is available from: [Docker download](https://www.docker.com/get-started).
     * The required docker image can be found at https://hub.docker.com/r/sidkris/rhometa.
     * It is not required that the user download the image, the program has been pre-configured to use this image, provided docker is 
