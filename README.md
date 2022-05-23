@@ -67,7 +67,7 @@ Instructions for installing nextflow and dependencies via conda
    ```sh
    git clone https://github.com/sid-krish/rhometa.git
    ```
-2. Install the conda package manager: [Anaconda download](https://www.anaconda.com/products/individual)
+2. Install the conda package manager: [Miniconda download](https://conda.io/en/latest/miniconda.html)
 3. Install nextflow
    ```sh
    conda install -c bioconda nextflow
