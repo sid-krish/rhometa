@@ -177,7 +177,7 @@ tps_median_depth,0.004902775805147897
 ### Generating lookup tables
 The toy_datasets were simulated with a theta value of 0.01, by default lookup_table_gen.nf will generate lookup tables for this theta value. For the quick start example it is not required to change any values, if however, you wish to use the estimated theta value from the previous step this can be done using the option --theta followed by the desired value.
 
-lookup_table_gen.nf, under with default settings, will first generate a lookup table for a read depth of 85 for rho values between 0-100 (inclusive) in increments of 1. This range can be adjust with the option --lookup_grid if desired, this will be disscussed later in the pipeline options and advanced usage section. Once the lookup table is generated for a read depth of 85, the downsampling algorithm will be applied to generate lookup tables for depth 3 to 85, 3 is the lowest depth the pipeline can accurately process.
+lookup_table_gen.nf, under with default settings, will first generate a lookup table for a read depth of 85 for rho values between 0-100 (inclusive) in increments of 1. This range can be adjust with the option --lookup_grid if desired, this will be discussed later in the pipeline options and advanced usage section. Once the lookup table is generated for a read depth of 85, the downsampling algorithm will be applied to generate lookup tables for depth 3 to 85, 3 is the lowest depth the pipeline can accurately process.
 
 For this quick start example, the required lookup_table_gen.nf command is:
 ```sh
@@ -224,9 +224,9 @@ rho,log_likelihood_sum
 ```
 <!-- PIPELINE OPTIONS AND ADVANCED USAGE -->
 ## Pipeline Options and Advanced Usage
-In this section, the options for each of the pipelines will covered and further information will be provided where necessary. In general pipeline specific options are activated using "--option_name", options specfic to nextflow are activate with "-option_name". 
+In this section, the options for each of the pipelines will covered and further information will be provided where necessary. In general pipeline specific options are activated using "--option_name", options specific to nextflow are activate with "-option_name". 
 
-The options for each specfic pipeline can be viewed using "nexflow run pipeline.nf --help", where as to access nextflow help the command is "nextflow -help".
+The options for each specific pipeline can be viewed using "nexflow run pipeline.nf --help", where as to access nextflow help the command is "nextflow -help".
 
 ### theta_est.nf
 The following are the usage instructions and options for theta_est.nf.
@@ -300,7 +300,7 @@ Options:
 --output_dir [str], default:[Rho_Est_Output], Directory to save results in
 ```
 
---depth_range, specfies the minimum and maximum depth to look at. Maximum depth will be used for subsampling and analysis even if higher depth lookup tables are available.
+--depth_range, specifies the minimum and maximum depth to look at. Maximum depth will be used for subsampling and analysis even if higher depth lookup tables are available.
 
 
 <!-- ISSUES AND CONTRIBUTING -->
