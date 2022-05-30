@@ -41,9 +41,8 @@ estimator that can be applied directly on aligned, shotgun metagenomic read base
 <!-- GETTING STARTED -->
 ## Getting Started
 
-Rhometa designed to be run on linux and requires nextflow to be installed. 
-Dependencies are resolved either via conda or docker images. Support for HPC, docker, singularity, AWS
-and many other systems are provided via nextflow.
+Rhometa is designed to be run on linux and requires nextflow to be installed. 
+Dependencies are resolved either via conda or docker images. Support for HPC, docker, singularity, AWS and many other systems are provided via nextflow.
 
 While it is possible to resolve the dependencies using conda for running on macOS, its recommended that this option be used on linux systems for which it has been extensively test.
 If running on macOS it recommended that docker be used with the provided image, in which case it is similar to running in a linux environment.
