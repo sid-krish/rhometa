@@ -349,16 +349,16 @@ workflow {
     params.help = false
     params.prefix_filename = "none"
     params.recom_tract_len = 1000
-    params.ldpop_rho_range = "201,2"
+    params.ldpop_rho_range = "0,0.01,1,1,100"
     params.window_size = 1000 // For single end this is the read size, for paired end this is the max insert length (1000bp is a practical upper limit)
     params.single_end = false
-    params.depth_range = "3,200" // min_depth, max_depth
+    params.depth_range = "3,250" // min_depth, max_depth
     // VCF filter settings
     // params.snp_qual = 20 // Minimum phred-scaled quality score to filter vcf by
     // params.min_snp_depth = 10 // Minimum read depth to filter vcf by
 
     params.output_dir = 'Rho_Est_Output'
-    params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_0-2/Lookup_tables"
+    params.lookup_tables = "/shared/homes/11849395/Lookup_tables/Lookup_tables_stp/"
 
     // Channels
     downsampled_lookup_tables = Channel.fromPath( "${params.lookup_tables}/lk_downsampled_*.csv", checkIfExists: true ).collect()

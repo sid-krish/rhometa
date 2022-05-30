@@ -306,7 +306,7 @@ Options:
 
 <!-- PREGENERATED LOOKUP TABLES -->
 ## Pregenerated Lookup Tables
-To help get started and to help reduce compute time, the following pregenerated tables are made available, they are all for a depth of 250, but different theta (per site) rates.
+To help get started and to help reduce compute time, the following pregenerated tables are made available, they are all for a depth (number of genomes) of 250, but different theta (per site) rates.
 
 To make use of thse tables, the --lk_table option in lookup_table_gen.nf needs to be used. Please refer to the lookup_table_gen.nf section in Pipeline Options and Advanced Usage for details. 
 
@@ -317,7 +317,7 @@ lookup_grid: "0,0.01,1,1,100"
 
 theta per site: [0.001, 0.005, 0.01]
 
-depth: 250
+depth (number of genomes): 250
 ```
 
 ### Lookup table download links:
