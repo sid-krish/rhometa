@@ -23,6 +23,8 @@
   - [lookup_table_gen.nf](#lookup_table_gennf)
   - [rho_est.nf](#rho_estnf)
 - [Issues and Contributing](#issues-and-contributing)
+- [Pregenerated Lookup Tables](#pregenerated-lookup-tables)
+  - [Lookup table download links:](#lookup-table-download-links)
 - [License](#license)
 - [Contact](#contact)
 
@@ -271,7 +273,7 @@ This pipeline makes use of [ldpop](https://github.com/popgenmethods/ldpop), it h
 
 --lookup_grid, specifies the gird of rho values to generate lookup tables for, the default setting "101,100" will values from 0-100 )inclusive in steps of 1. Setting this value to "201,100" will cause the values to increase in steps of 0.5, meaning it will be more fine scale. It is also possible to create a non-uniform grid for instance "0,0.01,1,1,100" will create a grid where the rho values go from 0-1 in steps of 0.01 and 1 to 100 in steps of 100, this is useful for having fine scale values between 0-1.
 
---lk_table, with this option if a lookup table has already by generated, just the downsampling step can be performed using it. For example if I have a table for depth of 100, I just need to change --lk_table_max_depth to 100 and use --lk_table. This will create tables for depths 3 to the max depth.
+--lk_table, with this option if a lookup table has already been generated, just the downsampling step can be performed using it. For example if I have a table for depth of 100, I just need to change --lk_table_max_depth to 100 and use --lk_table. This will create tables for depths 3 to the max depth.
 
 ### rho_est.nf
 ```
@@ -307,6 +309,28 @@ Options:
 If you have any issues please open an issue with the details and steps for reproducing the issue. If you have any questions please open a issue with the tag "question" or alternatively email one of the authors from the contact section.
 
 If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+
+
+<!-- PREGENERATED LOOKUP TABLES -->
+## Pregenerated Lookup Tables
+To help get started and to help reduce compute time, the following pregenerated tables are made available, they are all for a depth of 250, but different theta (per site) rates.
+
+To make use of thse tables, the --lk_table option in lookup_table_gen.nf needs to be used. Please refer to the lookup_table_gen.nf section in Pipeline Options and Advanced Usage for details. 
+
+The configuration of the tables are as follows:
+
+```
+lookup_grid: "0,0.01,1,1,100"
+
+theta per site: [0.001, 0.005, 0.01]
+
+depth: 250
+```
+
+### Lookup table download links:
+Theta per site 0.001: https://zenodo.org/record/6578772 \
+Theta per site 0.005: https://zenodo.org/record/6579071 \
+Theta per site 0.01: https://zenodo.org/record/6562881
 
 
 <!-- LICENSE -->
