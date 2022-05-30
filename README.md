@@ -22,9 +22,9 @@
   - [theta_est.nf](#theta_estnf)
   - [lookup_table_gen.nf](#lookup_table_gennf)
   - [rho_est.nf](#rho_estnf)
-- [Issues and Contributing](#issues-and-contributing)
 - [Pregenerated Lookup Tables](#pregenerated-lookup-tables)
   - [Lookup table download links:](#lookup-table-download-links)
+- [Issues and Contributing](#issues-and-contributing)
 - [License](#license)
 - [Contact](#contact)
 
@@ -304,13 +304,6 @@ Options:
 --depth_range, specifies the minimum and maximum depth to look at. Maximum depth will be used for subsampling and analysis even if higher depth lookup tables are available.
 
 
-<!-- ISSUES AND CONTRIBUTING -->
-## Issues and Contributing
-If you have any issues please open an issue with the details and steps for reproducing the issue. If you have any questions please open a issue with the tag "question" or alternatively email one of the authors from the contact section.
-
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-
-
 <!-- PREGENERATED LOOKUP TABLES -->
 ## Pregenerated Lookup Tables
 To help get started and to help reduce compute time, the following pregenerated tables are made available, they are all for a depth of 250, but different theta (per site) rates.
@@ -331,6 +324,13 @@ depth: 250
 Theta per site 0.001: https://zenodo.org/record/6578772 \
 Theta per site 0.005: https://zenodo.org/record/6579071 \
 Theta per site 0.01: https://zenodo.org/record/6562881
+
+
+<!-- ISSUES AND CONTRIBUTING -->
+## Issues and Contributing
+If you have any issues please open an issue with the details and steps for reproducing the issue. If you have any questions please open a issue with the tag "question" or alternatively email one of the authors from the contact section.
+
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
 
 
 <!-- LICENSE -->
