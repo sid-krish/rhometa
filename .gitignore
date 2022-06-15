@@ -20,6 +20,8 @@
 
 /Misc/
 
+/dev-files/
+
 .DS_Store
 
 *.bam
