@@ -1,5 +1,0 @@
-conda create -n sra-tools -c bioconda -c conda-forge python=3.9 sra-tools=2.11.0
-
-conda activate sra-tools
-
-python fasterq_dump accessions.txt
