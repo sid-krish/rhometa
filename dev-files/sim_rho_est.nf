@@ -39,6 +39,8 @@ process PREFIX_FILENAME {
 
     // echo true
 
+    label 'LOCAL_EXEC'
+
     input:
         tuple val(sample_id),
             path(bam_and_fa)
@@ -52,7 +54,20 @@ process PREFIX_FILENAME {
 
     script:
     """
-    filename_prefix.py ${bam_and_fa[0]} ${prefix_fn}
+    #!/usr/bin/env python
+
+    bam = "${bam_and_fa[0]}"
+    prepend_file = "${prefix_fn}"
+
+    # bam = "a.s_bs_ds.bam"
+    # prepend_file = "none"
+
+    if prepend_file == "none":
+        file_name = bam.rsplit(".",1)[0]
+        print(f"{file_name}_", end = '')
+
+    else:
+        print(prepend_file, end = '')
     """
 }
 
@@ -62,6 +77,8 @@ process GET_SEED_VAL{
     // maxForks 1
 
     // echo true
+
+    label 'LOCAL_EXEC'
 
     input:
         tuple val(prefix_filename),
@@ -76,7 +93,14 @@ process GET_SEED_VAL{
 
     script:
     """
-    get_seed_val.py ${prefix_filename}
+    #!/usr/bin/env python
+
+    prefix = "${prefix_filename}"
+
+    prefix_split = prefix.split("_")
+    seed = prefix_split[-3]
+
+    print(seed)
     """
 }
 
