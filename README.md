@@ -3,14 +3,15 @@
     Metagenomic Population Recombination Rate Estimation Pipeline
 
 <!-- TABLE OF CONTENTS -->
-- [About The Project](#about-the-project)
-  - [Built With](#built-with)
-- [Getting Started](#getting-started)
+- [About the project](#about-the-project)
+  - [Built with](#built-with)
+- [Getting started](#getting-started)
   - [Requirements](#requirements)
   - [Set up using conda](#set-up-using-conda)
   - [Set up using docker](#set-up-using-docker)
 - [Rhometa program composition](#rhometa-program-composition)
-- [Quick Start and Output](#quick-start-and-output)
+- [Input preparation for rho_est and theta_est pipelines](#input-preparation-for-rho_est-and-theta_est-pipelines)
+- [Quick start and output](#quick-start-and-output)
   - [Estimating theta](#estimating-theta)
     - [Paired end reads](#paired-end-reads)
     - [Single end reads](#single-end-reads)
@@ -18,30 +19,30 @@
   - [Estimating rho](#estimating-rho)
     - [Paired end reads](#paired-end-reads-1)
     - [Single end reads](#single-end-reads-1)
-- [Pipeline Options and Advanced Usage](#pipeline-options-and-advanced-usage)
+- [Pipeline options and advanced usage](#pipeline-options-and-advanced-usage)
   - [theta_est.nf](#theta_estnf)
   - [lookup_table_gen.nf](#lookup_table_gennf)
   - [rho_est.nf](#rho_estnf)
-- [Pregenerated Lookup Tables](#pregenerated-lookup-tables)
+- [Pregenerated lookup tables](#pregenerated-lookup-tables)
   - [Lookup table download links:](#lookup-table-download-links)
-- [Issues and Contributing](#issues-and-contributing)
+- [Issues and contributing](#issues-and-contributing)
 - [License](#license)
 - [Contact](#contact)
 
 <!-- ABOUT THE PROJECT -->
-## About The Project
+## About the project
 
 Rhometa is a composite likelihood based population recombination rate
 estimator that can be applied directly on aligned, shotgun metagenomic read based datasets in the form of bam files.
 
 
-### Built With
+### Built with
 
 * [Python](https://www.python.org/)
 * [Nextflow](https://www.nextflow.io/)
 
 <!-- GETTING STARTED -->
-## Getting Started
+## Getting started
 
 Rhometa is designed to be run on linux and requires nextflow to be installed. 
 Dependencies are resolved either via conda or docker images. Support for HPC, docker, singularity, AWS and many other systems are provided via nextflow.
@@ -121,9 +122,12 @@ Pipeline specific help for any pipeline can be accessed with:
    ```
 The pipeline specific help also provides instructions on how to run it and the parameter options.
 
+<!-- INPUT PREPARATION FOR RHO_EST AND THETA_EST PIPELINES -->
+## Input preparation for rho_est and theta_est pipelines
+We have endeavoured to make the process of  preparing a metagenomic dataset for analysis with Rhometa straight forward with very little preprocessing steps. Short reads can be aligned to existing reference genomes representing the metagenomic dataset, to reference MAGs (Metagenome-Assembled Genome) or pangenomes representative of the microbial community.  Multi sequence references are also supported. The reference genomes provide a scaffold to align the reads, from which the rates of recombination and mutation are determined in the rho_est and theta_est pipelines.
 
 <!-- QUICK START AND OUTPUT -->
-## Quick Start and Output
+## Quick start and output
 The following quick start example makes use of the files in [toy_dataset.zip](https://github.com/sid-krish/rhometa/blob/main/toy_dataset.zip). The section should be followed in sequence.
 This example is designed to help ensure that rhometa and it's pipelines are configured properly and to demonstrate a typical workflow.
 The toy datasets were simulated using the simulation pipeline [rhometa_sim](https://github.com/sid-krish/rhometa_sim)
@@ -224,7 +228,7 @@ rho,log_likelihood_sum
 17.0,-95079.46655795292463
 ```
 <!-- PIPELINE OPTIONS AND ADVANCED USAGE -->
-## Pipeline Options and Advanced Usage
+## Pipeline options and advanced usage
 In this section, the options for each of the pipelines will covered and further information will be provided where necessary. In general pipeline specific options are activated using "--option_name", options specific to nextflow are activate with "-option_name". 
 
 The options for each specific pipeline can be viewed using "nexflow run pipeline.nf --help", where as to access nextflow help the command is "nextflow -help".
@@ -305,7 +309,7 @@ Options:
 
 
 <!-- PREGENERATED LOOKUP TABLES -->
-## Pregenerated Lookup Tables
+## Pregenerated lookup tables
 To help get started and to help reduce compute time, the following pregenerated tables are made available, they are all for a depth (number of genomes) of 250, but different theta (per site) rates.
 
 To make use of thse tables, the --lk_table option in lookup_table_gen.nf needs to be used. Please refer to the lookup_table_gen.nf section in Pipeline Options and Advanced Usage for details. 
@@ -327,7 +331,7 @@ Theta per site 0.01: https://zenodo.org/record/6562881
 
 
 <!-- ISSUES AND CONTRIBUTING -->
-## Issues and Contributing
+## Issues and contributing
 If you have any issues please open an issue with the details and steps for reproducing the issue. If you have any questions please open a issue with the tag "question" or alternatively email one of the authors from the contact section.
 
 If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
