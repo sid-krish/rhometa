@@ -56,6 +56,7 @@ process FILENAME_PREFIX {
     """
 }
 
+
 process FILTER_BAM {
     /**
       * Filter input BAM files to assure that reported alignments will be of acceptable quality.
@@ -87,6 +88,7 @@ process FILTER_BAM {
     """
 }
 
+
 process SORT_BAM {
     /**
       * Simply sort the BAM in coordinate order.
@@ -100,14 +102,15 @@ process SORT_BAM {
 
     output:
     tuple val(filename_prefix), 
-        path('Aligned_sorted.bam'), 
+        path('filtered_sorted.bam'), 
         path(fasta), 
         val(seed)
 
     """
-    samtools sort -@${task.cpus} -o Aligned_sorted.bam ${bam}
+    samtools sort -@${task.cpus} -o filtered_sorted.bam ${bam}
     """
 }
+
 
 process MAKE_PILEUP {
     /**
@@ -116,21 +119,22 @@ process MAKE_PILEUP {
 
     input:
     tuple val(filename_prefix), 
-        path('Aligned_sorted.bam'), 
+        path('filtered_sorted.bam'), 
         path(fasta), 
         val(seed)
 
     output:
     tuple val(filename_prefix), 
-        path('Aligned_sorted.bam'), 
-        path('Aligned_sorted.pileup'), 
+        path('filtered_sorted.bam'), 
+        path('filtered_sorted.pileup'), 
         path(fasta), 
         val(seed)
 
     """
-    samtools mpileup -o Aligned_sorted.pileup Aligned_sorted.bam
+    samtools mpileup -o filtered_sorted.pileup filtered_sorted.bam
     """
 }
+
 
 process SUBSAMPLE {
     /**
@@ -139,8 +143,8 @@ process SUBSAMPLE {
     
     input:
     tuple val(filename_prefix), 
-        path('Aligned_sorted.bam'), 
-        path('Aligned_sorted.pileup'), 
+        path('filtered_sorted.bam'), 
+        path('filtered_sorted.pileup'), 
         path(fasta), 
         val(seed)
 
@@ -153,9 +157,10 @@ process SUBSAMPLE {
         val(seed)
 
     """
-    subsample_bam_seeded.py Aligned_sorted.pileup ${depth_range} Aligned_sorted.bam ${seed}
+    subsample_bam_seeded.py filtered_sorted.pileup ${depth_range} filtered_sorted.bam ${seed}
     """
 }
+
 
 process FREEBAYES {
     /**
@@ -164,6 +169,7 @@ process FREEBAYES {
       * - Variant quality minimum
       * - Depths: "DP, AO and RO" minimums
       **/
+
     publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
 
     input:
@@ -268,7 +274,8 @@ process RECOM_RATE_ESTIMATOR {
     /**
       * Maximum likelihood estimation of recombination rate.
       **/
-    publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "${filename_prefix}${filename}"}
+
+    publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "recom_rate_estimator/${filename_prefix}${filename}"}
 
     input:
         tuple val(filename_prefix),
@@ -298,7 +305,8 @@ process RESULTS_PLOT {
     /**
       * Plot of maximum likelihood search over requested rho range
       **/
-    publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "${filename_prefix}${filename}"}
+
+    publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "results_plot/${filename_prefix}${filename}"}
 
     input:
         tuple val(filename_prefix),
@@ -366,7 +374,6 @@ workflow {
     }
 
     // Process execution
-
     FILENAME_PREFIX(bam_and_fa, 
                     params.filename_prefix, 
                     params.seed)
