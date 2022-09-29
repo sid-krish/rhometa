@@ -144,7 +144,7 @@ process FREEBAYES {
 
 
 process THETA_ESTIMATE {
-    publishDir params.output_dir, mode: "copy", saveAs: {filename -> "${filename_prefix}${filename}"}
+    publishDir params.output_dir, mode: "copy", saveAs: {filename -> "theta_estimate/${filename_prefix}${filename}"}
 
     // maxForks 1
 
@@ -163,7 +163,12 @@ process THETA_ESTIMATE {
     script:
     """
     samtools mpileup ${bam} > Aligned_sorted.pileup
-    genome_size=\$(samtools view -H ${bam} | grep "@SQ" | awk '{ print \$3 }' | cut -c 4-)
+
+    #old solution only worked for bams aligned to single sequence
+    #genome_size=\$(samtools view -H ${bam} | grep "@SQ" | awk '{ print \$3 }' | cut -c 4-)
+
+    #New solution works for bams aligned to single/multiple sequences by summing the lengths of all @SQ records.
+    genome_size=\$(samtools view -H ${bam} |  awk '/^@SQ/ {l+=substr(\$3,4)}END{print l}')
 
     theta_est.py \$genome_size Aligned_sorted.pileup ${vcf}
     """
