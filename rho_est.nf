@@ -270,12 +270,12 @@ process PAIRWISE_TABLE_PAIRED_END{
 }
 
 
-process RECOM_RATE_ESTIMATOR {
+process RHO_ESTIMATE {
     /**
       * Maximum likelihood estimation of recombination rate.
       **/
 
-    publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "recom_rate_estimator/${filename_prefix}${filename}"}
+    publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "rho_estimate/${filename_prefix}${filename}"}
 
     input:
         tuple val(filename_prefix),
@@ -394,7 +394,7 @@ workflow {
                     params.single_end, 
                     params.window_size)
 
-        RECOM_RATE_ESTIMATOR(PAIRWISE_TABLE_SINGLE_END.out, 
+        RHO_ESTIMATE(PAIRWISE_TABLE_SINGLE_END.out, 
                             downsampled_lookup_tables, 
                             params.tract_len, 
                             params.depth_range,
@@ -406,13 +406,13 @@ workflow {
                     params.single_end, 
                     params.window_size)
 
-        RECOM_RATE_ESTIMATOR(PAIRWISE_TABLE_PAIRED_END.out, 
+        RHO_ESTIMATE(PAIRWISE_TABLE_PAIRED_END.out, 
                             downsampled_lookup_tables, 
                             params.tract_len, 
                             params.depth_range,
                             params.lookup_grid)
     }
 
-    RESULTS_PLOT(RECOM_RATE_ESTIMATOR.out)
+    RESULTS_PLOT(RHO_ESTIMATE.out)
 
 }

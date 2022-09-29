@@ -30,7 +30,7 @@ def helpMessage() {
 
 
 process LDPOP_TABLE_GEN {
-    publishDir params.output_dir, mode: "copy"
+    publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "ldpop_table_gen/${filename}"}
     
     maxForks 1
 
