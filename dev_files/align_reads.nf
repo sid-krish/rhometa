@@ -13,7 +13,7 @@ process BWA_MEM_PAIRED_END {
         path(reference_fa)
 
     output:
-        path("${sample_id}_Aligned_Sorted.bam")
+        path("${sample_id}_${reference_fa.getSimpleName()}_csorted.bam")
 
     script:
     """
@@ -25,11 +25,12 @@ process BWA_MEM_PAIRED_END {
     bwa index ${reference_fa}
 
     #Paired end
-    bwa mem -t $task.cpus ${reference_fa} ${fastqs[0]} ${fastqs[1]} > ${sample_id}_Aligned.sam
+    bwa mem -t $task.cpus ${reference_fa} ${fastqs[0]} ${fastqs[1]} > ${sample_id}_${reference_fa.getSimpleName()}.sam
 
-    samtools view -bS ${sample_id}_Aligned.sam > ${sample_id}_Aligned.bam
+    #Keep mapped only
+    samtools view -bS ${sample_id}_${reference_fa.getSimpleName()}.sam > ${sample_id}_${reference_fa.getSimpleName()}.bam
 
-    samtools sort --threads $task.cpus ${sample_id}_Aligned.bam -o ${sample_id}_Aligned_Sorted.bam
+    samtools sort --threads $task.cpus ${sample_id}_${reference_fa.getSimpleName()}.bam -o ${sample_id}_${reference_fa.getSimpleName()}_csorted.bam
     """
 }
 
@@ -41,8 +42,8 @@ workflow {
     // For each process there is a output of tuple with the necessary files/values to move forward until they are no longer need
 
     // Params
-    params.fastqs = "*_{1,2}.fastq"
-    params.reference_genome = 'none'
+    params.fastqs = "*_{1,2}.fastq.gz"
+    params.reference_genome = '*.fa'
 
     // Channels
     fastqs_channel = Channel.fromFilePairs( params.fastqs)
