@@ -12,6 +12,7 @@ dependencies:
   - tqdm
   - bcftools
   - pysam>=0.17
+  - bwa>=0.7.17
   - freebayes>=1.3.5
   - samtools>=1.15
   - openssl>=1.1.1n

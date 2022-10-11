@@ -13,6 +13,7 @@ RUN conda install -c bioconda -c conda-forge -y \
   numba \
   tqdm \
   bcftools \
+  'bwa>=0.7.17' \
   'pysam>=0.17' \
   'freebayes>=1.3.5' \
   'samtools>=1.15' \
