@@ -132,7 +132,7 @@ process SUBSAMPLE {
 
 process FREEBAYES {
     /**
-      * Call variants using FreeBayes and filter the result VCF for quality follow FreeBayes reccomendations.
+      * Call variants using FreeBayes and filter the result VCF for quality follow FreeBayes recommendations.
       * - Only snps
       * - Variant quality minimum
       * - Depths: "DP, AO and RO" minimums
@@ -178,7 +178,7 @@ process PAIRWISE_TABLE_SINGLE_END{
     /**
       * Create pair-wise table for final stage of rhometa analysis.
       **/
-    // publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "pairwise_table/${filename_prefix}${filename}"}
+    // publishDir params.output_dir, mode: 'copy', pattern: '*.pkl', saveAs: {filename -> "pairwise_table/${filename_prefix}${filename}"}
 
     // echo true
 
@@ -210,7 +210,7 @@ process PAIRWISE_TABLE_PAIRED_END{
     /**
       * Create pair-wise table for final stage of rhometa analysis.
       **/
-    // publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "pairwise_table/${filename_prefix}${filename}"}
+    // publishDir params.output_dir, mode: 'copy', pattern: '*.pkl', saveAs: {filename -> "pairwise_table/${filename_prefix}${filename}"}
 
     // echo true
 

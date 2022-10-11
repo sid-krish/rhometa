@@ -126,9 +126,8 @@ workflow {
 
     if (params.single_end == true) {
         // Channels
-        fastqs_channel = Channel.fromPath( params.fq)
-        reference_genome_channel = Channel.fromPath( params.fa )
-
+        fastqs_channel = Channel.fromPath(params.fq)
+        reference_genome_channel = Channel.fromPath(params.fa)
         combined_inputs = fastqs_channel.combine(reference_genome_channel)
 
         // Process execution
@@ -142,9 +141,8 @@ workflow {
 
     else if (params.single_end == false) {
         // Channels
-        fastqs_channel = Channel.fromFilePairs( params.fq)
-        reference_genome_channel = Channel.fromPath( params.fa )
-
+        fastqs_channel = Channel.fromFilePairs(params.fq)
+        reference_genome_channel = Channel.fromPath(params.fa)
         combined_inputs = fastqs_channel.combine(reference_genome_channel)
 
         // Process execution

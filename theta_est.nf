@@ -165,7 +165,6 @@ workflow {
     // Channels
     bam_channel = Channel.fromPath( params.bam, checkIfExists: true )
     fa_channel = Channel.fromPath( params.fa, checkIfExists: true )
-
     bam_and_fa = bam_channel.combine(fa_channel)
 
     // Input verification
@@ -187,7 +186,8 @@ workflow {
     }
 
     // Process execution
-    FILENAME_PREFIX(bam_and_fa, params.filename_prefix)
+    FILENAME_PREFIX(bam_and_fa,
+                    params.filename_prefix)
 
     SORT_BAM(FILENAME_PREFIX.out)
 
