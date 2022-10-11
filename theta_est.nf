@@ -50,36 +50,6 @@ process FILENAME_PREFIX {
 }
 
 
-process FILTER_BAM {
-    /**
-      * Filter input BAM files to assure that reported alignments will be of acceptable quality.
-      * - filters on mapping quality and alignment-score relative to read-length.
-      * - publishes a flagstat report of before and after.
-      **/
-
-    publishDir params.output_dir, mode: 'copy', pattern: 'flagstat.*.txt', saveAs: {filename -> "filter_bam/${filename_prefix}${filename}"}
-
-    input:
-        tuple val(filename_prefix),
-            path(bam),
-            path(fasta)
-    
-    output:
-        tuple val(filename_prefix),
-            path("filtered.bam"),
-            path(fasta)
-
-        path 'flagstat.*.txt'
-
-    script:
-    """
-    samtools view -b -e "mapq>=40 && [AS]/rlen>0.75" $bam > filtered.bam
-    samtools flagstat $bam > flagstat.before.txt
-    samtools flagstat filtered.bam > flagstat.after.txt
-    """
-}
-
-
 process SORT_BAM {
     /**
       * Simply sort the BAM in coordinate order.
@@ -96,7 +66,7 @@ process SORT_BAM {
         path(fasta)
 
     """
-    samtools sort --threads $task.cpus -o Aligned_sorted.bam ${bam}
+    samtools sort -@ $task.cpus -o Aligned_sorted.bam ${bam}
     """
 }
 
@@ -219,9 +189,7 @@ workflow {
     // Process execution
     FILENAME_PREFIX(bam_and_fa, params.filename_prefix)
 
-    FILTER_BAM(FILENAME_PREFIX.out)
-
-    SORT_BAM(FILTER_BAM.out[0])
+    SORT_BAM(FILENAME_PREFIX.out)
 
     FREEBAYES(SORT_BAM.out)
 

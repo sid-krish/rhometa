@@ -57,38 +57,6 @@ process FILENAME_PREFIX {
 }
 
 
-process FILTER_BAM {
-    /**
-      * Filter input BAM files to assure that reported alignments will be of acceptable quality.
-      * - filters on mapping quality and alignment-score relative to read-length.
-      * - publishes a flagstat report of before and after.
-      **/
-
-    publishDir params.output_dir, mode: 'copy', pattern: 'flagstat.*.txt', saveAs: {filename -> "filter_bam/${filename_prefix}${filename}"}
-
-    input:
-        tuple val(filename_prefix),
-            path(bam),
-            path(fasta),
-            val(seed)
-    
-    output:
-        tuple val(filename_prefix),
-            path("filtered.bam"),
-            path(fasta),
-            val(seed)
-
-        path 'flagstat.*.txt'
-
-    script:
-    """
-    samtools view -b -e "mapq>=40 && [AS]/rlen>0.75" $bam > filtered.bam
-    samtools flagstat $bam > flagstat.before.txt
-    samtools flagstat filtered.bam > flagstat.after.txt
-    """
-}
-
-
 process SORT_BAM {
     /**
       * Simply sort the BAM in coordinate order.
@@ -107,7 +75,7 @@ process SORT_BAM {
         val(seed)
 
     """
-    samtools sort -@${task.cpus} -o filtered_sorted.bam ${bam}
+    samtools sort -@ ${task.cpus} -o filtered_sorted.bam ${bam}
     """
 }
 
@@ -190,7 +158,7 @@ process FREEBAYES {
     script:
     """
     samtools faidx ${fasta}
-    samtools sort --threads $task.cpus ${bam} -o Aligned.csorted.bam
+    samtools sort -@ $task.cpus ${bam} -o Aligned.csorted.bam
     samtools index -@ $task.cpus Aligned.csorted.bam
 
     # call variants with freebayes
@@ -232,7 +200,7 @@ process PAIRWISE_TABLE_SINGLE_END{
     script:
     // -n Sort by read names (i.e., the QNAME field) rather than by chromosomal coordinates.
     """
-    samtools sort -n --threads $task.cpus -o qsorted.bam ${bam}
+    samtools sort -n -@ $task.cpus -o qsorted.bam ${bam}
     pairwise_table_single_end.py qsorted.bam ${vcf_file} $task.cpus ${window_size}
     """
 }
@@ -264,7 +232,7 @@ process PAIRWISE_TABLE_PAIRED_END{
     script:
     // -n Sort by read names (i.e., the QNAME field) rather than by chromosomal coordinates.
     """
-    samtools sort -n --threads $task.cpus -o qsorted.bam ${bam}
+    samtools sort -n -@ $task.cpus -o qsorted.bam ${bam}
     pairwise_table_paired_end.py qsorted.bam ${vcf_file} $task.cpus ${window_size}
     """
 }
@@ -378,9 +346,7 @@ workflow {
                     params.filename_prefix, 
                     params.seed)
     
-    FILTER_BAM(FILENAME_PREFIX.out)
-    
-    SORT_BAM(FILTER_BAM.out[0])
+    SORT_BAM(FILENAME_PREFIX.out)
     
     MAKE_PILEUP(SORT_BAM.out)
     
