@@ -150,7 +150,7 @@ workflow rho_est {
 workflow {
     align_reads()
 
-    theta_est(align_reads.out)
+    theta_est(align_reads.out) //sort bam could be done only once for rho and theta_est
 
     rho_est(align_reads.out)
 }

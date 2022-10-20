@@ -23,7 +23,8 @@ process BWA_MEM_SINGLE_END {
     bwa index ${reference_fa}
 
     #Single end
-    bwa mem -t $task.cpus ${reference_fa} ${fastq} | samtools sort -@ $task.cpus -o ${fastq.getSimpleName()}_${reference_fa.getSimpleName()}.bam
+    bwa mem -t $task.cpus ${reference_fa} ${fastq} > out.sam
+    samtools sort -@ $task.cpus -o ${fastq.getSimpleName()}_${reference_fa.getSimpleName()}.bam out.sam
     """
 }
 
@@ -52,7 +53,8 @@ process BWA_MEM_PAIRED_END {
     bwa index ${reference_fa}
 
     #Paired end
-    bwa mem -t $task.cpus ${reference_fa} ${fastqs[0]} ${fastqs[1]} | samtools sort -@ $task.cpus -o ${sample_id}_${reference_fa.getSimpleName()}.bam
+    bwa mem -t $task.cpus ${reference_fa} ${fastqs[0]} ${fastqs[1]} > out.sam
+    samtools sort -@ $task.cpus -o ${sample_id}_${reference_fa.getSimpleName()}.bam out.sam
     """
 }
 
@@ -74,7 +76,8 @@ process FILTER_BAM {
     script:
     """
     #Filter and keep mapped only
-    samtools view -h -F 4 -e "mapq>=40 && [AS]/rlen>0.50" $bam | samtools sort -@ $task.cpus -o ${bam.getSimpleName()}_filtered.bam
+    samtools view -h -F 4 -e "mapq>=40 && [AS]/rlen>0.50" $bam > out.sam
+    samtools sort -@ $task.cpus -o ${bam.getSimpleName()}_filtered.bam out.sam
 
     samtools flagstat $bam > flagstat.before.txt
     samtools flagstat ${bam.getSimpleName()}_filtered.bam > flagstat.after.txt
@@ -123,6 +126,7 @@ workflow {
         exit 1
     }
 
+    //using pipe within processes causes problems with singularity so I have avoided them
 
     if (params.single_end == true) {
         // Channels
