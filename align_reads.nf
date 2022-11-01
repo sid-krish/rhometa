@@ -20,10 +20,10 @@ process BWA_MEM_SINGLE_END {
     #echo ${fastq}
     #echo ${reference_fa}
 
-    bwa index ${reference_fa}
+    bwa-mem2 index ${reference_fa}
 
     #Single end
-    bwa mem -t $task.cpus ${reference_fa} ${fastq} | samtools sort -@ $task.cpus -o ${fastq.getSimpleName()}_${reference_fa.getSimpleName()}.bam
+    bwa-mem2 mem -t $task.cpus ${reference_fa} ${fastq} | samtools sort -@ $task.cpus -o ${fastq.getSimpleName()}_${reference_fa.getSimpleName()}.bam
     """
 }
 
@@ -49,10 +49,10 @@ process BWA_MEM_PAIRED_END {
     #echo ${fastqs[1]}
     #echo ${reference_fa}
 
-    bwa index ${reference_fa}
+    bwa-mem2 index ${reference_fa}
 
     #Paired end
-    bwa mem -t $task.cpus ${reference_fa} ${fastqs[0]} ${fastqs[1]} | samtools sort -@ $task.cpus -o ${sample_id}_${reference_fa.getSimpleName()}.bam
+    bwa-mem2 mem -t $task.cpus ${reference_fa} ${fastqs[0]} ${fastqs[1]} | samtools sort -@ $task.cpus -o ${sample_id}_${reference_fa.getSimpleName()}.bam
     """
 }
 
