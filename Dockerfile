@@ -7,7 +7,7 @@ RUN apt-get install -y procps
 RUN conda update conda -y
 
 RUN conda install -c bioconda -c conda-forge -y \
-  'python=3.9' \
+  'python=3.10' \
   'numpy=1.23' \
   'pandas=1.5' \
   'scipy=1.9' \
