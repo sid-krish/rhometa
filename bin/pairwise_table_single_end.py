@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-import sys
 import multiprocessing
 import os
 import subprocess
+import sys
 from collections import defaultdict, namedtuple
 
 import numpy as np
@@ -271,6 +271,7 @@ def main(bam, vcf_file, num_cores, fragment_len):
     pairwise_table = pattern_match(bam, reference_pair_positions, read_count, num_cores)
 
     pairwise_table.to_pickle("pairwise_table.pkl")
+
 
 if __name__ == '__main__':
     bam_file = sys.argv[1]

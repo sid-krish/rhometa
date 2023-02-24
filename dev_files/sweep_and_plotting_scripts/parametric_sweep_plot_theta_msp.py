@@ -1,10 +1,10 @@
 import os
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
 
-import matplotlib.pyplot as plt
 
 def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed, tract):
     # utilise numpy for combinations
@@ -28,7 +28,8 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed, t
         prepended_filename = prepended_filename = f"recom_{rho}_tract_{tract}_mutation_{theta}_sample_size_{int(sample_size)}_depth_{int(depth)}_genome_size_{int(genome_size)}_seed_{int(seed)}_final_"
 
         if os.path.isfile(f"{theta_est_results_dir}{prepended_filename}Theta_estimate_stats.csv"):
-            df = pd.read_csv(f"{theta_est_results_dir}{prepended_filename}Theta_estimate_stats.csv", header=None, skiprows=2)
+            df = pd.read_csv(f"{theta_est_results_dir}{prepended_filename}Theta_estimate_stats.csv", header=None,
+                             skiprows=2)
             df = df.T
 
             results_final = df.iloc[1].to_list()
@@ -48,23 +49,26 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed, t
 if __name__ == '__main__':
     # Sweep 1: Recombination rate estimation
     rho_sweep_1 = [0.0]
-    theta_sweep_1 = [0.0005, 0.0025, 0.005] # unscaled u values. theta = 2 . p . N_e . u
-    sample_size_sweep_1 = [50,100,150,200]
+    theta_sweep_1 = [0.0005, 0.0025, 0.005]  # unscaled u values. theta = 2 . p . N_e . u
+    sample_size_sweep_1 = [50, 100, 150, 200]
     depth_sweep_1 = [8]
     genome_size_sweep_1 = [25000]
-    seed_sweep_1 = [1,2,3,4,5,6,7,8,9,10]
+    seed_sweep_1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
     recom_tract_len = 1000
 
-    collected_results_sweep_1_df = collect_results_sweep_1(rho_sweep_1, theta_sweep_1, sample_size_sweep_1, depth_sweep_1,genome_size_sweep_1, seed_sweep_1, recom_tract_len)
+    collected_results_sweep_1_df = collect_results_sweep_1(rho_sweep_1, theta_sweep_1, sample_size_sweep_1,
+                                                           depth_sweep_1, genome_size_sweep_1, seed_sweep_1,
+                                                           recom_tract_len)
 
     # process and export df for plotting
 
     collected_results_sweep_1_df["scaled_theta_sim"] = collected_results_sweep_1_df["theta_sim"].apply(
         lambda x: x * 2)
 
-    reorder_cols = ["rho_sim", "theta_sim", "scaled_theta_sim", "sample_size_sim", "depth_sim", "genome_size_sim", "seed_sim",
-                     "mean_depth", "tps_mean_depth", "median_depth", "tps_median_depth"]
+    reorder_cols = ["rho_sim", "theta_sim", "scaled_theta_sim", "sample_size_sim", "depth_sim", "genome_size_sim",
+                    "seed_sim",
+                    "mean_depth", "tps_mean_depth", "median_depth", "tps_median_depth"]
 
     collected_results_sweep_1_df = collected_results_sweep_1_df.reindex(columns=reorder_cols)
 
@@ -72,7 +76,8 @@ if __name__ == '__main__':
 
     collected_results_sweep_1_df = collected_results_sweep_1_df.astype('float64')
 
-    collected_results_sweep_1_df.rename(columns = {'sample_size_sim':'genomes', 'depth_sim':'fold_coverage'}, inplace = True) # Rename for plot
+    collected_results_sweep_1_df.rename(columns={'sample_size_sim': 'genomes', 'depth_sim': 'fold_coverage'},
+                                        inplace=True)  # Rename for plot
 
     # Plot results
     sns.set_theme(style="whitegrid")
@@ -107,14 +112,15 @@ if __name__ == '__main__':
     #### deviation plot
 
     collected_results_sweep_1_df["deviation"] = (collected_results_sweep_1_df["tps_median_depth"] -
-                                                 collected_results_sweep_1_df["scaled_theta_sim"]) / collected_results_sweep_1_df[
+                                                 collected_results_sweep_1_df["scaled_theta_sim"]) / \
+                                                collected_results_sweep_1_df[
                                                     "scaled_theta_sim"]
-    
+
     ax2 = sns.catplot(data=collected_results_sweep_1_df, x="scaled_theta_sim", y="deviation", hue="genomes",
-                     col="fold_coverage", col_wrap=1, sharex=True, sharey=True, kind="box", palette="RdYlGn")
-    
-    ax2.set(ylim=(-1,1), xlabel="Simulated \u03C1", ylabel="Deviation")
-    
+                      col="fold_coverage", col_wrap=1, sharex=True, sharey=True, kind="box", palette="RdYlGn")
+
+    ax2.set(ylim=(-1, 1), xlabel="Simulated \u03C1", ylabel="Deviation")
+
     ax2.map(plt.axhline, y=0, ls='--', color='g', linewidth=2)
-    
+
     ax2.savefig("rhometa_theta_est_deviation_results.png", dpi=500)

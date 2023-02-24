@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-import sys
 import glob
+import sys
 
 import pandas as pd
 
@@ -17,7 +17,7 @@ all_filenames.sort(key=lambda x: int(x[:-4].split('_')[-1]))
 # combine all files in the list
 combined_csv = pd.concat([pd.read_csv(f, skiprows=7, index_col="rho_for_estimator") for f in all_filenames], axis=1)
 
-combined_csv["final_sum_for_rho"] = combined_csv.sum(axis = 1)
+combined_csv["final_sum_for_rho"] = combined_csv.sum(axis=1)
 
 # Drop cols that are no longer needed
 combined_csv.drop(["total_of_log_likelihood"], axis=1, inplace=True)
@@ -29,7 +29,7 @@ combined_csv.reset_index(inplace=True)
 # are first
 combined_csv.sort_values(by=["final_sum_for_rho", "rho_for_estimator"], ascending=[False, True], inplace=True)
 
-max_rho = combined_csv.iloc[0][0] # try max_rho, max_lk = df.loc[0, ['name_col1', 'name_col2']]
+max_rho = combined_csv.iloc[0][0]  # try max_rho, max_lk = df.loc[0, ['name_col1', 'name_col2']]
 max_lk = combined_csv.iloc[0][1]
 
 # Now that the required values, resort for final output
@@ -48,4 +48,4 @@ with open(f"Aggregate_results_for_full_dataset.out", 'w') as file:  # open in wr
     file.write(f'-' * 55 + '\n')
 
     file.write(f"\n")
-    combined_csv.to_csv(file, mode = 'a', index = None)  # open in append mode (add to new file)
+    combined_csv.to_csv(file, mode='a', index=None)  # open in append mode (add to new file)

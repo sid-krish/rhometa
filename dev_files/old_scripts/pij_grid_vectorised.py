@@ -3,9 +3,7 @@ import sys
 
 import numpy as np
 import pandas as pd
-
 from ldpop import rhos_from_string
-
 
 if __name__ == '__main__':
     genome_len = int(sys.argv[1])

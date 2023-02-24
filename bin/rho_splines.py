@@ -80,8 +80,8 @@ def _slow_sample(table, config, sample_size):
                                  sample_size)
         return table[this_idx, :]
     return np.logaddexp(
-            _slow_sample(table, config + to_add0, sample_size),
-            _slow_sample(table, config + to_add1, sample_size)
+        _slow_sample(table, config + to_add0, sample_size),
+        _slow_sample(table, config + to_add1, sample_size)
     )
 
 
@@ -91,10 +91,10 @@ def _get_hap_comb(hconf, to_add00, to_add01, to_add10, to_add11):
                * (1 + min(to_add01, to_add11, hconf[-1, 1],
                           to_add01 + to_add11 - hconf[-1, 1])))
     transpose_runtime = (
-        (1 + min(to_add01, to_add00, hconf[0, -1],
-                 to_add00 + to_add01 - hconf[0, -1]))
-        * (1 + min(to_add10, to_add11, hconf[1, -1],
-                   to_add10 + to_add11 - hconf[1, -1]))
+            (1 + min(to_add01, to_add00, hconf[0, -1],
+                     to_add00 + to_add01 - hconf[0, -1]))
+            * (1 + min(to_add10, to_add11, hconf[1, -1],
+                       to_add10 + to_add11 - hconf[1, -1]))
     )
     if runtime > transpose_runtime:
         hconf = hconf.transpose()
@@ -175,19 +175,19 @@ def _get_dip_likelihood(table, config, sample_size):
     to_return = np.full(table.shape[1], np.NINF)
     for k in range(gconf[1, 1] + 1):
         k_inv = gconf[1, 1] - k
-        hap_conf = np.array([2*gconf[0, 0] + gconf[0, 1] + gconf[1, 0] + k,
-                             2*gconf[0, 2] + gconf[0, 1] + gconf[1, 2] + k_inv,
-                             2*gconf[0, -1] + gconf[1, -1],
-                             2*gconf[2, 0] + gconf[2, 1] + gconf[1, 0] + k_inv,
-                             2*gconf[2, 2] + gconf[2, 1] + gconf[1, 2] + k,
-                             2*gconf[2, -1] + gconf[1, -1],
-                             2*gconf[-1, 0] + gconf[-1, 1],
-                             2*gconf[-1, 2] + gconf[-1, 1]])
+        hap_conf = np.array([2 * gconf[0, 0] + gconf[0, 1] + gconf[1, 0] + k,
+                             2 * gconf[0, 2] + gconf[0, 1] + gconf[1, 2] + k_inv,
+                             2 * gconf[0, -1] + gconf[1, -1],
+                             2 * gconf[2, 0] + gconf[2, 1] + gconf[1, 0] + k_inv,
+                             2 * gconf[2, 2] + gconf[2, 1] + gconf[1, 2] + k,
+                             2 * gconf[2, -1] + gconf[1, -1],
+                             2 * gconf[-1, 0] + gconf[-1, 1],
+                             2 * gconf[-1, 2] + gconf[-1, 1]])
         comb = log_mult_coef(np.array([k, k_inv]))
         this_ll = _get_hap_likelihood(table, hap_conf, sample_size) + comb
         to_return = np.logaddexp(to_return, this_ll)
     swaps = gconf[1, :].sum() + gconf[:, 1].sum() - gconf[1, 1]
-    return swaps*np.log(2) + to_return
+    return swaps * np.log(2) + to_return
 
 
 def _get_splines(table, configs, sample_size):
@@ -196,11 +196,11 @@ def _get_splines(table, configs, sample_size):
         raise NotImplementedError('Ploidies other than 1 and 2 '
                                   'are not implemented.')
     to_return = np.zeros((configs.shape[0], table.shape[1]))
-    table_ids = np.zeros(configs.shape[0]) # SK added required later
+    table_ids = np.zeros(configs.shape[0])  # SK added required later
     for i in range(configs.shape[0]):
         if ploidy == 1:
             to_return[i, :], table_ids[i] = _get_hap_likelihood(table, configs[i, :],
-                                                  sample_size)
+                                                                sample_size)
         if ploidy == 2:
             to_return[i, :] = _get_dip_likelihood(table, configs[i, :],
                                                   sample_size)

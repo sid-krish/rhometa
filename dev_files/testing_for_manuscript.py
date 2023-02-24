@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 
+import m_biallelic_filter_pairwise_table
+import m_custom_hap_sets_and_merge
+import m_isolate_by_depth
+import m_pairwise_lookup_format_pyrho
+import m_pairwise_rho_estimator_intp_rect_biv
+import m_pij_grid_vectorised
 import pandas as pd
 from ldpop import rhos_from_string
-
-import m_isolate_by_depth
-import m_biallelic_filter_pairwise_table
-import m_pairwise_lookup_format_pyrho
-import m_custom_hap_sets_and_merge
-import m_pij_grid_vectorised
-import m_pairwise_rho_estimator_intp_rect_biv
 
 if __name__ == '__main__':
     depth = 5
@@ -29,7 +28,7 @@ if __name__ == '__main__':
 
     # isolate a single depth for testing
     pairwise_table_slice = m_isolate_by_depth.main(pairwise_table, depth)
-    
+
     # perform bi-allelic filtering
     pairwise_biallelic_table = m_biallelic_filter_pairwise_table.main(pairwise_table_slice.copy())
 

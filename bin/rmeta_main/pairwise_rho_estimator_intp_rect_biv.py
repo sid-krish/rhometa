@@ -29,7 +29,6 @@ def export_to_csv(total_log_likelihoods, depth):
 
 
 def main(merged_eq3_table, table_ids_for_eq3, p_ij_grid, lookup_table, depth):
-
     merged_eq3_table.drop(columns=["d_ij"], inplace=True)  # was used for p_ij grid and no longer needed
 
     df_lookup_table = pd.read_csv(lookup_table)
@@ -39,7 +38,7 @@ def main(merged_eq3_table, table_ids_for_eq3, p_ij_grid, lookup_table, depth):
     x = df_lookup_table.index.values.astype("int32")  # row index 0,1,2,3...
     y = df_lookup_table.columns.values.astype("float64")  # the rhos 0.0, 1.0, 2.0...
     z = df_lookup_table.to_numpy().astype("float64")  # values in cells
-    
+
     # a = np.array([0, 1, 2]) # np.tile(a, 2) # Out[10]: array([0, 1, 2, 0, 1, 2])
     x_new = np.tile(table_ids_for_eq3, y.shape[0])
     y_transposed = p_ij_grid.to_numpy().astype("float64").T  # must be transposed
@@ -50,9 +49,9 @@ def main(merged_eq3_table, table_ids_for_eq3, p_ij_grid, lookup_table, depth):
     intpltd_res_df = pd.DataFrame(data=intpltd_res, columns=y)
 
     return intpltd_res_df
-    
+
     # Equation 1
     # total_log_likelihoods = intpltd_res_df.sum(axis=0)
-    
+
     # Output to csv
     # export_to_csv(total_log_likelihoods, depth)

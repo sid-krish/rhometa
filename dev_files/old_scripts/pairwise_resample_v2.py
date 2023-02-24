@@ -29,9 +29,9 @@ def get_resampled_values(row, seed, numSamples):
     # Counter objects have a dictionary interface except that they return a zero count for
     # missing items instead of raising a KeyError:
     return final.get("AA"), final.get("AC"), final.get("AG"), final.get("AT"), \
-           final.get("CA"), final.get("CC"), final.get("CG"), final.get("CT"), \
-           final.get("GA"), final.get("GC"), final.get("GG"), final.get("GT"), \
-           final.get("TA"), final.get("TC"), final.get("TG"), final.get("TT")
+        final.get("CA"), final.get("CC"), final.get("CG"), final.get("CT"), \
+        final.get("GA"), final.get("GC"), final.get("GG"), final.get("GT"), \
+        final.get("TA"), final.get("TC"), final.get("TG"), final.get("TT")
 
 
 if __name__ == '__main__':

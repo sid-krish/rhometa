@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 
+import sys
 from multiprocessing import Pool
 
-import sys
 import numpy as np
 import pandas as pd
 
+from ldpop import rhos_from_string
 from rmeta_main import biallelic_filter_pairwise_table
 from rmeta_main import custom_hap_sets_and_merge
 from rmeta_main import isolate_by_depth
 from rmeta_main import pairwise_lookup_format_pyrho
 from rmeta_main import pairwise_rho_estimator_intp_rect_biv
 from rmeta_main import pij_grid_vectorised
-from ldpop import rhos_from_string
 
 
 def module_calls(arg_list):
@@ -28,7 +28,7 @@ def module_calls(arg_list):
     lookup_table = f"lk_downsampled_{depth}.csv"
     # lookup_table = f"/Volumes/Backup/Lookup_tables/Lookup_tables_stp/lk_downsampled_{depth}.csv"
     pairwise_table_slice = isolate_by_depth.main(pairwise_table,
-                                                   depth)
+                                                 depth)
 
     # Step 2: Filter pairwise table so that it is bi-allelic pairs only
     # note: after bi-allelic filtering some files will be empty
@@ -48,19 +48,19 @@ def module_calls(arg_list):
 
     # Step 4: Merge lookup formatted table on likelihood table
     merged_eq3_table, table_ids_for_eq3 = custom_hap_sets_and_merge.main(pairwise_biallelic_table.copy(),
-                                                                           lookup_formatted_table.copy(),
-                                                                           lookup_table_rho_vals,
-                                                                           lookup_table)
+                                                                         lookup_formatted_table.copy(),
+                                                                         lookup_table_rho_vals,
+                                                                         lookup_table)
 
     # Step 5: Calculate p_ij values for variant pairs
     p_ij_grid = pij_grid_vectorised.main(recom_tract_len, lookup_table_rho_vals, merged_eq3_table.copy())
 
     # Step 6: Get final pairwise (variant pairs) likelihoods
     interpolated_eq2_df = pairwise_rho_estimator_intp_rect_biv.main(merged_eq3_table.copy(),
-                                                                      table_ids_for_eq3.copy(),
-                                                                      p_ij_grid.copy(),
-                                                                      lookup_table,
-                                                                      depth)
+                                                                    table_ids_for_eq3.copy(),
+                                                                    p_ij_grid.copy(),
+                                                                    lookup_table,
+                                                                    depth)
 
     # Step 7: Performing weighting of log_likelihoods
     # 7.1: Convert log-likelihoods to likelihoods

@@ -1,20 +1,22 @@
+from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-from __future__ import absolute_import
-from builtins import zip
-from builtins import map
-from builtins import range
-from builtins import object
-from .compute_likelihoods import folded_likelihoods, NumericalError
-from .moran_augmented import MoranStatesAugmented, MoranRates
-from .moran_finite import MoranStatesFinite
-from .compute_stationary import stationary
 
-from multiprocessing import Pool
 import logging
 import time
-import pandas
+from builtins import map
+from builtins import object
+from builtins import range
+from builtins import zip
+from multiprocessing import Pool
+
 import numpy
+import pandas
+
+from .compute_likelihoods import folded_likelihoods, NumericalError
+from .compute_stationary import stationary
+from .moran_augmented import MoranStatesAugmented, MoranRates
+from .moran_finite import MoranStatesFinite
 
 
 def getKey(num00, num01, num10, num11):
@@ -150,14 +152,15 @@ class LookupTable(object):
         LookupTable(...,processes)
     to specify the number of parallel processes to use.
     '''
+
     def __init__(self, n, theta, rhos, pop_sizes=[1], times=[], exact=True,
                  processes=1, store_stationary=None, load_stationary=None):
         assert (list(rhos) == list(sorted(rhos))
                 and len(rhos) == len(set(rhos))), 'rhos must be sorted, unique'
-        assert len(pop_sizes) == len(times)+1
+        assert len(pop_sizes) == len(times) + 1
 
         timeLens = epochTimesToIntervalLengths(times)
-        assert len(pop_sizes) == len(timeLens)+1
+        assert len(pop_sizes) == len(timeLens) + 1
 
         start = time.time()
         minRho = rhos[0]
@@ -191,28 +194,28 @@ class LookupTable(object):
         index, rows = [], []
         # make all these configs then print them out
         for i in range(1, halfn + 1):
-                for j in range(1, i + 1):
-                    for k in range(j, -1, -1):
-                        hapMult11 = k
-                        hapMult10 = j - k
-                        hapMult01 = i - k
-                        hapMult00 = n - i - j + k
+            for j in range(1, i + 1):
+                for k in range(j, -1, -1):
+                    hapMult11 = k
+                    hapMult10 = j - k
+                    hapMult01 = i - k
+                    hapMult00 = n - i - j + k
 
-                        index += ['%d %d %d %d' % (hapMult00,
-                                                   hapMult01,
-                                                   hapMult10,
-                                                   hapMult11)]
-                        rows += [getRow(hapMult00,
-                                        hapMult01,
-                                        hapMult10,
-                                        hapMult11,
-                                        columns,
-                                        rhos)]
+                    index += ['%d %d %d %d' % (hapMult00,
+                                               hapMult01,
+                                               hapMult10,
+                                               hapMult11)]
+                    rows += [getRow(hapMult00,
+                                    hapMult01,
+                                    hapMult10,
+                                    hapMult11,
+                                    columns,
+                                    rhos)]
         self.table = pandas.DataFrame(rows, index=index, columns=rhos)
 
         assert self.table.shape[0] == numConfigs
         end = time.time()
-        logging.info('Computed lookup table in %f seconds ' % (end-start))
+        logging.info('Computed lookup table in %f seconds ' % (end - start))
 
         self.n = n
         self.theta = theta
@@ -250,7 +253,7 @@ def epochTimesToIntervalLengths(epochTimes):
 def rhos_to_string(rhos):
     rhos = numpy.array(rhos)
     if rhos[0] == 0 and numpy.allclose(rhos[1:] - rhos[:-1],
-                                       rhos[-1] / float(len(rhos)-1),
+                                       rhos[-1] / float(len(rhos) - 1),
                                        atol=0):
         rho_line = [len(rhos), rhos[-1]]
     else:
@@ -280,19 +283,19 @@ def rhos_from_string(rho_string):
 
     if len(rho_args) == 2:
         n, R = int(rho_args[0]), float(rho_args[1])
-        return list(numpy.arange(n, dtype=float) / float(n-1) * R)
+        return list(numpy.arange(n, dtype=float) / float(n - 1) * R)
 
     rhos = [float(rho_args[0])]
     arg_idx = 1
-    while(arg_idx < len(rho_args)):
+    while (arg_idx < len(rho_args)):
         assert arg_idx + 1 < len(rho_args)
         step_size = float(rho_args[arg_idx])
-        endingRho = float(rho_args[arg_idx+1])
+        endingRho = float(rho_args[arg_idx + 1])
         arg_idx += 2
         cur_rho = rhos[-1]
 
         # 1e-13 deals with the numeric issues
-        while(cur_rho < endingRho-1e-13):
+        while (cur_rho < endingRho - 1e-13):
             cur_rho += step_size
             rhos.append(cur_rho)
         if abs(cur_rho - endingRho) > 1e-13:

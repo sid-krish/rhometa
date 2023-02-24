@@ -18,4 +18,3 @@ max_lk = max_lk.strip("Max lk=")
 with open(f"processed_results_depth_{depth}.csv", 'w') as file:  # open in write mode (create new file)
     file.write(f"depth,max_rho,max_lk\n")
     file.write(f"{depth},{max_rho},{max_lk}\n")
-

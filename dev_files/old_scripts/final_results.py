@@ -18,7 +18,7 @@ df.sort_values(by=["total_of_log_likelihood", "rho_for_estimator"], ascending=[F
 
 # df.reset_index(inplace=True, drop=True)
 
-max_rho = df.iloc[0][0] # try max_rho, max_lk = df.loc[0, ['name_col1', 'name_col2']]
+max_rho = df.iloc[0][0]  # try max_rho, max_lk = df.loc[0, ['name_col1', 'name_col2']]
 max_lk = df.iloc[0][1]
 
 # max_rho = round(df.iloc[0][0], 2)
@@ -39,4 +39,4 @@ with open(f"final_results_depth_{depth}.txt", 'w') as file:  # open in write mod
     file.write(f'-' * 55 + '\n')
 
     file.write(f"\n")
-    df.to_csv(file, mode = 'a', index = None)  # open in append mode (add to new file)
+    df.to_csv(file, mode='a', index=None)  # open in append mode (add to new file)

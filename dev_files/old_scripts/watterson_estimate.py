@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-from math import log
-import pysam
 import sys
+from math import log
+
+import pysam
 
 
 def get_var_pos_from_vcf(vcf_file):
@@ -43,4 +44,4 @@ if __name__ == '__main__':
     theta = watterson_estimate(num_segregating_sites, genome_len, sample_size)
     # output_theta(theta)
 
-    print(theta) # Output will be processed by nextflow
+    print(theta)  # Output will be processed by nextflow

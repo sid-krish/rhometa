@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 import sys
 
+
 def clean_trees(inputFile, outputFile):
     with open(inputFile, 'r') as fileIn, open(outputFile, 'w') as fileOut:
         for line in fileIn:
             if line.startswith('['):
                 # This gets rid of SITE and other unnecessary data
                 fileOut.write(line)
+
 
 if __name__ == '__main__':
     inputFile = sys.argv[1]
@@ -15,4 +17,3 @@ if __name__ == '__main__':
     outputFile = "cleanTrees.txt"
 
     clean_trees(inputFile, outputFile)
-

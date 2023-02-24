@@ -1,20 +1,22 @@
-from __future__ import division
 from __future__ import absolute_import
-from builtins import zip
-from builtins import map
-from builtins import str
-from builtins import range
-from builtins import object
-from .lookup_table import epochTimesToIntervalLengths, rhos_to_string
-from .compute_likelihoods import folded_likelihoods
-from .moran_finite import MoranStatesFinite
-from .moran_augmented import MoranRates
+from __future__ import division
 
-from multiprocessing import Pool
-import math
-import pandas
 import logging
+import math
 import time
+from builtins import map
+from builtins import object
+from builtins import range
+from builtins import str
+from builtins import zip
+from multiprocessing import Pool
+
+import pandas
+
+from .compute_likelihoods import folded_likelihoods
+from .lookup_table import epochTimesToIntervalLengths, rhos_to_string
+from .moran_augmented import MoranRates
+from .moran_finite import MoranStatesFinite
 
 haps = []
 for a in range(2):
@@ -64,12 +66,13 @@ class ISProposal(object):
         ISProposal(...,processes)
     to specify the number of parallel processes to use.
     '''
+
     def __init__(self, n, theta, rhos, pop_sizes,
                  times, numTimePointsPerEpoch, processes=1):
         start = time.time()
         epochLengths = epochTimesToIntervalLengths(times)
         # All possible configs
-        states = MoranStatesFinite(2*n)
+        states = MoranStatesFinite(2 * n)
         moranRates = MoranRates(states)
 
         executor = Pool(processes)
@@ -96,8 +99,8 @@ class ISProposal(object):
 
         self.panel = pandas.Panel(data)
         end = time.time()
-        logging.info('Computed lookup table in %f seconds ' % (end-start))
-        self.num_haps = 2*n
+        logging.info('Computed lookup table in %f seconds ' % (end - start))
+        self.num_haps = 2 * n
         self.theta = theta
         self.pop_sizes = pop_sizes
         self.times = times
@@ -106,12 +109,12 @@ class ISProposal(object):
     def __str__(self):
         ret = []
         # header
-        ret += [['numHaps', int(self.num_haps/2)]]
+        ret += [['numHaps', int(self.num_haps / 2)]]
         ret += [['theta', self.theta]]
         ret += [['popSizes', ','.join(map(str, self.pop_sizes))]]
         ret += [['epochTimes', ','.join(map(str, self.times))]]
         ret += [['rhos', rhos_to_string(list(self.panel.keys()))]]
-        ret += [['%']]   # delimiter
+        ret += [['%']]  # delimiter
         # Iterate over each config x timepoints table for a given rho
         # then print.
         for rho in self.panel.keys():

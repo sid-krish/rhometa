@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 
 import sys
+
+import m_biallelic_filter_pairwise_table
+import m_custom_hap_sets_and_merge
+import m_isolate_by_depth
+import m_pairwise_lookup_format_pyrho
+import m_pairwise_rho_estimator_intp_rect_biv
+import m_pij_grid_vectorised
 import pandas as pd
 from ldpop import rhos_from_string
-
-import m_isolate_by_depth
-import m_biallelic_filter_pairwise_table
-import m_pairwise_lookup_format_pyrho
-import m_custom_hap_sets_and_merge
-import m_pij_grid_vectorised
-import m_pairwise_rho_estimator_intp_rect_biv
 
 if __name__ == '__main__':
     recom_tract_len = int(sys.argv[1])
@@ -105,14 +105,14 @@ if __name__ == '__main__':
     # set appropriate column names indicating they are max values
     final_results_max_rho_and_likelihoods_df.rename({"rho": 'max_rho', "likelihood_sums": 'max_lk'},
                                                     axis=1, inplace=True)
-                                                    
+
     # reorder columns
     final_results_max_rho_and_likelihoods_df = final_results_max_rho_and_likelihoods_df[
         ["max_rho", "max_lk", "bootstrap_sample"]]
     final_results_max_rho_and_likelihoods_df.to_csv("final_results_max_vals.csv", index=False)
 
     # summary statistics on 'max_rho' column
-    summary_stats = final_results_max_rho_and_likelihoods_df['max_rho'].describe(percentiles = [.05,.25, .5, .75, .95])
+    summary_stats = final_results_max_rho_and_likelihoods_df['max_rho'].describe(percentiles=[.05, .25, .5, .75, .95])
     summary_stats = pd.DataFrame(summary_stats).T
 
     summary_stats = summary_stats.rename(columns={"count": "bootstrap_samples"})

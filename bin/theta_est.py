@@ -3,11 +3,10 @@
 import sys
 from math import log
 
-import numpy as np
 import pandas as pd
 import pysam
-
 import seaborn as sns
+
 sns.set_theme(style="darkgrid")
 
 
@@ -44,16 +43,15 @@ def watterson_estimate(segregating_sites, genome_len, samples):
     # calculate a_n
     a_n = 0
     for i in range(1, int(samples)):
-        a_n += 1/i
+        a_n += 1 / i
 
     # ldhat watterson per site
-    theta = k/a_n
+    theta = k / a_n
 
     return theta
 
 
 def plot_depth(pileup_df):
-
     g = sns.histplot(x="Depth", data=pileup_df)
     g.set(title='Counts of depths/read counts across genome')
     g.figure.savefig("depth_distribution.png", dpi=500)
@@ -63,10 +61,9 @@ def plot_depth(pileup_df):
 
 
 def plot_theta(num_variant_positions, genome_size, min_depth, max_depth):
-
     theta_vals_for_depth_range = []
     for i in range(min_depth, max_depth + 1):
-        theta = watterson_estimate(num_variant_positions,genome_size,i)
+        theta = watterson_estimate(num_variant_positions, genome_size, i)
         theta_vals_for_depth_range.append(theta)
 
     depths = [i for i in range(min_depth, max_depth + 1)]
@@ -80,7 +77,6 @@ def plot_theta(num_variant_positions, genome_size, min_depth, max_depth):
 
 
 if __name__ == '__main__':
-
     genome_size = int(sys.argv[1])
     pileup = sys.argv[2]
     vcf = sys.argv[3]
@@ -94,10 +90,11 @@ if __name__ == '__main__':
     plot_depth(pileup_df)
 
     # Summary stats for depth
-    depth_summary_stats_df = pileup_df["Depth"].describe(percentiles = [.5])
+    depth_summary_stats_df = pileup_df["Depth"].describe(percentiles=[.5])
     depth_summary_stats_df = pd.DataFrame(depth_summary_stats_df).T
     depth_summary_stats_df = depth_summary_stats_df.round(0)  # makes sense to round depth vals to the nearest int
-    depth_summary_stats_df = depth_summary_stats_df.drop(columns=["count", "std"])  # Drop cols that can't be used for theta
+    depth_summary_stats_df = depth_summary_stats_df.drop(
+        columns=["count", "std"])  # Drop cols that can't be used for theta
 
     # Plot theta for min - max depth range
     min_depth, max_depth = int(depth_summary_stats_df["min"][0]), int(depth_summary_stats_df["max"][0])
@@ -116,7 +113,8 @@ if __name__ == '__main__':
     all_summary_stats_df = pd.melt(all_summary_stats_df, value_vars=["mean_depth", "median_depth"])
 
     with open("Theta_estimate_stats.csv", 'w') as f:
-        f.write(f"# tps_mean_depth = theta_per_site_at_mean_depth\n# tps_median_depth = theta_per_site_at_median_depth\n")
+        f.write(
+            f"# tps_mean_depth = theta_per_site_at_mean_depth\n# tps_median_depth = theta_per_site_at_median_depth\n")
         f.close()
     new_idx = ["mean_depth", "tps_mean_depth", "median_depth", "tps_median_depth"]
     all_summary_stats_df.index = new_idx

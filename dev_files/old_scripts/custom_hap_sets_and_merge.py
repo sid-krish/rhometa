@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import sys
-import numpy as np
+
 import pandas as pd
 from ldpop import rhos_from_string
 from rho_splines import compute_splines
@@ -8,7 +8,7 @@ from rho_splines import compute_splines
 
 def d_ij(values):
     positions = [int(i) for i in values.strip("()").split(',')]
-    pos1,pos2 = positions[0], positions[1]
+    pos1, pos2 = positions[0], positions[1]
 
     return pos2 - pos1
 
@@ -27,7 +27,7 @@ if __name__ == '__main__':
     # Optimised for ploidy = 1, refer to _get_configs in haplotype reader for full logic
 
     df = pd.DataFrame(index=range(df_lookup_format.shape[0]), columns=['0', '1', '2', '3', '4', '5', '6', '7'])
-    
+
     df['0'] = df_lookup_format["00"].values
     df['1'] = df_lookup_format["01"].values
     df['3'] = df_lookup_format["10"].values

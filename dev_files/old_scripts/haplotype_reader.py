@@ -7,22 +7,23 @@ Functions:
     genos_to_configs: Converts genotypes into an array of two-locus configs.
 """
 from __future__ import division
+
 import logging
 from itertools import chain
 
 import numpy as np
-from scipy.sparse import csr_matrix
-from numba import njit
 from cyvcf2 import VCF
+from numba import njit
+from scipy.sparse import csr_matrix
 
 
 @njit('int64(int64, int64)', cache=True)
 def _get_adj_size(window_size, haplen):
     if window_size < haplen:
-        return ((window_size - 1) * (haplen-window_size)
+        return ((window_size - 1) * (haplen - window_size)
                 + ((window_size - 1) * window_size) // 2)
     else:
-        return (haplen * (haplen-1)) // 2
+        return (haplen * (haplen - 1)) // 2
 
 
 @njit('int64[:, :](int64, int64)', cache=True)
@@ -31,8 +32,8 @@ def _get_adjacency_matrix(window_size, haplen):
     rho_indices = []
     conf_idx = 0
     total = 0
-    for idx1 in range(haplen-1):
-        for idx2 in range(idx1 + 1, min((idx1+window_size, haplen))):
+    for idx1 in range(haplen - 1):
+        for idx2 in range(idx1 + 1, min((idx1 + window_size, haplen))):
             for idx3 in range(idx1, idx2):
                 conf_indices.append(conf_idx)
                 rho_indices.append(idx3)
@@ -50,10 +51,10 @@ def _get_configs(genotypes, window_size, ploidy):
     haplen = genotypes.shape[0]
     sample_size = genotypes.shape[1]
     adj_size = _get_adj_size(window_size, haplen)
-    to_return = np.zeros((adj_size, (ploidy + 2)**2 - 1), dtype=np.int64)
+    to_return = np.zeros((adj_size, (ploidy + 2) ** 2 - 1), dtype=np.int64)
     conf_idx = 0
     for idx1 in range(haplen):
-        for idx2 in range(idx1+1, min((idx1+window_size, haplen))):
+        for idx2 in range(idx1 + 1, min((idx1 + window_size, haplen))):
             for gen_idx in range(sample_size):
                 left_gt = genotypes[idx1, gen_idx]
                 if left_gt == -1:
@@ -131,7 +132,7 @@ def _read_fasta(fasta_filename, ploidy):
         def _fasta_char_to_int(char):
             if ploidy > 1:
                 try:
-                    if int(char) > ploidy: # int(char) will only work if its fasta is digit encoded
+                    if int(char) > ploidy:  # int(char) will only work if its fasta is digit encoded
                         raise IOError('Genotypes must be encoded as digits. '
                                       'Missingness should be encoded as "N".')
                     return int(char)

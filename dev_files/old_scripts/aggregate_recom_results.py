@@ -13,8 +13,7 @@ with open(collected_results_csv, 'r') as results:
         if line.startswith("max_rho"):
             results_list.append(line.strip().split(","))
 
-
 df_cols = "max_rho,bootstrap_samples,mean,std,min,5%,25%,50%,75%,95%,max".split(",")
-results_df = pd.DataFrame(results_list,columns=df_cols)
+results_df = pd.DataFrame(results_list, columns=df_cols)
 
 results_df.to_csv("recom_results.csv", index=False)

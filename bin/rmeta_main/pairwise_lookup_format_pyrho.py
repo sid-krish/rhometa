@@ -1,8 +1,6 @@
 #!/usr/bin/env python
-import sys
 
 import numpy as np
-import pandas as pd
 
 
 def allele_distribution(row, allele_freqs):

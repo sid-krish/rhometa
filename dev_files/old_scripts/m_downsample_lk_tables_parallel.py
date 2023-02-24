@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
 import sys
-import pandas as pd
 from multiprocessing import Pool
+
+import pandas as pd
 from ldpop import rhos_from_string
 from utility import downsample
 
@@ -10,7 +11,7 @@ from utility import downsample
 def downsample_lookup_table(arg_list):  # argument list to make things simpler for multiple processing algorithm
 
     lookup_table = arg_list[0]
-    lookup_table_rho_range =  arg_list[1]
+    lookup_table_rho_range = arg_list[1]
     downsample_value = arg_list[2]
 
     lookup_table_cols = ["Type", "#", "00", "01", "10", "11", "Rho"] + rhos_from_string(lookup_table_rho_range)
@@ -52,10 +53,5 @@ if __name__ == '__main__':
         downsample_lookup_table_arg_list.append([lookup_table, lookup_table_rho_range, i])
 
     # Parallel method execution
-    with Pool(processes = num_cores) as p:
+    with Pool(processes=num_cores) as p:
         p.map(downsample_lookup_table, downsample_lookup_table_arg_list)
-
-
-
-
-

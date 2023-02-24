@@ -3,19 +3,20 @@ Created on Jan 20, 2015
 
 @author: jkamm
 '''
-from __future__ import division
 from __future__ import absolute_import
-from builtins import str
-from builtins import zip
-from builtins import range
+from __future__ import division
 
-from .compute_stationary import stationary
-
-import numpy
 import logging
 import time
-from scipy.sparse.linalg import expm_multiply
+from builtins import range
+from builtins import str
+from builtins import zip
+
+import numpy
 from scipy.linalg import norm
+from scipy.sparse.linalg import expm_multiply
+
+from .compute_stationary import stationary
 
 
 class NumericalError(Exception):
@@ -69,7 +70,7 @@ def folded_likelihoods(moranRates, rho, theta, popSizes, timeLens,
             likelihoods = expm_multiply(rates.transpose() * t, likelihoods)
             end = time.time()
             logging.info('Computed action in %f seconds for rho=%f,N=%f,t=%f'
-                         % (end-start, rho, popSize, t))
+                         % (end - start, rho, popSize, t))
 
             not_zero = renormalize != 0.
 
@@ -85,12 +86,12 @@ def folded_likelihoods(moranRates, rho, theta, popSizes, timeLens,
                                         endpoint=True,
                                         stop=t,
                                         start=0.0,
-                                        num=gridPointsPerEpoch+1)
+                                        num=gridPointsPerEpoch + 1)
             end = time.time()
             logging.info('Computed action in %f seconds for rho=%f,N=%f,t=%f'
-                         % (end-start, rho, popSize, t))
+                         % (end - start, rho, popSize, t))
 
-            for i in range(gridPointsPerEpoch+1):
+            for i in range(gridPointsPerEpoch + 1):
                 currLik = likelihoods[i]
                 not_zero = renormalize != 0.
 
@@ -103,7 +104,7 @@ def folded_likelihoods(moranRates, rho, theta, popSizes, timeLens,
                     assert ret[currTime] == currLik
                 else:
                     ret[currTime] = currLik
-                currTime -= t / float(gridPointsPerEpoch+1)
+                currTime -= t / float(gridPointsPerEpoch + 1)
 
             likelihoods = currLik
 

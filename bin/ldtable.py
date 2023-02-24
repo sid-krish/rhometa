@@ -1,8 +1,10 @@
 #! /usr/bin/env python
 from __future__ import print_function
-from ldpop import LookupTable, rhos_from_string
+
 import argparse
 import logging
+
+from ldpop import LookupTable, rhos_from_string
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -63,6 +65,6 @@ if __name__ == '__main__':
         popSizes = [float(_) for _ in popSizes.split(',')]
         times = [float(_) for _ in times.split(',')]
 
-    assert len(popSizes) == len(times)+1
+    assert len(popSizes) == len(times) + 1
 
     print(LookupTable(args.n, args.th, rhos, popSizes, times, exact, numCores))

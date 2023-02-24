@@ -11,13 +11,14 @@ Functions:
     downsample: Computes a lookup table for a smaller sample size.
 """
 from __future__ import division
+
 import logging
 import signal
 from multiprocessing.pool import Pool
 
 import numpy as np
-from pandas import DataFrame
 from numba import njit
+from pandas import DataFrame
 
 
 def _pool_initializer():
@@ -81,11 +82,11 @@ def get_table_idx(n00, n01, n10, n11, sample_size):
         n00, n11 = n11, n00
     if n01 < n10:
         n01, n10 = n10, n01
-    if n11 + n01 > sample_size//2:
+    if n11 + n01 > sample_size // 2:
         n00, n01, n10, n11 = n01, n00, n11, n10
-    i, j, k = n01+n11, n10+n11, n11
-    return (j-k) + ((j-1) * j)//2 + (j-1) + round(((i-1)**3)/6 + (i-1)**2 +
-                                                  5*(i-1)/6)
+    i, j, k = n01 + n11, n10 + n11, n11
+    return (j - k) + ((j - 1) * j) // 2 + (j - 1) + round(((i - 1) ** 3) / 6 + (i - 1) ** 2 +
+                                                          5 * (i - 1) / 6)
 
 
 @njit('float64(int64[:])', cache=True)
@@ -115,7 +116,7 @@ def log_mult_coef(vector):
     to_return = np.log(np.arange(vector[-1], num) + 1).sum()
     factorials = np.cumsum(np.log(np.arange(vector[-2]) + 1))
     for k in vector[:-1]:
-        to_return = to_return - factorials[k-1]
+        to_return = to_return - factorials[k - 1]
     return to_return
 
 
@@ -164,21 +165,21 @@ def downsample(table, desired_size):
 @njit('float64[:, :](float64[:, :], int64)', cache=True)
 def _single_vec_downsample(old_vec, sample_size):
     halfn = (sample_size - 1) // 2
-    new_conf_num = (1 + halfn + halfn*(halfn - 1)*(halfn + 4)//6
-                    + (halfn - 1)*(halfn + 2)//2)
+    new_conf_num = (1 + halfn + halfn * (halfn - 1) * (halfn + 4) // 6
+                    + (halfn - 1) * (halfn + 2) // 2)
     to_return = np.zeros((new_conf_num, old_vec.shape[1]))
     idx = 0
-    for i in range(1, halfn+1):
-        for j in range(1, i+1):
+    for i in range(1, halfn + 1):
+        for j in range(1, i + 1):
             for k in range(j, -1, -1):
                 n11 = k
                 n10 = j - k
                 n01 = i - k
                 n00 = sample_size - 1 - i - j + k
-                add00 = get_table_idx(n00+1, n01, n10, n11, sample_size)
-                add01 = get_table_idx(n00, n01+1, n10, n11, sample_size)
-                add10 = get_table_idx(n00, n01, n10+1, n11, sample_size)
-                add11 = get_table_idx(n00, n01, n10, n11+1, sample_size)
+                add00 = get_table_idx(n00 + 1, n01, n10, n11, sample_size)
+                add01 = get_table_idx(n00, n01 + 1, n10, n11, sample_size)
+                add10 = get_table_idx(n00, n01, n10 + 1, n11, sample_size)
+                add11 = get_table_idx(n00, n01, n10, n11 + 1, sample_size)
                 to_return[idx, :] = np.logaddexp(old_vec[add00, :],
                                                  old_vec[add01, :])
                 to_return[idx, :] = np.logaddexp(to_return[idx, :],

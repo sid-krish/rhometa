@@ -3,20 +3,23 @@ Created on Jan 19, 2015
 
 @author: jkamm
 '''
-from __future__ import division
 from __future__ import absolute_import
-from builtins import map
-from builtins import zip
-from builtins import range
-from builtins import object
-from .compute_stationary import stationary1d_tridiagonal
-from .compute_stationary import assertValidProbs
+from __future__ import division
+
 import logging
 import time
+from builtins import map
+from builtins import object
+from builtins import range
+from builtins import zip
+
 import numpy
 import scipy
 import scipy.special
 from scipy import sparse
+
+from .compute_stationary import assertValidProbs
+from .compute_stationary import stationary1d_tridiagonal
 
 
 # Have a separate class for the Rates
@@ -42,14 +45,14 @@ class MoranRates(object):
         if rho == 0.0:
             return numpy.array([0.0] * self.n + [1.0])
         else:
-            numCoupledLinsRates = sparse.dok_matrix((n+1, n+1))
-            for i in range(n+1):
+            numCoupledLinsRates = sparse.dok_matrix((n + 1, n + 1))
+            for i in range(n + 1):
                 if i < n:
-                    numCoupledLinsRates[i, i+1] = ((n-i)**2) * coalRate
-                    numCoupledLinsRates[i, i] -= numCoupledLinsRates[i, i+1]
+                    numCoupledLinsRates[i, i + 1] = ((n - i) ** 2) * coalRate
+                    numCoupledLinsRates[i, i] -= numCoupledLinsRates[i, i + 1]
                 if i > 0:
-                    numCoupledLinsRates[i, i-1] = recomRate * i
-                    numCoupledLinsRates[i, i] -= numCoupledLinsRates[i, i-1]
+                    numCoupledLinsRates[i, i - 1] = recomRate * i
+                    numCoupledLinsRates[i, i] -= numCoupledLinsRates[i, i - 1]
             return stationary1d_tridiagonal(numCoupledLinsRates)
 
     def getRates(self, popSize, theta, rho):
@@ -62,7 +65,7 @@ class MoranRates(object):
                + coalRate * self.unscaled_coal_rates)
         end = time.time()
         logging.info('%f seconds to construct rates for '
-                     'rho=%f,theta=%f,N=%f' % (end-start, rho, theta, popSize))
+                     'rho=%f,theta=%f,N=%f' % (end - start, rho, theta, popSize))
         return ret
 
 
@@ -88,8 +91,8 @@ def makeAllConfigs(hapList, n):
         for config in tmpConfigList:
             numHaps = sum([v for k, v in config.items()])
             assert numHaps <= n
-            if hapIdx == len(hapList)-1:
-                next_count = [n-numHaps]
+            if hapIdx == len(hapList) - 1:
+                next_count = [n - numHaps]
             else:
                 next_count = range(n - numHaps + 1)
             for i in next_count:
@@ -105,14 +108,14 @@ def one_locus_probs(popSize, theta, n):
     coalRate = 1. / popSize
     mutRate = float(theta) / 2.
 
-    numOnesRates = sparse.dok_matrix((n+1, n+1))
-    for i in range(n+1):
+    numOnesRates = sparse.dok_matrix((n + 1, n + 1))
+    for i in range(n + 1):
         if i < n:
-            numOnesRates[i, i+1] = (n-i) * mutRate + i * (n-i) / 2.0 * coalRate
-            numOnesRates[i, i] -= numOnesRates[i, i+1]
+            numOnesRates[i, i + 1] = (n - i) * mutRate + i * (n - i) / 2.0 * coalRate
+            numOnesRates[i, i] -= numOnesRates[i, i + 1]
         if i > 0:
-            numOnesRates[i, i-1] = i * mutRate + i * (n-i) / 2.0 * coalRate
-            numOnesRates[i, i] -= numOnesRates[i, i-1]
+            numOnesRates[i, i - 1] = i * mutRate + i * (n - i) / 2.0 * coalRate
+            numOnesRates[i, i] -= numOnesRates[i, i - 1]
 
     return stationary1d_tridiagonal(numOnesRates)
 
@@ -129,12 +132,12 @@ class AbstractMoranStates(object):
                                      (a,b) in the i-th config
         '''
         if exact:
-            cList = list(range(n+1))
+            cList = list(range(n + 1))
         else:
             cList = [n]
 
-        aConfigs = {n-c: makeAllConfigs(a_haps, n-c) for c in cList}
-        bConfigs = {n-c: makeAllConfigs(b_haps, n-c) for c in cList}
+        aConfigs = {n - c: makeAllConfigs(a_haps, n - c) for c in cList}
+        bConfigs = {n - c: makeAllConfigs(b_haps, n - c) for c in cList}
         cConfigs = {c: makeAllConfigs(c_haps, c) for c in cList}
 
         all_configs = []
@@ -161,18 +164,18 @@ class AbstractMoranStates(object):
         self.hash_to_allIdx = {k: v for v, k in enumerate(hash_vals)}
 
     def hash_config_array(self, conf_arr):
-        base = self.n+1
+        base = self.n + 1
         hash_vals = (conf_arr[:, 0, 0]
                      + base * conf_arr[:, 0, 1]
-                     + (base**2) * (conf_arr[:, 1, 0]))
+                     + (base ** 2) * (conf_arr[:, 1, 0]))
         if self.exact:
-            hash_vals += ((base**3)*(conf_arr[:, 1, 1])
-                          + (base**4)*(conf_arr[:, 0, -1])
-                          + (base**5)*(conf_arr[:, -1, 0]))
+            hash_vals += ((base ** 3) * (conf_arr[:, 1, 1])
+                          + (base ** 4) * (conf_arr[:, 0, -1])
+                          + (base ** 5) * (conf_arr[:, -1, 0]))
         return hash_vals
 
     def numOnes(self, loc):
-        return self.folded_config_array.sum(axis=1+(1-loc))[:, 1]
+        return self.folded_config_array.sum(axis=1 + (1 - loc))[:, 1]
 
     def hapCount(self, hap):
         return numpy.array(self.folded_config_array[:, hap[0], hap[1]])
@@ -190,7 +193,7 @@ class AbstractMoranStates(object):
             joint[self.numC > 0] = 0
         else:
             joint *= (scipy.special.comb(rightOnes, bothOnes)
-                      * scipy.special.comb(n-rightOnes, leftOnes-bothOnes)
+                      * scipy.special.comb(n - rightOnes, leftOnes - bothOnes)
                       / scipy.special.comb(n, leftOnes))
 
         joint *= self.n_unfolded_versions
@@ -251,10 +254,10 @@ class AbstractMoranStates(object):
             full_confs = self.config_array[:, :-1, :-1][all_nC == self.n, :, :]
 
             liks = numpy.log(liks)
-            liks -= scipy.special.gammaln(self.n+1)
+            liks -= scipy.special.gammaln(self.n + 1)
             for i in (0, 1):
                 for j in (0, 1):
-                    liks += scipy.special.gammaln(full_confs[:, i, j]+1)
+                    liks += scipy.special.gammaln(full_confs[:, i, j] + 1)
 
             full_confs = [tuple(sorted(((i, j), cnf[i, j])
                                        for i in (0, 1) for j in (0, 1)))
@@ -267,6 +270,7 @@ class MoranStatesAugmented(AbstractMoranStates):
     maintains a representation of the states(possible configs)
     of the 2 locus Moran model
     '''
+
     def __init__(self, n):
         '''
         Constructor
@@ -325,7 +329,7 @@ def get_folded_config_idxs(states):
 def build_recom_rates(states):
     assert states.exact
 
-    ret = sparse.csr_matrix(tuple([states.folded_config_array.shape[0]]*2))
+    ret = sparse.csr_matrix(tuple([states.folded_config_array.shape[0]] * 2))
     confs = states.folded_config_array
 
     for hap in c_haps:
@@ -342,7 +346,7 @@ def build_recom_rates(states):
 
 
 def build_mut_rates(states):
-    ret = sparse.csr_matrix(tuple([states.folded_config_array.shape[0]]*2))
+    ret = sparse.csr_matrix(tuple([states.folded_config_array.shape[0]] * 2))
     confs = states.folded_config_array
 
     if states.exact:
@@ -369,7 +373,7 @@ def build_mut_rates(states):
 
 
 def build_copy_rates(states):
-    ret = sparse.csr_matrix(tuple([states.folded_config_array.shape[0]]*2))
+    ret = sparse.csr_matrix(tuple([states.folded_config_array.shape[0]] * 2))
     confs = states.folded_config_array
 
     if states.exact:
@@ -420,7 +424,7 @@ def subtract_rowsum_on_diag(spmat):
 
 def build_cross_coal_rates(states):
     assert states.exact
-    ret = sparse.csr_matrix(tuple([states.folded_config_array.shape[0]]*2))
+    ret = sparse.csr_matrix(tuple([states.folded_config_array.shape[0]] * 2))
 
     confs = states.folded_config_array
     for hap in c_haps:
@@ -449,5 +453,5 @@ def get_rates(states, otherConfs, rates):
     rates = rates[rates != 0]
 
     ret = sparse.coo_matrix((rates, (confs, otherConfs)),
-                            shape=[states.folded_config_array.shape[0]]*2)
+                            shape=[states.folded_config_array.shape[0]] * 2)
     return ret.tocsr()

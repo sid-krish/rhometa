@@ -1,10 +1,10 @@
 import os
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
 
-import matplotlib.pyplot as plt
 
 def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed):
     # utilise numpy for combinations
@@ -47,8 +47,8 @@ def collect_results_sweep_1(rho, theta, sample_size, depth, genome_size, seed):
 
 if __name__ == '__main__':
     # Sweep 1: Recombination rate estimation
-    rho_sweep_1 = [0.0, 5e-05, 0.0001, 0.00015, 0.0002, 0.00025] # unscaled r values. rho = 2 . p . N_e . r . tractlen
-    theta_sweep_1 = [0.005] # unscaled
+    rho_sweep_1 = [0.0, 5e-05, 0.0001, 0.00015, 0.0002, 0.00025]  # unscaled r values. rho = 2 . p . N_e . r . tractlen
+    theta_sweep_1 = [0.005]  # unscaled
     sample_size_sweep_1 = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
     depth_sweep_1 = [1, 4, 8, 16]
     genome_size_sweep_1 = [100000]
@@ -56,15 +56,17 @@ if __name__ == '__main__':
 
     recom_tract_len = 1000
 
-    collected_results_sweep_1_df = collect_results_sweep_1(rho_sweep_1, theta_sweep_1, sample_size_sweep_1, depth_sweep_1,genome_size_sweep_1, seed_sweep_1)
+    collected_results_sweep_1_df = collect_results_sweep_1(rho_sweep_1, theta_sweep_1, sample_size_sweep_1,
+                                                           depth_sweep_1, genome_size_sweep_1, seed_sweep_1)
 
     # process and export df for plotting
 
     collected_results_sweep_1_df["scaled_rho_sim"] = collected_results_sweep_1_df["rho_sim"].apply(
         lambda x: x * recom_tract_len * 2)
 
-    reorder_cols = ["rho_sim", "scaled_rho_sim", "theta_sim", "sample_size_sim", "depth_sim", "genome_size_sim", "seed_sim",
-                     'rho', 'log_likelihood_sum']
+    reorder_cols = ["rho_sim", "scaled_rho_sim", "theta_sim", "sample_size_sim", "depth_sim", "genome_size_sim",
+                    "seed_sim",
+                    'rho', 'log_likelihood_sum']
 
     collected_results_sweep_1_df = collected_results_sweep_1_df.reindex(columns=reorder_cols)
 
@@ -72,7 +74,9 @@ if __name__ == '__main__':
 
     collected_results_sweep_1_df = collected_results_sweep_1_df.astype('float64')
 
-    collected_results_sweep_1_df.rename(columns = {'sample_size_sim':'genomes', 'depth_sim':'fold_coverage', 'rho' : 'rho_est'}, inplace = True) # Rename for plot
+    collected_results_sweep_1_df.rename(
+        columns={'sample_size_sim': 'genomes', 'depth_sim': 'fold_coverage', 'rho': 'rho_est'},
+        inplace=True)  # Rename for plot
 
     # Plot results
     sns.set_theme(style="white")
@@ -80,7 +84,8 @@ if __name__ == '__main__':
     # x-axis variable is treated as categorical
 
     ax = sns.catplot(data=collected_results_sweep_1_df, x="scaled_rho_sim", y='rho_est', hue="genomes",
-                     col="fold_coverage", col_wrap=2, sharex=True, sharey=True, palette="mako_r", kind="box", linewidth=0.2)
+                     col="fold_coverage", col_wrap=2, sharex=True, sharey=True, palette="mako_r", kind="box",
+                     linewidth=0.2)
 
     # ax.set(ylim=(0, 50))
     ax.set(xlabel="Simulated \u03C1", ylabel="Estimated \u03C1")
@@ -108,14 +113,16 @@ if __name__ == '__main__':
     #### deviation plot
 
     collected_results_sweep_1_df["deviation"] = (collected_results_sweep_1_df['rho_est'] -
-                                                 collected_results_sweep_1_df["scaled_rho_sim"]) / collected_results_sweep_1_df[
+                                                 collected_results_sweep_1_df["scaled_rho_sim"]) / \
+                                                collected_results_sweep_1_df[
                                                     "scaled_rho_sim"]
-    
+
     ax2 = sns.catplot(data=collected_results_sweep_1_df, x="scaled_rho_sim", y="deviation", hue="genomes",
-                     col="fold_coverage", col_wrap=2, sharex=True, sharey=True, kind="box", palette="RdYlGn", linewidth=0.2)
-    
-    ax2.set(ylim=(-1,1), xlabel="Simulated \u03C1", ylabel="Deviation")
-    
+                      col="fold_coverage", col_wrap=2, sharex=True, sharey=True, kind="box", palette="RdYlGn",
+                      linewidth=0.2)
+
+    ax2.set(ylim=(-1, 1), xlabel="Simulated \u03C1", ylabel="Deviation")
+
     ax2.map(plt.axhline, y=0, ls='--', color='g', linewidth=2)
-    
+
     ax2.savefig("rhometa_subsample_deviation_results.png", dpi=500)

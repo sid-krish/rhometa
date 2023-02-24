@@ -2,15 +2,15 @@
 import glob
 import logging
 import os
-from numpy import index_exp
-import pandas as pd
 import warnings
 from collections import namedtuple
 from collections.abc import Iterable
 from functools import partial
+
+import pandas as pd
 from ldpop import rhos_from_string
 
-warnings.filterwarnings('ignore',category=pd.io.pytables.PerformanceWarning)
+warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class TableStore(object):
         return pd.HDFStore(file_name, mode=mode, complevel=9)
 
     @staticmethod
-    def _run(theta, rhos, sample_size=1, pop_sizes=[1.0,], times=[], is_approx=True):
+    def _run(theta, rhos, sample_size=1, pop_sizes=[1.0, ], times=[], is_approx=True):
         assert isinstance(rhos, Iterable), 'rhos must be iterable (eg. a collection)'
         assert isinstance(pop_sizes, Iterable), 'pop_sizes must be iterable (eg. a collection)'
         assert isinstance(times, Iterable), 'times must be iterable (eg. a collection)'
@@ -82,12 +82,12 @@ class TableStore(object):
 
     def _find_run(self, run, must_exist=False):
         df = self.get_run_catalog().query(
-                'theta==@run.theta and '
-                'rhos==@run.rhos and '
-                'sample_size==@run.sample_size and '
-                'pop_sizes==@run.pop_sizes and '
-                'times==@run.times and '
-                'is_approx==@run.is_approx')
+            'theta==@run.theta and '
+            'rhos==@run.rhos and '
+            'sample_size==@run.sample_size and '
+            'pop_sizes==@run.pop_sizes and '
+            'times==@run.times and '
+            'is_approx==@run.is_approx')
         if must_exist and len(df) != 1:
             raise NotFoundException('Run {} did not exist in catalog'.format(run))
         if len(df) >= 2:
@@ -105,8 +105,8 @@ class TableStore(object):
     def get_run_catalog(self):
         return self.h5store[TableStore._CATALOG_KEY]
 
-    def add_tableset(self, downsample_path, theta, rhos, sample_size=1, 
-                    pop_sizes=[1.0,], times=[], is_approx=True, file_type='pickle'):
+    def add_tableset(self, downsample_path, theta, rhos, sample_size=1,
+                     pop_sizes=[1.0, ], times=[], is_approx=True, file_type='pickle'):
 
         _catalog = self.get_run_catalog()
         _new_run = TableStore._run(theta, rhos, sample_size, pop_sizes, times, is_approx)
@@ -117,7 +117,7 @@ class TableStore(object):
         logger.info('Adding new run specification to catalog: {}'.format(_new_run))
         _catalog = pd.concat([_catalog, pd.DataFrame([_new_run])], ignore_index=True, sort=False)
         self.h5store[TableStore._CATALOG_KEY] = _catalog
-        
+
         # get the index of the run
         _run_idx, _run = self._find_run(_new_run, True)
 
@@ -130,7 +130,8 @@ class TableStore(object):
         else:
             raise IOError('unknown table type: {}'.format(file_type))
 
-        input_tables = [(int(os.path.splitext(fn)[0].split('_')[-1]), fn) for fn in glob.glob('{}/*{}'.format(downsample_path, file_ext))]
+        input_tables = [(int(os.path.splitext(fn)[0].split('_')[-1]), fn) for fn in
+                        glob.glob('{}/*{}'.format(downsample_path, file_ext))]
         input_tables = sorted(input_tables, key=lambda x: x[0])
         assert len(input_tables) > 0, 'no input tables were found on path: {}'.format(downsample_path)
         depth_list = []
@@ -157,12 +158,14 @@ class TableStore(object):
             raise NotFoundException('Lk table not found for run {} and depth {}'.format(run, depth))
         return self.h5store[_key]
 
+
 if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser('HDF5 Lookup Table Store')
     parser.add_argument('--verbose', default=False, action='store_true', help='Verbose logging')
-    parser.add_argument('--table-format', default='csv', help='Downsampled lookup table format', choices=['csv', 'pickle'])
+    parser.add_argument('--table-format', default='csv', help='Downsampled lookup table format',
+                        choices=['csv', 'pickle'])
     parser.add_argument('--init', default=False, action='store_true', help='Initialise a new h5 store')
     parser.add_argument('-t', '--theta', type=float, help='Theta used in table generation')
     parser.add_argument('-r', '--rho-range', help='Range of rho values used in table generation')
@@ -197,5 +200,5 @@ if __name__ == '__main__':
         if args.init:
             table_store.init_store()
         rho_range = rhos_from_string(args.rho_range)
-        table_store.add_tableset(args.lk_table_path, args.theta, rho_range, args.sample_size, 
-                                [1.0,], [], True, file_type=args.table_format)
+        table_store.add_tableset(args.lk_table_path, args.theta, rho_range, args.sample_size,
+                                 [1.0, ], [], True, file_type=args.table_format)

@@ -4,7 +4,6 @@ import pandas as pd
 
 
 def main(recom_tract_len, lookup_table_rho_vals, merged_eq3_table):
-
     rho_vals_to_test = np.array(lookup_table_rho_vals, dtype="float64")
 
     max_rho_val_to_test = rho_vals_to_test[-1]  # should be largest rho in lookup table, should not go beyond this

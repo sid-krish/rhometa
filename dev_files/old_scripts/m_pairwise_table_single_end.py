@@ -3,6 +3,7 @@
 import pandas as pd
 import pysam
 
+
 def get_var_pos_from_vcf(vcf_file):
     f = pysam.VariantFile(vcf_file)
 
@@ -49,8 +50,7 @@ def pattern_match(samFile, final_ref_pos_list, df):
         # as those ref pos will be none as mentioned above and will be ignored
         read_query_seq = read.query_sequence
 
-
-        ref_positions_set = set(read_ref_positions) # for searching
+        ref_positions_set = set(read_ref_positions)  # for searching
         zip_ref_pos_and_query_seq = zip(read_ref_positions, read_query_seq)
         req_pos_and_query_seq_dict = {ref_pos: query_seq for ref_pos, query_seq in zip_ref_pos_and_query_seq}
 
@@ -71,7 +71,7 @@ def main(bam, vcf_file, num_cores, fragment_len):
     bam_file = pysam.AlignmentFile(bam, "rb", threads=num_cores)
 
     base_combinations = ["AA", "AC", "AG", "AT", "CA", "CC",
-                        "CG", "CT", "GA", "GC", "GG", "GT", "TA", "TC", "TG", "TT"]
+                         "CG", "CT", "GA", "GC", "GG", "GT", "TA", "TC", "TG", "TT"]
 
     variant_positions = get_var_pos_from_vcf(vcf_file)
 

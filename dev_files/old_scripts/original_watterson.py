@@ -13,8 +13,8 @@ k = log(genome_len / (genome_len - segregating_sites))
 # calculate a_n
 a_n = 0
 for i in range(1, num_samples):
-    a_n += 1/i
+    a_n += 1 / i
 
 # original theta formula
-theta = k/a_n
+theta = k / a_n
 print(theta)

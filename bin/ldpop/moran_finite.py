@@ -4,17 +4,20 @@ Created on Jan 23, 2015
 @author: jkamm
 '''
 from __future__ import absolute_import
-from builtins import range
-from .moran_augmented import AbstractMoranStates
-from .moran_augmented import c_haps
-from .moran_augmented import build_mut_rates
-from .moran_augmented import build_copy_rates
-from .moran_augmented import get_rates
-from .moran_augmented import subtract_rowsum_on_diag
+
 import logging
 import time
+from builtins import range
+
 import numpy
 from scipy import sparse
+
+from .moran_augmented import AbstractMoranStates
+from .moran_augmented import build_copy_rates
+from .moran_augmented import build_mut_rates
+from .moran_augmented import c_haps
+from .moran_augmented import get_rates
+from .moran_augmented import subtract_rowsum_on_diag
 
 
 class MoranStatesFinite(AbstractMoranStates):
@@ -60,7 +63,7 @@ class MoranStatesFinite(AbstractMoranStates):
 
 
 def build_recom_rates(states):
-    ret = sparse.csr_matrix(tuple([states.folded_config_array.shape[0]]*2))
+    ret = sparse.csr_matrix(tuple([states.folded_config_array.shape[0]] * 2))
     confs = states.folded_config_array
     for mom in c_haps:
         for dad in c_haps:
@@ -72,7 +75,7 @@ def build_recom_rates(states):
             rates *= otherConfs[:, dad[0], dad[1]]
             otherConfs[:, dad[0], dad[1]] -= 1
 
-            rates *= 1. / float(states.n-1) / float(2)
+            rates *= 1. / float(states.n - 1) / float(2)
 
             otherConfs[:, mom[0], dad[1]] += 1
             otherConfs[:, dad[0], mom[1]] += 1

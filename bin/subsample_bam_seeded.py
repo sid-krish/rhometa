@@ -18,10 +18,10 @@ import numpy as np
 #     return pileup_df
 
 def numpy_depth_max(pileup):
-
     pileup_np = np.loadtxt(pileup, dtype='int16', delimiter='\t', usecols=(3))
 
     return pileup_np.max()
+
 
 if __name__ == '__main__':
     pileup = sys.argv[1]

@@ -4,12 +4,11 @@ from rho_splines import compute_splines
 
 
 def main(pairwise_biallelic_table, lookup_formatted_table, lookup_table_rho_vals, lookup_table):
-
     # Convert to config
     # Optimised for ploidy = 1, refer to _get_configs in haplotype reader for full logic
 
     df = pd.DataFrame(index=range(lookup_formatted_table.shape[0]), columns=['0', '1', '2', '3', '4', '5', '6', '7'])
-    
+
     df['0'] = lookup_formatted_table["00"].values
     df['1'] = lookup_formatted_table["01"].values
     df['3'] = lookup_formatted_table["10"].values

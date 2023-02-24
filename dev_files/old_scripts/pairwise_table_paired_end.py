@@ -4,6 +4,8 @@ import sys
 
 import pandas as pd
 import pysam
+
+
 # import seaborn as sns
 
 def get_var_pos_from_vcf(vcf_file):
