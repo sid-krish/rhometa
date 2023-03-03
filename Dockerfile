@@ -18,7 +18,6 @@ RUN conda install -c bioconda -c conda-forge -y \
   'bwa-mem2=2.2.1' \
   'pysam=0.20' \
   'fastp=0.23.2' \
-  'coverm=0.6.1' \
   'freebayes=1.3.6' \
   'samtools=1.16' \
   'openssl>=1.1.1t'\ 

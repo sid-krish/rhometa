@@ -2,14 +2,66 @@
 nextflow.enable.dsl = 2
 
 
+process FILTER_FASTQ_SINGLE_END {
+    publishDir "Align_Reads_Output", mode: "copy", pattern: '*.gz', saveAs: {filename -> "fastp_out/${filename}"}
+    publishDir "Align_Reads_Output", mode: "copy", pattern: '*.html', saveAs: {filename -> "fastp_out/${filename}"}
+    publishDir "Align_Reads_Output", mode: "copy", pattern: '*.json', saveAs: {filename -> "fastp_out/${filename}"}
+
+    input:
+        tuple path(fastq),
+        path(reference_fa)
+
+    output:
+        tuple path(reference_fa),
+            path("${fastq.getSimpleName()}_fp.fq.gz")
+
+        path("${fastq.getSimpleName()}.json")
+        path("${fastq.getSimpleName()}.html")
+
+    script:
+    """
+    fastp --thread $task.cpus --dedup -i ${fastq} -o ${fastq.getSimpleName()}_fp.fq.gz \
+    --json ${fastq.getSimpleName()}.json --html ${fastq.getSimpleName()}.html
+    """
+}
+
+
+process FILTER_FASTQ_PAIRED_END {
+    publishDir "Align_Reads_Output", mode: "copy", pattern: '*.gz', saveAs: {filename -> "fastp_out/${filename}"}
+    publishDir "Align_Reads_Output", mode: "copy", pattern: '*.html', saveAs: {filename -> "fastp_out/${filename}"}
+    publishDir "Align_Reads_Output", mode: "copy", pattern: '*.json', saveAs: {filename -> "fastp_out/${filename}"}
+
+    input:
+        tuple val(sample_id),
+        path(fastqs),
+        path(reference_fa)
+
+    output:
+        tuple val(sample_id),
+            path(reference_fa),
+            path("${fastqs[0].getSimpleName()}_fp.fq.gz"),
+            path("${fastqs[1].getSimpleName()}_fp.fq.gz")
+
+        path("${fastqs[0].getSimpleName()[0..-2]}.json")
+        path("${fastqs[0].getSimpleName()[0..-2]}.html")
+
+    script:
+    """
+    fastp --thread $task.cpus --dedup --in1 ${fastqs[0]} --in2 ${fastqs[1]} \
+    --out1 ${fastqs[0].getSimpleName()}_fp.fq.gz --out2 ${fastqs[1].getSimpleName()}_fp.fq.gz \
+    --json ${fastqs[0].getSimpleName()[0..-2]}.json --html ${fastqs[0].getSimpleName()[0..-2]}.html
+    """
+}
+
+
 process BWA_MEM_SINGLE_END {
     publishDir "Align_Reads_Output", mode: 'copy', pattern: '*.bam', saveAs: {filename -> "${filename}"}
 
     // echo true
 
     input:
-        tuple path(fastq),
-        path(reference_fa)
+        tuple path(reference_fa),
+        path(fastq)
 
     output:
         tuple path("${fastq.getSimpleName()}_${reference_fa.getSimpleName()}.bam"),
@@ -35,8 +87,9 @@ process BWA_MEM_PAIRED_END {
 
     input:
         tuple val(sample_id),
-        path(fastqs),
-        path(reference_fa)
+            path(reference_fa),
+            path(fastq_0),
+            path(fastq_1)
 
     output:
         tuple path("${sample_id}_${reference_fa.getSimpleName()}.bam"),
@@ -45,14 +98,14 @@ process BWA_MEM_PAIRED_END {
     script:
     """
     #echo ${sample_id}
-    #echo ${fastqs[0]}
-    #echo ${fastqs[1]}
+    #echo ${fastq_0}
+    #echo ${fastq_1}
     #echo ${reference_fa}
 
     bwa-mem2 index ${reference_fa}
 
     #Paired end
-    bwa-mem2 mem -t $task.cpus ${reference_fa} ${fastqs[0]} ${fastqs[1]} | samtools sort -@ $task.cpus -o ${sample_id}_${reference_fa.getSimpleName()}.bam
+    bwa-mem2 mem -t $task.cpus ${reference_fa} ${fastq_0} ${fastq_1} | samtools sort -@ $task.cpus -o ${sample_id}_${reference_fa.getSimpleName()}.bam
     """
 }
 
@@ -131,7 +184,9 @@ workflow {
         combined_inputs = fastqs_channel.combine(reference_genome_channel)
 
         // Process execution
-        BWA_MEM_SINGLE_END(combined_inputs)
+        FILTER_FASTQ_SINGLE_END(combined_inputs)
+
+        BWA_MEM_SINGLE_END(FILTER_FASTQ_SINGLE_END.out[0])
 
         FILTER_BAM(BWA_MEM_SINGLE_END.out)
 
@@ -146,7 +201,9 @@ workflow {
         combined_inputs = fastqs_channel.combine(reference_genome_channel)
 
         // Process execution
-        BWA_MEM_PAIRED_END(combined_inputs)
+        FILTER_FASTQ_PAIRED_END(combined_inputs)
+
+        BWA_MEM_PAIRED_END(FILTER_FASTQ_PAIRED_END.out[0])
 
         FILTER_BAM(BWA_MEM_PAIRED_END.out)
 

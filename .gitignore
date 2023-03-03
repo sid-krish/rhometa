@@ -12,13 +12,13 @@
 
 /Lookup_tables/
 
+/Align_Reads_Output/
+
 /Theta_Est_Output/
 
 /Sim_Gen_Output/
 
 /Recom_Est_Output/
-
-/Archive/
 
 .DS_Store
 
@@ -35,5 +35,3 @@
 .nextflow.log
 
 .nextflow.log.*
-
-rho_est_output/
