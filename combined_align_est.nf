@@ -19,7 +19,9 @@ params.lookup_tables = "Lookup_tables"
 params.single_end = false
 
 // Import modules
-include { BWA_MEM_SINGLE_END;
+include { FILTER_FASTQ_SINGLE_END;
+        FILTER_FASTQ_PAIRED_END;
+        BWA_MEM_SINGLE_END;
         BWA_MEM_PAIRED_END;
         FILTER_BAM;
         SAMTOOLS_COVERAGE
@@ -54,7 +56,9 @@ workflow align_reads {
             combined_inputs = fastqs_channel.combine(reference_genome_channel)
 
             // Process execution
-            BWA_MEM_SINGLE_END(combined_inputs)
+            FILTER_FASTQ_SINGLE_END(combined_inputs)
+
+            BWA_MEM_SINGLE_END(FILTER_FASTQ_SINGLE_END.out[0])
 
             FILTER_BAM(BWA_MEM_SINGLE_END.out)
 
@@ -68,7 +72,9 @@ workflow align_reads {
             combined_inputs = fastqs_channel.combine(reference_genome_channel)
 
             // Process execution
-            BWA_MEM_PAIRED_END(combined_inputs)
+            FILTER_FASTQ_PAIRED_END(combined_inputs)
+
+            BWA_MEM_PAIRED_END(FILTER_FASTQ_PAIRED_END.out[0])
 
             FILTER_BAM(BWA_MEM_PAIRED_END.out)
 
