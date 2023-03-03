@@ -20,7 +20,7 @@ process FILTER_FASTQ_SINGLE_END {
 
     script:
     """
-    fastp --thread $task.cpus --dedup -i ${fastq} -o ${fastq.getSimpleName()}_fp.fq.gz \
+    fastp --thread 1 --dedup -i ${fastq} -o ${fastq.getSimpleName()}_fp.fq.gz \
     --json ${fastq.getSimpleName()}.json --html ${fastq.getSimpleName()}.html
     """
 }
@@ -47,7 +47,7 @@ process FILTER_FASTQ_PAIRED_END {
 
     script:
     """
-    fastp --thread $task.cpus --dedup --in1 ${fastqs[0]} --in2 ${fastqs[1]} \
+    fastp --thread 1 --dedup --in1 ${fastqs[0]} --in2 ${fastqs[1]} \
     --out1 ${fastqs[0].getSimpleName()}_fp.fq.gz --out2 ${fastqs[1].getSimpleName()}_fp.fq.gz \
     --json ${fastqs[0].getSimpleName()[0..-2]}.json --html ${fastqs[0].getSimpleName()[0..-2]}.html
     """
