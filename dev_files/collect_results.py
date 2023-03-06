@@ -53,14 +53,15 @@ def rho_results(rho_results_path):
 
     sns.set_palette("Set2")
     fig = sns.boxplot(combined_df, x="rho")
+    fig.set_xlim(1,100)
     fig.figure.savefig("rho_results_plot.png", dpi=500)
 
     return combined_df
 
 
 if __name__ == '__main__':
-    theta_results_path = './Theta_Est_Output/theta_estimate/'
-    rho_results_path = './Rho_Est_Output/rho_estimate/'
+    theta_results_path = '../Theta_Est_Output/theta_estimate/'
+    rho_results_path = '../Rho_Est_Output/rho_estimate/'
 
     theta_combined_df = theta_results(theta_results_path)
     rho_combined_df = rho_results(rho_results_path)
