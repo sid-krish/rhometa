@@ -103,18 +103,21 @@ def rho_results(rho_results_path):
 
 
 if __name__ == '__main__':
-    cov_results_path = '../Align_Reads_Output/coverage/'
-    theta_results_path = '../Theta_Est_Output/theta_estimate/'
-    rho_results_path = '../Rho_Est_Output/rho_estimate/'
+    cov_results_path = ''
+    theta_results_path = ''
+    rho_results_path = ''
 
     cov_combined_df = cov_results(cov_results_path)
     theta_combined_df = theta_results(theta_results_path)
     rho_combined_df = rho_results(rho_results_path)
 
     cov_theta_merged_df = pd.merge(cov_combined_df, theta_combined_df,
-                                   on='identifier').drop(columns=["reference_y"])
-    cov_theta_rho_merged_df = pd.merge(cov_theta_merged_df, rho_combined_df,
-                                       on='identifier').drop(columns=["reference"])
+                                   on=['reference', 'identifier'])
 
-    cov_theta_rho_merged_df.rename(columns={"reference_x": "reference"})
+    cov_theta_rho_merged_df = pd.merge(cov_theta_merged_df, rho_combined_df,
+                                       on=['reference', 'identifier'])
+
+    cov_theta_rho_merged_df = cov_theta_rho_merged_df.sort_values(
+        by=['reference', 'identifier'])
+
     cov_theta_rho_merged_df.to_csv("collected_merged_results.csv", index=False)
