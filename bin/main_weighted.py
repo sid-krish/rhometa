@@ -119,7 +119,7 @@ if __name__ == '__main__':
 
     results = pd.DataFrame()
     results["rho"] = lookup_table_rho_vals
-    results["log_likelihood_sum"] = list(log_sums)
+    results["log_likelihood_sum"] = np.round(log_sums, 5)
 
     results.to_csv("log_likelihood_sums.csv", index=False)
 
