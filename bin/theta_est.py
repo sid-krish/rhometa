@@ -111,8 +111,8 @@ if __name__ == '__main__':
     # Export all summary stats
     all_summary_stats_df = depth_summary_stats_df.append(theta_sum_stats_df)
     all_summary_stats_df.rename(columns={'mean': 'mean_depth', '50%': 'median_depth'}, inplace=True)
-    all_summary_stats_df['mean_depth'] = np.round(all_summary_stats_df['mean_depth'],5)
-    all_summary_stats_df['median_depth'] = np.round(all_summary_stats_df['median_depth'],5)
+    all_summary_stats_df['mean_depth'] = [float('%.3g' % i) for i in all_summary_stats_df['mean_depth']]
+    all_summary_stats_df['median_depth'] = [float('%.3g' % i) for i in all_summary_stats_df['median_depth']]
     all_summary_stats_df = pd.melt(all_summary_stats_df, value_vars=["mean_depth", "median_depth"])
 
     with open("Theta_estimate_stats.csv", 'w') as f:

@@ -118,8 +118,8 @@ if __name__ == '__main__':
     log_sums = results_across_depths.sum(axis=0)
 
     results = pd.DataFrame()
-    results["rho"] = lookup_table_rho_vals
-    results["log_likelihood_sum"] = np.round(log_sums, 5)
+    results["rho"] = [float('%.5g' % i) for i in lookup_table_rho_vals] 
+    results["log_likelihood_sum"] = [float('%.10g' % i) for i in log_sums]
 
     results.to_csv("log_likelihood_sums.csv", index=False)
 
