@@ -9,8 +9,8 @@ prepend_file = sys.argv[2]
 
 if prepend_file == "none":
     file_name = bam.rsplit(".", 1)[0]
-    print(f"{file_name}_", end='')
+    print(f"{file_name}_", end="")
 
 else:
     file_name = bam.rsplit(".", 1)[0]
-    print(f"{prepend_file}{file_name}_", end='')
+    print(f"{prepend_file}{file_name}_", end="")

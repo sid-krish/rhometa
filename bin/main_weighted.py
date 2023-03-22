@@ -27,40 +27,49 @@ def module_calls(arg_list):
 
     lookup_table = f"lk_downsampled_{depth}.csv"
     # lookup_table = f"/Volumes/Backup/Lookup_tables/Lookup_tables_stp/lk_downsampled_{depth}.csv"
-    pairwise_table_slice = isolate_by_depth.main(pairwise_table,
-                                                 depth)
+    pairwise_table_slice = isolate_by_depth.main(pairwise_table, depth)
 
     # Step 2: Filter pairwise table so that it is bi-allelic pairs only
     # note: after bi-allelic filtering some files will be empty
     # copy to create a new df using slice
     if not pairwise_table_slice.empty:
-        pairwise_biallelic_table = biallelic_filter_pairwise_table.main(pairwise_table_slice.copy())
+        pairwise_biallelic_table = biallelic_filter_pairwise_table.main(
+            pairwise_table_slice.copy()
+        )
 
     else:
         return None
 
     # Step 3: convert to lookup format to match against likelihood tables
     if not pairwise_biallelic_table.empty:
-        lookup_formatted_table = pairwise_lookup_format_pyrho.main(pairwise_biallelic_table.copy())
+        lookup_formatted_table = pairwise_lookup_format_pyrho.main(
+            pairwise_biallelic_table.copy()
+        )
 
     else:
         return None
 
     # Step 4: Merge lookup formatted table on likelihood table
-    merged_eq3_table, table_ids_for_eq3 = custom_hap_sets_and_merge.main(pairwise_biallelic_table.copy(),
-                                                                         lookup_formatted_table.copy(),
-                                                                         lookup_table_rho_vals,
-                                                                         lookup_table)
+    merged_eq3_table, table_ids_for_eq3 = custom_hap_sets_and_merge.main(
+        pairwise_biallelic_table.copy(),
+        lookup_formatted_table.copy(),
+        lookup_table_rho_vals,
+        lookup_table,
+    )
 
     # Step 5: Calculate p_ij values for variant pairs
-    p_ij_grid = pij_grid_vectorised.main(recom_tract_len, lookup_table_rho_vals, merged_eq3_table.copy())
+    p_ij_grid = pij_grid_vectorised.main(
+        recom_tract_len, lookup_table_rho_vals, merged_eq3_table.copy()
+    )
 
     # Step 6: Get final pairwise (variant pairs) likelihoods
-    interpolated_eq2_df = pairwise_rho_estimator_intp_rect_biv.main(merged_eq3_table.copy(),
-                                                                    table_ids_for_eq3.copy(),
-                                                                    p_ij_grid.copy(),
-                                                                    lookup_table,
-                                                                    depth)
+    interpolated_eq2_df = pairwise_rho_estimator_intp_rect_biv.main(
+        merged_eq3_table.copy(),
+        table_ids_for_eq3.copy(),
+        p_ij_grid.copy(),
+        lookup_table,
+        depth,
+    )
 
     # Step 7: Performing weighting of log_likelihoods
     # 7.1: Convert log-likelihoods to likelihoods
@@ -70,7 +79,7 @@ def module_calls(arg_list):
     # 7.2: We normalise the likelihood values such that the values add up to 1. We do this by dividing each value by the sum of all values.
     exp_norm_np = exp_np / np.sum(exp_np)
 
-    # 7.3: Multiply the values by the depth and the number of observations. 
+    # 7.3: Multiply the values by the depth and the number of observations.
     # This scaling is the “weighting” procedure, the higher the number of observations or depth the more it will be weighted for the final log sum calculation.
     observations = exp_norm_np.shape[0]
     exp_norm_scaled_np = depth * observations * exp_norm_np
@@ -84,7 +93,7 @@ def module_calls(arg_list):
     return weighted_log_df
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     recom_tract_len = int(sys.argv[1])
     depth_range = sys.argv[2]
     lookup_table_rho_range = sys.argv[3]
@@ -101,11 +110,13 @@ if __name__ == '__main__':
 
     lookup_table_rho_vals = rhos_from_string(lookup_table_rho_range)
 
-    depth_lower_limit, depth_upper_limit = [int(i) for i in depth_range.split(',')]
+    depth_lower_limit, depth_upper_limit = [int(i) for i in depth_range.split(",")]
 
     depth_vals = [i for i in range(depth_lower_limit, depth_upper_limit + 1)]
 
-    module_calls_arg_list = [[i, recom_tract_len, pairwise_table, lookup_table_rho_vals] for i in depth_vals]
+    module_calls_arg_list = [
+        [i, recom_tract_len, pairwise_table, lookup_table_rho_vals] for i in depth_vals
+    ]
 
     # Parallel execution of steps 1 through 7
     with Pool(processes=num_cores) as p:
@@ -118,8 +129,8 @@ if __name__ == '__main__':
     log_sums = results_across_depths.sum(axis=0)
 
     results = pd.DataFrame()
-    results["rho"] = [float('%.5g' % i) for i in lookup_table_rho_vals] 
-    results["log_likelihood_sum"] = [float('%.10g' % i) for i in log_sums]
+    results["rho"] = [float("%.5g" % i) for i in lookup_table_rho_vals]
+    results["log_likelihood_sum"] = [float("%.10g" % i) for i in log_sums]
 
     results.to_csv("log_likelihood_sums.csv", index=False)
 

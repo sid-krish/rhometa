@@ -17,13 +17,14 @@ import numpy as np
 #
 #     return pileup_df
 
+
 def numpy_depth_max(pileup):
-    pileup_np = np.loadtxt(pileup, dtype='int16', delimiter='\t', usecols=(3))
+    pileup_np = np.loadtxt(pileup, dtype="int16", delimiter="\t", usecols=(3))
 
     return pileup_np.max()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pileup = sys.argv[1]
     depth_range = sys.argv[2]
     bam_file = sys.argv[3]
@@ -33,16 +34,20 @@ if __name__ == '__main__':
     # depth_range = "3,50"
     # bam_file = "123_paired_end_Aligned_sorted.bam"
 
-    depth_lower_limit, depth_upper_limit = [int(i) for i in depth_range.split(',')]
+    depth_lower_limit, depth_upper_limit = [int(i) for i in depth_range.split(",")]
 
     pileup_depth_max = numpy_depth_max(pileup)
 
-    depth_upper_limit_relative_proportion = round(depth_upper_limit / pileup_depth_max, 3)
+    depth_upper_limit_relative_proportion = round(
+        depth_upper_limit / pileup_depth_max, 3
+    )
 
     if depth_upper_limit_relative_proportion < 1.0:
         # the only time subsampling is required and possible
-        frac = str(depth_upper_limit_relative_proportion).split('.')[1]
-        subprocess.run(f"samtools view -b -s {seed}.{frac} {bam_file} > subsampled.bam", shell=True)
+        frac = str(depth_upper_limit_relative_proportion).split(".")[1]
+        subprocess.run(
+            f"samtools view -b -s {seed}.{frac} {bam_file} > subsampled.bam", shell=True
+        )
     else:
         # Just renaming and returning original file for nextflow
         subprocess.run(f"mv {bam_file} subsampled.bam", shell=True)

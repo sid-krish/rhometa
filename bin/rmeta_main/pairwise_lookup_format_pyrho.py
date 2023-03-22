@@ -4,12 +4,17 @@ import numpy as np
 
 
 def allele_distribution(row, allele_freqs):
-    pairs = row.dropna().index.to_list()  # drop site pairs that don't have values then get remaining pairs as list
+    # drop site pairs that don't have values then get remaining pairs as list
+    pairs = row.dropna().index.to_list()
 
-    sites_1_alleles = set([list(i)[0] for i in pairs])  # get alleles in site 1 then get unique
+    # get alleles in site 1 then get unique
+    sites_1_alleles = set([list(i)[0] for i in pairs])
+
     sites_2_alleles = set([list(i)[1] for i in pairs])
 
-    s1_global_allele_counts = {i: allele_freqs[i] for i in sites_1_alleles}  # filter allele_freqs for required alleles
+    # filter allele_freqs for required alleles
+    s1_global_allele_counts = {i: allele_freqs[i] for i in sites_1_alleles}
+
     s2_global_allele_counts = {i: allele_freqs[i] for i in sites_2_alleles}
 
     # https://www.kite.com/python/answers/how-to-find-the-max-value-in-a-dictionary-in-python
@@ -39,14 +44,32 @@ def allele_distribution(row, allele_freqs):
 def main(pairwise_biallelic_table):
     df = pairwise_biallelic_table.replace(to_replace=0, value=np.nan)
 
-    allele_freqs = {'A': 2, 'C': 3, 'G': 4, 'T': 5}  # pyrho allele digitisation
+    allele_freqs = {"A": 2, "C": 3, "G": 4, "T": 5}  # pyrho allele digitisation
 
-    df[["00", "01", "10", "11"]] = df.apply(lambda x: allele_distribution(x, allele_freqs), axis=1,
-                                            result_type='expand')
+    df[["00", "01", "10", "11"]] = df.apply(
+        lambda x: allele_distribution(x, allele_freqs), axis=1, result_type="expand"
+    )
 
     df = df.replace(to_replace=np.nan, value=0)
 
-    cols_to_drop = ["AA", "AC", "AG", "AT", "CA", "CC", "CG", "CT", "GA", "GC", "GG", "GT", "TA", "TC", "TG", "TT"]
+    cols_to_drop = [
+        "AA",
+        "AC",
+        "AG",
+        "AT",
+        "CA",
+        "CC",
+        "CG",
+        "CT",
+        "GA",
+        "GC",
+        "GG",
+        "GT",
+        "TA",
+        "TC",
+        "TG",
+        "TT",
+    ]
 
     df.drop(columns=cols_to_drop, inplace=True)
 

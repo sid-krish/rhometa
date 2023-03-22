@@ -18,7 +18,7 @@ def eq2(x, y, z, x_new, y_new, merged_eq3_table):
 
 
 def export_to_csv(total_log_likelihoods, depth):
-    with open(f"collected_likelihoods_depth_{depth}.csv", 'w') as csvfile:
+    with open(f"collected_likelihoods_depth_{depth}.csv", "w") as csvfile:
         csv_writer = csv.writer(csvfile)
         csv_writer.writerow(["rho_for_estimator", "total_of_log_likelihood"])
 
@@ -29,7 +29,9 @@ def export_to_csv(total_log_likelihoods, depth):
 
 
 def main(merged_eq3_table, table_ids_for_eq3, p_ij_grid, lookup_table, depth):
-    merged_eq3_table.drop(columns=["d_ij"], inplace=True)  # was used for p_ij grid and no longer needed
+    merged_eq3_table.drop(
+        columns=["d_ij"], inplace=True
+    )  # was used for p_ij grid and no longer needed
 
     df_lookup_table = pd.read_csv(lookup_table)
     df_lookup_table.drop(columns=["00 01 10 11"], inplace=True)

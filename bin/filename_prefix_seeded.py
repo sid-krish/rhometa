@@ -10,8 +10,8 @@ seed = sys.argv[3]
 
 if prepend_file == "none":
     file_name = bam.rsplit(".", 1)[0]
-    print(f"{seed}_{file_name}_", end='')
+    print(f"{seed}_{file_name}_", end="")
 
 else:
     file_name = bam.rsplit(".", 1)[0]
-    print(f"{prepend_file}{seed}_{file_name}_", end='')
+    print(f"{prepend_file}{seed}_{file_name}_", end="")

@@ -51,7 +51,9 @@ def get_final_ref_pos_list(ref_sites, window):
     for ref, sites in ref_sites.items():
         # re-wrap Numba array as a regular list as returned object is
         # 5x slower to access and cannot be pickled
-        ref_pairs[ref] = list(find_nearby(np.sort(np.array(list(sites), dtype=np.int64)), window))
+        ref_pairs[ref] = list(
+            find_nearby(np.sort(np.array(list(sites), dtype=np.int64)), window)
+        )
     return ref_pairs
 
 
@@ -62,9 +64,9 @@ def exe_exists(exe_name: str) -> bool:
     :return: True, an executable file named exe_name exists and has executable bit set
     """
     p, f = os.path.split(exe_name)
-    assert not p, 'include only the base file name, no path specification'
+    assert not p, "include only the base file name, no path specification"
 
-    for pn in os.environ["PATH"].split(':'):
+    for pn in os.environ["PATH"].split(":"):
         full_path = os.path.join(pn, exe_name)
         if os.path.isfile(full_path) and os.access(full_path, os.X_OK):
             return True
@@ -72,8 +74,13 @@ def exe_exists(exe_name: str) -> bool:
 
 
 # might need changes for single end
-def count_bam_reads(file_name: str, paired: bool = False, mapped: bool = False,
-                    mapq: int = None, max_cpu: int = None) -> int:
+def count_bam_reads(
+    file_name: str,
+    paired: bool = False,
+    mapped: bool = False,
+    mapq: int = None,
+    max_cpu: int = None,
+) -> int:
     """
     Use samtools to quickly count the number of non-header lines in a bam file. This is assumed to equal
     the number of mapped reads.
@@ -84,40 +91,45 @@ def count_bam_reads(file_name: str, paired: bool = False, mapped: bool = False,
     :param max_cpu: set the maximum number of CPUS to use in counting (otherwise all cores)
     :return: estimated number of mapped reads
     """
-    assert exe_exists('samtools'), 'required tool samtools was not found on path'
-    assert exe_exists('wc'), 'required tool wc was not found on path'
-    assert not (paired and mapped), 'Cannot set paired and mapped simultaneously'
+    assert exe_exists("samtools"), "required tool samtools was not found on path"
+    assert exe_exists("wc"), "required tool wc was not found on path"
+    assert not (paired and mapped), "Cannot set paired and mapped simultaneously"
 
     if not os.path.exists(file_name):
-        raise IOError('{} does not exist'.format(file_name))
+        raise IOError("{} does not exist".format(file_name))
     if not os.path.isfile(file_name):
-        raise IOError('{} is not a file'.format(file_name))
+        raise IOError("{} is not a file".format(file_name))
 
-    opts = ['samtools', 'view', '-c']
+    opts = ["samtools", "view", "-c"]
     if max_cpu is None:
         max_cpu = multiprocessing.cpu_count()
-    opts.append('-@{}'.format(max_cpu))
+    opts.append("-@{}".format(max_cpu))
 
     if paired:
-        opts.append('-F0xC0C')
+        opts.append("-F0xC0C")
     elif mapped:
-        opts.append('-F0xC00')
+        opts.append("-F0xC00")
 
     if mapq is not None:
-        assert 0 <= mapq <= 60, 'mapq must be in the range [0,60]'
-        opts.append('-q{}'.format(mapq))
+        assert 0 <= mapq <= 60, "mapq must be in the range [0,60]"
+        opts.append("-q{}".format(mapq))
 
-    proc = subprocess.Popen(opts + [file_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(
+        opts + [file_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
 
     value_txt = proc.stdout.readline().strip()
     try:
         count = int(value_txt)
         if paired and count % 2 != 0:
-            print('When counting paired reads, the total was not divisible by 2.')
+            print("When counting paired reads, the total was not divisible by 2.")
         return count
     except ValueError:
-        raise RuntimeError('Encountered a problem determining alignment count. samtools returned [{}]'
-                           .format(value_txt))
+        raise RuntimeError(
+            "Encountered a problem determining alignment count. samtools returned [{}]".format(
+                value_txt
+            )
+        )
 
 
 def remove_unaligned(in_pos, in_seq):
@@ -125,7 +137,7 @@ def remove_unaligned(in_pos, in_seq):
     Conveinence method for removing elements from both position and sequence
     lists when the position is reported as "None". This indicates an unaligned
     position, which is of no use to this analysis.
-    
+
     :param in_pos: input list of reference positions
     :param in_seq: input list of read-pair nucleotides
     :return: each list without Ns, if they occured.
@@ -141,7 +153,7 @@ def remove_unaligned(in_pos, in_seq):
 
 
 # Named tuple type for clarity.
-Pair_t = namedtuple('Pair', ['chr', 'pos1', 'pos2', 'base1', 'base2'])
+Pair_t = namedtuple("Pair", ["chr", "pos1", "pos2", "base1", "base2"])
 
 
 def pattern_match(bam, ref_pos_dict, read_count, n_proc):
@@ -168,16 +180,18 @@ def pattern_match(bam, ref_pos_dict, read_count, n_proc):
 
         # check BAM file ordering is query-name
         try:
-            _header = bam_file.header['HD']
+            _header = bam_file.header["HD"]
         except KeyError as ex:
-            raise RuntimeError('no header information in bam: {}'.format(bam))
-        if 'SO' not in _header:
-            raise RuntimeError('No sorting defined in bam: {}'.format(bam))
-        elif _header['SO'] != 'queryname':
-            raise RuntimeError('BAM file must be query-name sorted')
+            raise RuntimeError("no header information in bam: {}".format(bam))
+        if "SO" not in _header:
+            raise RuntimeError("No sorting defined in bam: {}".format(bam))
+        elif _header["SO"] != "queryname":
+            raise RuntimeError("BAM file must be query-name sorted")
 
         # quick reference id to name lookup
-        id_to_name = {i: bam_file.references[i] for i in range(len(bam_file.references))}
+        id_to_name = {
+            i: bam_file.references[i] for i in range(len(bam_file.references))
+        }
 
         pair_table = defaultdict(int)
 
@@ -204,7 +218,9 @@ def pattern_match(bam, ref_pos_dict, read_count, n_proc):
                 ref_positions = r1.get_reference_positions(full_length=True)
                 query_sequence = r1.query_sequence
 
-                ref_positions, query_sequence = remove_unaligned(ref_positions, query_sequence)
+                ref_positions, query_sequence = remove_unaligned(
+                    ref_positions, query_sequence
+                )
 
                 # quick lookup of reference position to read nucleotide
                 pos_to_seq = dict(zip(ref_positions, query_sequence))
@@ -229,7 +245,7 @@ def pattern_match(bam, ref_pos_dict, read_count, n_proc):
                         pos2 = pos[j]
                         if pos2 not in snp_lookup[pos1]:
                             continue
-                        if pos_to_seq[pos1] != 'N' and pos_to_seq[pos2] != 'N':
+                        if pos_to_seq[pos1] != "N" and pos_to_seq[pos2] != "N":
                             base1 = pos_to_seq[pos1]
                             base2 = pos_to_seq[pos2]
                         else:
@@ -238,17 +254,33 @@ def pattern_match(bam, ref_pos_dict, read_count, n_proc):
                         pair_table[Pair_t(ref_name, pos1, pos2, base1, base2)] += 1
 
         # convert the dict-based pairs table into a dataframe for downstream tools
-        base_combinations = ["AA", "AC", "AG", "AT", "CA", "CC", "CG", "CT",
-                             "GA", "GC", "GG", "GT", "TA", "TC", "TG", "TT"]
+        base_combinations = [
+            "AA",
+            "AC",
+            "AG",
+            "AT",
+            "CA",
+            "CC",
+            "CG",
+            "CT",
+            "GA",
+            "GC",
+            "GG",
+            "GT",
+            "TA",
+            "TC",
+            "TG",
+            "TT",
+        ]
         d = {}
         for _pair, _count in pair_table.items():
             # rows are uniquely indexed by 3 parameters
             ix = (_pair.chr, _pair.pos1, _pair.pos2)
             if ix not in d:
                 d[ix] = dict(zip(base_combinations, [0] * 16))
-            d[ix][f'{_pair.base1}{_pair.base2}'] = _count
+            d[ix][f"{_pair.base1}{_pair.base2}"] = _count
         # initialise the dataframe in one go
-        pair_table = pd.DataFrame.from_dict(d, orient='index')
+        pair_table = pd.DataFrame.from_dict(d, orient="index")
 
         return pair_table
 
@@ -261,19 +293,25 @@ def main(bam, vcf_file, num_cores, fragment_len):
     print("The BAM file contains {:,} reads".format(read_count))
 
     variant_positions = get_var_pos_from_vcf(vcf_file)
-    print('Number of variant positions to analyze: {:,}'.format(
-        sum(len(v) for v in variant_positions.values())))
+    print(
+        "Number of variant positions to analyze: {:,}".format(
+            sum(len(v) for v in variant_positions.values())
+        )
+    )
 
     reference_pair_positions = get_final_ref_pos_list(variant_positions, window_size)
-    print('Number of pair positions across references: {:,}'.format(
-        sum(len(v) for v in reference_pair_positions.values())))
+    print(
+        "Number of pair positions across references: {:,}".format(
+            sum(len(v) for v in reference_pair_positions.values())
+        )
+    )
 
     pairwise_table = pattern_match(bam, reference_pair_positions, read_count, num_cores)
 
     pairwise_table.to_pickle("pairwise_table.pkl")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     bam_file = sys.argv[1]
     vcf_file = sys.argv[2]
     num_cores = int(sys.argv[3])

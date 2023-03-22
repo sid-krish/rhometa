@@ -12,7 +12,7 @@ def getBiallelicSets(row):
         if int(value) != 0:
             pairsWithVals.append((pair))
 
-    mergedPairs = str(''.join(pairsWithVals))
+    mergedPairs = str("".join(pairsWithVals))
     # Step 2: Get count of unique bases in site 1 and site 2
     site1s = mergedPairs[0::2]  # Site 1 bases
     unqSite1Vals = len(set(site1s))  # Get count of unique values in site 1 bases
@@ -22,16 +22,18 @@ def getBiallelicSets(row):
 
     # Step 3: If only 2 unique bases in site 1 and site 2 return confirmation
     if unqSite1Vals == 2 and unqSite2Vals == 2:
-        return 'y'
+        return "y"
 
-    return 'n'
+    return "n"
 
 
 def filter_bi_allelic(df):
     # Ensure site 1 and site 2 bases are biallelic
-    df["Bi-allelic_sets"] = df.apply(getBiallelicSets, axis=1)  # axis = 1, apply function to row
+    df["Bi-allelic_sets"] = df.apply(
+        getBiallelicSets, axis=1
+    )  # axis = 1, apply function to row
 
-    filtered_df = df.loc[df["Bi-allelic_sets"] == 'y']
+    filtered_df = df.loc[df["Bi-allelic_sets"] == "y"]
 
     filtered_df = filtered_df.drop(columns="Bi-allelic_sets")  # No longer needed
 

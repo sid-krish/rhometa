@@ -4,7 +4,7 @@ import sys
 from math import log
 
 import pandas as pd
-import numpy as np
+import numba as nb
 import pysam
 import seaborn as sns
 
@@ -14,7 +14,8 @@ sns.set_theme(style="darkgrid")
 def get_var_pos_from_vcf(vcf_file):
     f = pysam.VariantFile(vcf_file)
 
-    var_pos = {i.pos for i in f.fetch()}  # set comprehension to remove duplicates
+    # set comprehension to remove duplicates
+    var_pos = {i.pos for i in f.fetch()}
 
     f.close()
 
@@ -22,10 +23,21 @@ def get_var_pos_from_vcf(vcf_file):
 
 
 def depth_distribution(pileup):
-    pileup_fmt_cols = ["Sequence", "Position", "Reference_Base", "Depth", "Read_Results", "Quality"]
-    pileup_df = pd.read_table(pileup, names=pileup_fmt_cols)  # pileup file is 1-based index
+    pileup_fmt_cols = [
+        "Sequence",
+        "Position",
+        "Reference_Base",
+        "Depth",
+        "Read_Results",
+        "Quality",
+    ]
 
-    pileup_df.drop(columns=["Sequence", "Reference_Base", "Read_Results", "Quality"], inplace=True)
+    # pileup file is 1-based index
+    pileup_df = pd.read_table(pileup, names=pileup_fmt_cols)
+
+    pileup_df.drop(
+        columns=["Sequence", "Reference_Base", "Read_Results", "Quality"], inplace=True
+    )
 
     # Watterson estimate only applicable for depth > 1
     pileup_df = pileup_df[pileup_df["Depth"] > 1]
@@ -33,6 +45,7 @@ def depth_distribution(pileup):
     return pileup_df
 
 
+@nb.jit
 def watterson_estimate(segregating_sites, genome_len, samples):
     """
     Theta per site
@@ -54,7 +67,7 @@ def watterson_estimate(segregating_sites, genome_len, samples):
 
 def plot_depth(pileup_df):
     g = sns.histplot(x="Depth", data=pileup_df)
-    g.set(title='Counts of depths/read counts across genome')
+    g.set(title="Counts of depths/read counts across genome")
     g.figure.savefig("depth_distribution.png", dpi=500)
     g.figure.clf()  # clear figure for next plot
 
@@ -69,7 +82,11 @@ def plot_theta(num_variant_positions, genome_size, min_depth, max_depth):
 
     depths = [i for i in range(min_depth, max_depth + 1)]
     f = sns.lineplot(x=depths, y=theta_vals_for_depth_range)
-    f.set(xlabel='Depth', ylabel='Theta', title='Theta estimated for min-max depth range')
+
+    f.set(
+        xlabel="Depth", ylabel="Theta", title="Theta estimated for min-max depth range"
+    )
+
     # bbox_inches="tight", prevents axis labels from going out of frame
     f.figure.savefig("theta_estimates.png", bbox_inches="tight", dpi=500)
     f.figure.clf()  # clear figure for next plot
@@ -77,7 +94,7 @@ def plot_theta(num_variant_positions, genome_size, min_depth, max_depth):
     return None
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     genome_size = int(sys.argv[1])
     pileup = sys.argv[2]
     vcf = sys.argv[3]
@@ -91,35 +108,53 @@ if __name__ == '__main__':
     plot_depth(pileup_df)
 
     # Summary stats for depth
-    depth_summary_stats_df = pileup_df["Depth"].describe(percentiles=[.5])
+    depth_summary_stats_df = pileup_df["Depth"].describe(percentiles=[0.5])
     depth_summary_stats_df = pd.DataFrame(depth_summary_stats_df).T
-    depth_summary_stats_df = depth_summary_stats_df.round(0)  # makes sense to round depth vals to the nearest int
+    # makes sense to round depth vals to the nearest int
+    depth_summary_stats_df = depth_summary_stats_df.round(0)
     depth_summary_stats_df = depth_summary_stats_df.drop(
-        columns=["count", "std"])  # Drop cols that can't be used for theta
+        columns=["count", "std"]
+    )  # Drop cols that can't be used for theta
 
     # Plot theta for min - max depth range
-    min_depth, max_depth = int(depth_summary_stats_df["min"][0]), int(depth_summary_stats_df["max"][0])
+    min_depth, max_depth = int(depth_summary_stats_df["min"][0]), int(
+        depth_summary_stats_df["max"][0]
+    )
     plot_theta(num_variant_positions, genome_size, min_depth, max_depth)
 
     # Summary stats for theta based on depth summary stats
     depth_summary_stats_df = depth_summary_stats_df.drop(columns=["min", "max"])
     theta_sum_stats_df = pd.DataFrame()
-    theta_sum_stats_df = depth_summary_stats_df.applymap(lambda x: watterson_estimate(num_variant_positions,
-                                                                                      genome_size,
-                                                                                      x))
+    theta_sum_stats_df = depth_summary_stats_df.applymap(
+        lambda x: watterson_estimate(num_variant_positions, genome_size, x)
+    )
 
     # Export all summary stats
     all_summary_stats_df = depth_summary_stats_df.append(theta_sum_stats_df)
-    all_summary_stats_df.rename(columns={'mean': 'mean_depth', '50%': 'median_depth'}, inplace=True)
-    all_summary_stats_df['mean_depth'] = [float('%.3g' % i) for i in all_summary_stats_df['mean_depth']]
-    all_summary_stats_df['median_depth'] = [float('%.3g' % i) for i in all_summary_stats_df['median_depth']]
-    all_summary_stats_df = pd.melt(all_summary_stats_df, value_vars=["mean_depth", "median_depth"])
 
-    with open("Theta_estimate_stats.csv", 'w') as f:
+    all_summary_stats_df.rename(
+        columns={"mean": "mean_depth", "50%": "median_depth"}, inplace=True
+    )
+
+    all_summary_stats_df["mean_depth"] = [
+        float("%.3g" % i) for i in all_summary_stats_df["mean_depth"]
+    ]
+
+    all_summary_stats_df["median_depth"] = [
+        float("%.3g" % i) for i in all_summary_stats_df["median_depth"]
+    ]
+
+    all_summary_stats_df = pd.melt(
+        all_summary_stats_df, value_vars=["mean_depth", "median_depth"]
+    )
+
+    with open("Theta_estimate_stats.csv", "w") as f:
         f.write(
-            f"# tps_mean_depth = theta_per_site_at_mean_depth\n# tps_median_depth = theta_per_site_at_median_depth\n")
+            f"# tps_mean_depth = theta_per_site_at_mean_depth\n# tps_median_depth = theta_per_site_at_median_depth\n"
+        )
         f.close()
+        
     new_idx = ["mean_depth", "tps_mean_depth", "median_depth", "tps_median_depth"]
     all_summary_stats_df.index = new_idx
     all_summary_stats_df = all_summary_stats_df.drop(columns=["variable"])
-    all_summary_stats_df.to_csv("Theta_estimate_stats.csv", mode='a', header=False)
+    all_summary_stats_df.to_csv("Theta_estimate_stats.csv", mode="a", header=False)

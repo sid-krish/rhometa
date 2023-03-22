@@ -4,7 +4,7 @@ import sys
 import pandas as pd
 import seaborn as sns
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     results = sys.argv[1]
 
     df = pd.read_csv(results)
@@ -13,7 +13,9 @@ if __name__ == '__main__':
 
     # plot
     sns.set_theme(style="darkgrid")
-    g = sns.lineplot(data=df, x="rho_values_evaluated", y="log_likelihood_sum").set_title("rho v. log likelihood sum")
+    g = sns.lineplot(
+        data=df, x="rho_values_evaluated", y="log_likelihood_sum"
+    ).set_title("rho v. log likelihood sum")
 
     # bbox_inches="tight", prevents axis labels from going out of frame
     g.figure.savefig("results_plot.png", bbox_inches="tight", dpi=500)
