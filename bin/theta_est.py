@@ -112,6 +112,7 @@ if __name__ == "__main__":
     depth_summary_stats_df = pd.DataFrame(depth_summary_stats_df).T
     # makes sense to round depth vals to the nearest int
     depth_summary_stats_df = depth_summary_stats_df.round(0)
+    
     depth_summary_stats_df = depth_summary_stats_df.drop(
         columns=["count", "std"]
     )  # Drop cols that can't be used for theta
@@ -120,6 +121,7 @@ if __name__ == "__main__":
     min_depth, max_depth = int(depth_summary_stats_df["min"][0]), int(
         depth_summary_stats_df["max"][0]
     )
+
     plot_theta(num_variant_positions, genome_size, min_depth, max_depth)
 
     # Summary stats for theta based on depth summary stats
@@ -150,11 +152,11 @@ if __name__ == "__main__":
 
     with open("Theta_estimate_stats.csv", "w") as f:
         f.write(
-            f"# tps_mean_depth = theta_per_site_at_mean_depth\n# tps_median_depth = theta_per_site_at_median_depth\n"
+            f"# tps_pileup_mean_depth = theta_per_site_at_pileup_mean_depth\n# tps_pileup_median_depth = theta_per_site_at_pileup_median_depth\n"
         )
         f.close()
         
-    new_idx = ["mean_depth", "tps_mean_depth", "median_depth", "tps_median_depth"]
+    new_idx = ["pileup_mean_depth", "tps_pileup_mean_depth", "pileup_median_depth", "tps_pileup_median_depth"]
     all_summary_stats_df.index = new_idx
     all_summary_stats_df = all_summary_stats_df.drop(columns=["variable"])
     all_summary_stats_df.to_csv("Theta_estimate_stats.csv", mode="a", header=False)

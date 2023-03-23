@@ -12,14 +12,17 @@ def cov_results(cov_results_path):
                       for file in cov_files]
     id_list = [str(file).split('/')[-1].split('_')[0] for file in cov_files]
 
-    df_list = [pd.read_table(file, usecols=["coverage", "endpos"])
+    df_list = [pd.read_table(file, usecols=["coverage", "endpos", "meandepth"])
                for file in cov_files]
 
     weighted_mean_cov_list = []
+    weighted_mean_depth_list = []
     for i in df_list:
         coverage = i["coverage"].to_numpy(dtype="float32")
         genome_lens = i["endpos"].to_numpy(dtype="int32")
+        meandepth = i["meandepth"].to_numpy(dtype="float32")
 
+        # weighted coverage
         weight_covs = genome_lens * coverage
         sum_weight_covs = np.sum(weight_covs)
         genome_lens_sum = np.sum(genome_lens)
@@ -27,19 +30,28 @@ def cov_results(cov_results_path):
         weighted_mean_cov = sum_weight_covs / genome_lens_sum
         weighted_mean_cov_list.append(weighted_mean_cov)
 
+        # weighted depth
+        weight_depths = genome_lens * meandepth
+        sum_weight_depths = np.sum(weight_depths)
+        genome_lens_sum = np.sum(genome_lens)
+
+        weighted_mean_depth = sum_weight_depths / genome_lens_sum
+        weighted_mean_depth_list.append(weighted_mean_depth)
+
     combined_df = pd.DataFrame()
     combined_df["reference"] = reference_list
     combined_df["identifier"] = id_list
     combined_df["weighted_mean_cov"] = weighted_mean_cov_list
+    combined_df["weighted_mean_depth"] = weighted_mean_depth_list
 
     combined_df = combined_df.reindex(
-        columns=["reference", "identifier", "weighted_mean_cov"])
-    combined_df.to_csv("collected_coverage_results.csv", index=False)
+        columns=["reference", "identifier", "weighted_mean_cov", "weighted_mean_depth"])
+    combined_df.to_csv("collected_depth_results.csv", index=False)
 
     sns.set_palette("Set1")
-    fig = sns.boxplot(combined_df, x="weighted_mean_cov")
+    fig = sns.boxplot(combined_df, x="weighted_mean_depth")
     fig.set_xlim(1, 100)
-    fig.figure.savefig("coverage_results_plot.png", dpi=500)
+    fig.figure.savefig("weighted_mean_depth_results_plot.png", dpi=500)
     fig.figure.clf()
 
     return combined_df
@@ -56,17 +68,17 @@ def theta_results(theta_results_path):
         index=0) for file in csv_files]
     combined_df = pd.concat(df_list, ignore_index=True)
 
-    cols = ["mean_depth", "tps_mean_depth", "median_depth", "tps_median_depth"]
+    cols = ["pileup_mean_depth", "tps_pileup_mean_depth", "pileup_median_depth", "tps_pileup_median_depth"]
     combined_df.columns = cols
     combined_df["reference"] = reference_list
     combined_df["identifier"] = id_list
 
     combined_df = combined_df.reindex(
-        columns=["reference", "identifier", "mean_depth", "tps_mean_depth", "median_depth", "tps_median_depth"])
+        columns=["reference", "identifier", "pileup_mean_depth", "tps_pileup_mean_depth", "pileup_median_depth", "tps_pileup_median_depth"])
     combined_df.to_csv("collected_theta_results.csv", index=False)
 
     sns.set_palette("Set2")
-    fig = sns.boxplot(combined_df, x="tps_mean_depth")
+    fig = sns.boxplot(combined_df, x="tps_pileup_mean_depth")
     fig.figure.savefig("theta_results_plot.png", dpi=500)
     fig.figure.clf()
 
