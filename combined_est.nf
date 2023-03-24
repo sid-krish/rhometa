@@ -18,6 +18,11 @@ params.lookup_tables = "Lookup_tables"
 // align_reads and rho_est
 params.single_end = false
 
+// Import modules
+include {
+        SAMTOOLS_COVERAGE
+        } from './align_reads'
+
 
 include { FILENAME_PREFIX as TE_FILENAME_PREFIX;
         SORT_BAM as TE_SORT_BAM;
@@ -39,41 +44,13 @@ include { FILENAME_PREFIX as RE_FILENAME_PREFIX;
 
 
 workflow align_reads {
+    //Channels
+    bams_channel = Channel.fromPath(params.bam)
+    reference_genome_channel = Channel.fromPath(params.fa)
+    combined_inputs = bams_channel.combine(reference_genome_channel)
+
     main:
-        if (params.single_end == true) {
-            // Channels
-            fastqs_channel = Channel.fromPath(params.fq)
-            reference_genome_channel = Channel.fromPath(params.fa)
-            combined_inputs = fastqs_channel.combine(reference_genome_channel)
-
-            // Process execution
-            FILTER_FASTQ_SINGLE_END(combined_inputs)
-
-            BWA_MEM_SINGLE_END(FILTER_FASTQ_SINGLE_END.out[0])
-
-            FILTER_BAM(BWA_MEM_SINGLE_END.out)
-
-            SAMTOOLS_COVERAGE(FILTER_BAM.out[0])
-    }
-
-        else if (params.single_end == false) {
-            // Channels
-            fastqs_channel = Channel.fromFilePairs(params.fq)
-            reference_genome_channel = Channel.fromPath(params.fa)
-            combined_inputs = fastqs_channel.combine(reference_genome_channel)
-
-            // Process execution
-            FILTER_FASTQ_PAIRED_END(combined_inputs)
-
-            BWA_MEM_PAIRED_END(FILTER_FASTQ_PAIRED_END.out[0])
-
-            FILTER_BAM(BWA_MEM_PAIRED_END.out)
-
-            SAMTOOLS_COVERAGE(FILTER_BAM.out[0])
-    }
-
-    emit:
-        FILTER_BAM.out[0]
+        SAMTOOLS_COVERAGE(combined_inputs)
 
 }
 
@@ -149,6 +126,8 @@ workflow rho_est {
 
 
 workflow {
+    align_reads()
+
     theta_est()
 
     rho_est()
