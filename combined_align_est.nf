@@ -3,8 +3,8 @@ nextflow.enable.dsl = 2
 
 // Params
 // align_reads
-    params.fq = "none" // e.g. with quotes "*{1,2}.fq" for paired end
-    params.fa = "none"
+params.fq = "none" // e.g. with quotes "*{1,2}.fq" for paired end
+params.fa = "none"
 
 // rho_est
 params.seed = [123] // used for samtools subsamping and final bootstrap algorithm
@@ -123,7 +123,7 @@ workflow rho_est {
         RE_SUBSAMPLE(RE_MAKE_PILEUP.out, 
                 params.depth_range)
         
-        RE_FREEBAYES(RE_SUBSAMPLE.out) // freebayes returns two channels, we just need the first
+        RE_FREEBAYES(RE_SUBSAMPLE.out[0]) // freebayes returns two channels, we just need the first
 
         if (params.single_end == true) {
             RE_PAIRWISE_TABLE_SINGLE_END(RE_FREEBAYES.out[0], 

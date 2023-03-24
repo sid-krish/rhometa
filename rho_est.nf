@@ -108,6 +108,8 @@ process SUBSAMPLE {
     /**
       * Down-sample the BAM file to a given maximum depth.
       **/
+
+    publishDir params.output_dir, mode: 'copy', pattern: '*.txt', saveAs: {filename -> "subsample/${filename_prefix}${filename}"}
     
     input:
     tuple val(filename_prefix), 
@@ -124,8 +126,10 @@ process SUBSAMPLE {
         path(fasta), 
         val(seed)
 
+    path("subsample_fraction.txt")
+
     """
-    subsample_bam_seeded.py filtered_sorted.pileup ${depth_range} filtered_sorted.bam ${seed}
+    subsample_bam_seeded.py filtered_sorted.pileup ${depth_range} filtered_sorted.bam ${seed} > subsample_fraction.txt
     """
 }
 
@@ -353,7 +357,7 @@ workflow {
     SUBSAMPLE(MAKE_PILEUP.out, 
               params.depth_range)
     
-    FREEBAYES(SUBSAMPLE.out) // freebayes returns two channels, we just need the first
+    FREEBAYES(SUBSAMPLE.out[0]) // freebayes returns two channels, we just need the first
 
     if (params.single_end == true) {
         PAIRWISE_TABLE_SINGLE_END(FREEBAYES.out[0], 
