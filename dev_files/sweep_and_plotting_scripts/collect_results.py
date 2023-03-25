@@ -6,6 +6,7 @@ import seaborn as sns
 
 
 def cov_results(cov_results_path):
+    # Check sort order
     cov_files = glob.glob(cov_results_path + "*.cov")
 
     reference_list = [str(file).split('/')[-1].split('_')[-2]
@@ -58,6 +59,7 @@ def cov_results(cov_results_path):
 
 
 def theta_results(theta_results_path):
+    # Check sort order
     csv_files = glob.glob(theta_results_path + "*.csv")
 
     reference_list = [str(file).split('/')[-1].split('_')[-5]
@@ -86,6 +88,7 @@ def theta_results(theta_results_path):
 
 
 def rho_results(rho_results_path):
+    # Check sort order
     csv_files = glob.glob(rho_results_path + "*estimate.csv")
 
     reference_list = [str(file).split('/')[-1].split('_')[-4]
@@ -114,22 +117,57 @@ def rho_results(rho_results_path):
     return combined_df
 
 
+def subsample_results(subsample_results_path):
+    # Check sort order
+    txt_files = glob.glob(subsample_results_path + "*.txt")
+
+    sub_fractions = []
+    max_lookup_depths = []
+    max_pileup_depths = []
+    for file in txt_files:
+        with open(file, "r") as f_in:
+            values = f_in.readline().split()
+            max_lookup_depths.append(values[0])
+            max_pileup_depths.append(values[1])
+            sub_fractions.append(values[2])
+
+    reference_list = [str(file).split('/')[-1].split('_')[-4]
+                      for file in txt_files]
+    seed_list = [str(file).split('/')[-1].split('_')[0] for file in txt_files]
+    id_list = [str(file).split('/')[-1].split('_')[1] for file in txt_files]
+
+    combined_df = pd.DataFrame()
+    combined_df["reference"] = reference_list
+    combined_df["identifier"] = id_list
+    combined_df["seed"] = seed_list
+    combined_df["max_lookup_depth"] = max_lookup_depths
+    combined_df["max_pileup_depth"] = max_pileup_depths
+    combined_df["sub_fractions"] = sub_fractions
+
+    return combined_df
+
+
 if __name__ == '__main__':
     cov_results_path = ''
     theta_results_path = ''
     rho_results_path = ''
+    subsample_results_path = ''
 
     cov_combined_df = cov_results(cov_results_path)
     theta_combined_df = theta_results(theta_results_path)
     rho_combined_df = rho_results(rho_results_path)
+    subsample_results_df = subsample_results(subsample_results_path)
 
     cov_theta_merged_df = pd.merge(cov_combined_df, theta_combined_df,
                                    on=['reference', 'identifier'])
-
+    
     cov_theta_rho_merged_df = pd.merge(cov_theta_merged_df, rho_combined_df,
                                        on=['reference', 'identifier'])
+    
+    cov_theta_rho_sub_merged_df = pd.merge(cov_theta_rho_merged_df, subsample_results_df,
+                                       on=['reference', 'identifier', 'seed'])
 
-    cov_theta_rho_merged_df = cov_theta_rho_merged_df.sort_values(
-        by=['reference', 'identifier'])
+    cov_theta_rho_sub_merged_df = cov_theta_rho_sub_merged_df.sort_values(
+        by=['reference', 'identifier','seed'])
 
-    cov_theta_rho_merged_df.to_csv("collected_merged_results.csv", index=False)
+    cov_theta_rho_sub_merged_df.to_csv("collected_merged_results.csv", index=False)
