@@ -413,27 +413,17 @@ analysis even if higher depth lookup tables are available.
 
 ## Pregenerated lookup tables
 
-To help get started and to help reduce compute time, the following pregenerated tables are made available, they are all
-for a depth (number of genomes) of 250, but different theta (per site) rates.
+To help get started and to help reduce compute time, the following pregenerated tables are made available.
 
 To make use of thse tables, the --lk_table option in lookup_table_gen.nf needs to be used. Please refer to the
 lookup_table_gen.nf section in Pipeline Options and Advanced Usage for details.
 
-The configuration of the tables are as follows:
-
-```
-lookup_grid: "0,0.01,1,1,100"
-
-theta per site: [0.001, 0.005, 0.01]
-
-depth (number of genomes): 250
-```
-
 ### Lookup table download links:
 
-Theta per site 0.001: https://zenodo.org/record/6578772 \
-Theta per site 0.005: https://zenodo.org/record/6579071 \
-Theta per site 0.01: https://zenodo.org/record/6562881
+Lookup grid: "0,0.25,25,0.5,50,1,100", Theta per site 0.01, Depth (number of genomes) 300: https://zenodo.org/record/7783854 \
+Lookup grid: "0,0.01,1,1,100", Theta per site 0.001, Depth (number of genomes) 250: https://zenodo.org/record/6578772 \
+Lookup grid: "0,0.01,1,1,100", Theta per site 0.005, Depth (number of genomes) 250: https://zenodo.org/record/6579071 \
+Lookup grid: "0,0.01,1,1,100", Theta per site 0.01, Depth (number of genomes) 250 : https://zenodo.org/record/6562881
 
 
 <!-- ISSUES AND CONTRIBUTING -->
