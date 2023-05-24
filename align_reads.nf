@@ -111,7 +111,7 @@ process BWA_MEM_PAIRED_END {
 
 
 process FILTER_BAM {
-    publishDir "Align_Reads_Output", mode: 'copy', pattern: 'flagstat.*.txt', saveAs: {filename -> "filter_bam/${filename}"}
+    publishDir "Align_Reads_Output", mode: 'copy', pattern: '*flagstat.*.txt', saveAs: {filename -> "filter_bam/${filename}"}
     // publishDir "Align_Reads_Output", mode: 'copy', pattern: '*.bam', saveAs: {filename -> "${filename}"}
 
     input:
@@ -122,7 +122,7 @@ process FILTER_BAM {
         tuple path("${bam.getSimpleName()}_filtered.bam"),
             path(fasta)
 
-        path 'flagstat.*.txt'
+        path("${bam.getSimpleName()}_flagstat.*.txt")
 
     script:
     """

@@ -41,7 +41,7 @@ process FILENAME_PREFIX {
         tuple path(bam),
             path(fasta)
         
-        val prefix_fn
+        val(prefix_fn)
         each seed
 
     output:
@@ -142,7 +142,7 @@ process FREEBAYES {
       * - Depths: "DP, AO and RO" minimums
       **/
 
-    publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
+    // publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
 
     input:
         tuple val(filename_prefix),
