@@ -3,14 +3,11 @@ import glob
 import numpy as np
 import pandas as pd
 
-# import seaborn as sns
-
-
 def cov_results(cov_results_path):
     # Check sort order
     cov_files = glob.glob(cov_results_path + "*.cov")
 
-    reference_list = [str(file).split("/")[-1].split("_")[-2] for file in cov_files]
+    reference_list = [str(file).split("/")[-1].split("_")[-3]+'_'+str(file).split("/")[-1].split("_")[-2] for file in cov_files]
     id_list = [str(file).split("/")[-1].split("_")[0] for file in cov_files]
 
     df_list = [
@@ -52,20 +49,13 @@ def cov_results(cov_results_path):
     )
     combined_df.to_csv("collected_depth_results.csv", index=False)
 
-    # sns.set_palette("Set1")
-    # fig = sns.boxplot(combined_df, x="weighted_mean_depth")
-    # fig.set_xlim(1, 100)
-    # fig.figure.savefig("weighted_mean_depth_results_plot.png", dpi=500)
-    # fig.figure.clf()
-
     return combined_df
 
 
 def theta_results(theta_results_path):
     # Check sort order
     csv_files = glob.glob(theta_results_path + "*.csv")
-
-    reference_list = [str(file).split("/")[-1].split("_")[-5] for file in csv_files]
+    reference_list = [str(file).split("/")[-1].split("_")[-6]+'_'+str(file).split("/")[-1].split("_")[-5] for file in csv_files]
     id_list = [str(file).split("/")[-1].split("_")[0] for file in csv_files]
 
     df_list = [
@@ -95,11 +85,6 @@ def theta_results(theta_results_path):
     )
     combined_df.to_csv("collected_theta_results.csv", index=False)
 
-    # sns.set_palette("Set2")
-    # fig = sns.boxplot(combined_df, x="tps_pileup_mean_depth")
-    # fig.figure.savefig("theta_results_plot.png", dpi=500)
-    # fig.figure.clf()
-
     return combined_df
 
 
@@ -107,7 +92,7 @@ def rho_results(rho_results_path):
     # Check sort order
     csv_files = glob.glob(rho_results_path + "*estimate.csv")
 
-    reference_list = [str(file).split("/")[-1].split("_")[-4] for file in csv_files]
+    reference_list = [str(file).split("/")[-1].split("_")[-5]+'_'+str(file).split("/")[-1].split("_")[-4] for file in csv_files]
     seed_list = [str(file).split("/")[-1].split("_")[0] for file in csv_files]
     id_list = [str(file).split("/")[-1].split("_")[1] for file in csv_files]
 
@@ -123,12 +108,6 @@ def rho_results(rho_results_path):
         columns=["reference", "identifier", "seed", "rho", "log_likelihood_sum"]
     )
     combined_df.to_csv("collected_rho_results.csv", index=False)
-
-    # sns.set_palette("Set3")
-    # fig = sns.boxplot(combined_df, x="rho")
-    # fig.set_xlim(1, 100)
-    # fig.figure.savefig("rho_results_plot.png", dpi=500)
-    # fig.figure.clf()
 
     return combined_df
 
@@ -147,7 +126,7 @@ def subsample_results(subsample_results_path):
             max_pileup_depths.append(values[1])
             sub_fractions.append(values[2])
 
-    reference_list = [str(file).split("/")[-1].split("_")[-4] for file in txt_files]
+    reference_list = [str(file).split("/")[-1].split("_")[-5]+'_'+str(file).split("/")[-1].split("_")[-4] for file in txt_files]
     seed_list = [str(file).split("/")[-1].split("_")[0] for file in txt_files]
     id_list = [str(file).split("/")[-1].split("_")[1] for file in txt_files]
 
@@ -163,10 +142,10 @@ def subsample_results(subsample_results_path):
 
 
 if __name__ == "__main__":
-    cov_results_path = ""
-    theta_results_path = ""
-    rho_results_path = ""
-    subsample_results_path = ""
+    cov_results_path = "./MAI_analysis/coverage/"
+    theta_results_path = "./MAI_analysis/theta_estimate/"
+    rho_results_path = "./MAI_analysis/rho_estimate/"
+    subsample_results_path = "./MAI_analysis/subsample/"
 
     cov_combined_df = cov_results(cov_results_path)
     theta_combined_df = theta_results(theta_results_path)
@@ -184,7 +163,7 @@ if __name__ == "__main__":
     cov_theta_rho_sub_merged_df = pd.merge(
         cov_theta_rho_merged_df,
         subsample_results_df,
-        on=["reference", "identifier", "seed"]
+        on=["reference", "identifier", "seed"],
     )
 
     cov_theta_rho_sub_merged_df = cov_theta_rho_sub_merged_df.sort_values(

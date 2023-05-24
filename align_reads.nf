@@ -3,7 +3,7 @@ nextflow.enable.dsl = 2
 
 
 process FILTER_FASTQ_SINGLE_END {
-    publishDir "Align_Reads_Output", mode: "copy", pattern: '*.gz', saveAs: {filename -> "fastp_out/${filename}"}
+    // publishDir "Align_Reads_Output", mode: "copy", pattern: '*.gz', saveAs: {filename -> "fastp_out/${filename}"}
     publishDir "Align_Reads_Output", mode: "copy", pattern: '*.html', saveAs: {filename -> "fastp_out/${filename}"}
     publishDir "Align_Reads_Output", mode: "copy", pattern: '*.json', saveAs: {filename -> "fastp_out/${filename}"}
 
@@ -27,7 +27,7 @@ process FILTER_FASTQ_SINGLE_END {
 
 
 process FILTER_FASTQ_PAIRED_END {
-    publishDir "Align_Reads_Output", mode: "copy", pattern: '*.gz', saveAs: {filename -> "fastp_out/${filename}"}
+    // publishDir "Align_Reads_Output", mode: "copy", pattern: '*.gz', saveAs: {filename -> "fastp_out/${filename}"}
     publishDir "Align_Reads_Output", mode: "copy", pattern: '*.html', saveAs: {filename -> "fastp_out/${filename}"}
     publishDir "Align_Reads_Output", mode: "copy", pattern: '*.json', saveAs: {filename -> "fastp_out/${filename}"}
 
@@ -55,7 +55,7 @@ process FILTER_FASTQ_PAIRED_END {
 
 
 process BWA_MEM_SINGLE_END {
-    publishDir "Align_Reads_Output", mode: 'copy', pattern: '*.bam', saveAs: {filename -> "${filename}"}
+    // publishDir "Align_Reads_Output", mode: 'copy', pattern: '*.bam', saveAs: {filename -> "${filename}"}
 
     // echo true
 
@@ -81,7 +81,7 @@ process BWA_MEM_SINGLE_END {
 
 
 process BWA_MEM_PAIRED_END {
-    publishDir "Align_Reads_Output", mode: 'copy', pattern: '*.bam', saveAs: {filename -> "${filename}"}
+    // publishDir "Align_Reads_Output", mode: 'copy', pattern: '*.bam', saveAs: {filename -> "${filename}"}
 
     // echo true
 
@@ -112,7 +112,7 @@ process BWA_MEM_PAIRED_END {
 
 process FILTER_BAM {
     publishDir "Align_Reads_Output", mode: 'copy', pattern: 'flagstat.*.txt', saveAs: {filename -> "filter_bam/${filename}"}
-    publishDir "Align_Reads_Output", mode: 'copy', pattern: '*.bam', saveAs: {filename -> "${filename}"}
+    // publishDir "Align_Reads_Output", mode: 'copy', pattern: '*.bam', saveAs: {filename -> "${filename}"}
 
     input:
         tuple path(bam),
@@ -129,8 +129,8 @@ process FILTER_BAM {
     #Filter and keep mapped only
     samtools view -h -F 4 -e "mapq>=40 && [AS]/rlen>0.50" $bam | samtools sort -@ $task.cpus -o ${bam.getSimpleName()}_filtered.bam
 
-    samtools flagstat $bam > flagstat.before.txt
-    samtools flagstat ${bam.getSimpleName()}_filtered.bam > flagstat.after.txt
+    samtools flagstat $bam > ${bam.getSimpleName()}_flagstat.before.txt
+    samtools flagstat ${bam.getSimpleName()}_filtered.bam > ${bam.getSimpleName()}_flagstat.after.txt
     """
 }
 

@@ -79,7 +79,7 @@ process FREEBAYES {
       * - Depths: "DP, AO and RO" minimums
       **/
 
-    publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
+    // publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
 
     // maxForks 1
 
@@ -126,8 +126,8 @@ process THETA_ESTIMATE {
 
     output:
         // path "Aligned_sorted.pileup"
-        path "theta_estimates.png"
-        path "depth_distribution.png"
+        // path "theta_estimates.png"
+        // path "depth_distribution.png"
         path "Theta_estimate_stats.csv"
         
     script:

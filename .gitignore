@@ -20,6 +20,8 @@
 
 /Recom_Est_Output/
 
+/env_analysis/
+
 .DS_Store
 
 *.bam

@@ -149,7 +149,7 @@ workflow rho_est {
                                 params.lookup_grid)
         }
 
-        RE_RESULTS_PLOT(RHO_ESTIMATE.out)
+        // RE_RESULTS_PLOT(RHO_ESTIMATE.out)
 }
 
 

@@ -105,7 +105,7 @@ if __name__ == "__main__":
 
     num_variant_positions = len(get_var_pos_from_vcf(vcf))
     pileup_df = depth_distribution(pileup)
-    plot_depth(pileup_df)
+    # plot_depth(pileup_df)
 
     # Summary stats for depth
     depth_summary_stats_df = pileup_df["Depth"].describe(percentiles=[0.5])
@@ -118,11 +118,11 @@ if __name__ == "__main__":
     )  # Drop cols that can't be used for theta
 
     # Plot theta for min - max depth range
-    min_depth, max_depth = int(depth_summary_stats_df["min"][0]), int(
-        depth_summary_stats_df["max"][0]
-    )
+    # min_depth, max_depth = int(depth_summary_stats_df["min"][0]), int(
+    #     depth_summary_stats_df["max"][0]
+    # )
 
-    plot_theta(num_variant_positions, genome_size, min_depth, max_depth)
+    # plot_theta(num_variant_positions, genome_size, min_depth, max_depth)
 
     # Summary stats for theta based on depth summary stats
     depth_summary_stats_df = depth_summary_stats_df.drop(columns=["min", "max"])
