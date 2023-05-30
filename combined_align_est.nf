@@ -101,6 +101,8 @@ workflow theta_est {
 
         THETA_ESTIMATE(TE_FREEBAYES.out[0])
 
+        // THETA_EST_PLOT(TE_FREEBAYES.out[0])
+
 }
 
 

@@ -126,8 +126,6 @@ process THETA_ESTIMATE {
 
     output:
         // path "Aligned_sorted.pileup"
-        // path "theta_estimates.png"
-        // path "depth_distribution.png"
         path "Theta_estimate_stats.csv"
         
     script:
@@ -141,6 +139,36 @@ process THETA_ESTIMATE {
     genome_size=\$(samtools view -H ${bam} |  awk '/^@SQ/ {l+=substr(\$3,4)}END{print l}')
 
     theta_est.py \$genome_size Aligned_sorted.pileup ${vcf}
+    """
+}
+
+
+process THETA_EST_PLOT {
+    publishDir params.output_dir, mode: "copy", saveAs: {filename -> "theta_estimate_plots/${filename_prefix}${filename}"}
+
+    // maxForks 1
+
+    input:
+        tuple val(filename_prefix),
+            path(bam),
+            path(fasta),
+            path(vcf)
+
+    output:
+        path "theta_estimates.png"
+        path "depth_distribution.png"
+        
+    script:
+    """
+    samtools mpileup ${bam} > Aligned_sorted.pileup
+
+    #old solution only worked for bams aligned to single sequence
+    #genome_size=\$(samtools view -H ${bam} | grep "@SQ" | awk '{ print \$3 }' | cut -c 4-)
+
+    #New solution works for bams aligned to single/multiple sequences by summing the lengths of all @SQ records.
+    genome_size=\$(samtools view -H ${bam} |  awk '/^@SQ/ {l+=substr(\$3,4)}END{print l}')
+
+    theta_plot.py \$genome_size Aligned_sorted.pileup ${vcf}
     """
 }
 
@@ -195,5 +223,7 @@ workflow {
 
     // freebayes returns two channels, we just need the first
     THETA_ESTIMATE(FREEBAYES.out[0])
+
+    THETA_EST_PLOT(FREEBAYES.out[0])
 
 }

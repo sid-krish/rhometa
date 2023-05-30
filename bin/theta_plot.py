@@ -3,9 +3,12 @@
 import sys
 from math import log
 
-import numba as nb
 import pandas as pd
+import numba as nb
 import pysam
+import seaborn as sns
+
+sns.set_theme(style="darkgrid")
 
 
 def get_var_pos_from_vcf(vcf_file):
@@ -62,61 +65,57 @@ def watterson_estimate(segregating_sites, genome_len, samples):
     return theta
 
 
+def plot_depth(pileup_df):
+    g = sns.histplot(x="Depth", data=pileup_df)
+    g.set(title="Counts of depths/read counts across genome")
+    g.figure.savefig("depth_distribution.png", dpi=500)
+    g.figure.clf()  # clear figure for next plot
+
+    return None
+
+
+def plot_theta(num_variant_positions, genome_size, min_depth, max_depth):
+    theta_vals_for_depth_range = []
+    for i in range(min_depth, max_depth + 1):
+        theta = watterson_estimate(num_variant_positions, genome_size, i)
+        theta_vals_for_depth_range.append(theta)
+
+    depths = [i for i in range(min_depth, max_depth + 1)]
+    f = sns.lineplot(x=depths, y=theta_vals_for_depth_range)
+
+    f.set(
+        xlabel="Depth", ylabel="Theta", title="Theta estimated for min-max depth range"
+    )
+
+    # bbox_inches="tight", prevents axis labels from going out of frame
+    f.figure.savefig("theta_estimates.png", bbox_inches="tight", dpi=500)
+    f.figure.clf()  # clear figure for next plot
+
+    return None
+
+
 if __name__ == "__main__":
     genome_size = int(sys.argv[1])
     pileup = sys.argv[2]
     vcf = sys.argv[3]
 
-    # genome_size = 100000
-    # pileup = "../Theta_Est_Output/rho_0.001_theta_0.01_sample_size_25_depth_4_genome_size_100000_seed_0_final_Aligned_sorted.pileup"
-    # vcf = "../Theta_Est_Output/rho_0.001_theta_0.01_sample_size_25_depth_4_genome_size_100000_seed_0_final_freeBayesOut.vcf"
-
     num_variant_positions = len(get_var_pos_from_vcf(vcf))
     pileup_df = depth_distribution(pileup)
+    plot_depth(pileup_df)
 
     # Summary stats for depth
     depth_summary_stats_df = pileup_df["Depth"].describe(percentiles=[0.5])
     depth_summary_stats_df = pd.DataFrame(depth_summary_stats_df).T
     # makes sense to round depth vals to the nearest int
     depth_summary_stats_df = depth_summary_stats_df.round(0)
-
+    
     depth_summary_stats_df = depth_summary_stats_df.drop(
         columns=["count", "std"]
     )  # Drop cols that can't be used for theta
 
-    # Summary stats for theta based on depth summary stats
-    depth_summary_stats_df = depth_summary_stats_df.drop(columns=["min", "max"])
-    theta_sum_stats_df = pd.DataFrame()
-    theta_sum_stats_df = depth_summary_stats_df.applymap(
-        lambda x: watterson_estimate(num_variant_positions, genome_size, x)
+    #Plot theta for min - max depth range
+    min_depth, max_depth = int(depth_summary_stats_df["min"][0]), int(
+        depth_summary_stats_df["max"][0]
     )
 
-    # Export all summary stats
-    all_summary_stats_df = depth_summary_stats_df.append(theta_sum_stats_df)
-
-    all_summary_stats_df.rename(
-        columns={"mean": "mean_depth", "50%": "median_depth"}, inplace=True
-    )
-
-    all_summary_stats_df["mean_depth"] = [
-        float("%.3g" % i) for i in all_summary_stats_df["mean_depth"]
-    ]
-
-    all_summary_stats_df["median_depth"] = [
-        float("%.3g" % i) for i in all_summary_stats_df["median_depth"]
-    ]
-
-    all_summary_stats_df = pd.melt(
-        all_summary_stats_df, value_vars=["mean_depth", "median_depth"]
-    )
-
-    with open("Theta_estimate_stats.csv", "w") as f:
-        f.write(
-            f"# tps_pileup_mean_depth = theta_per_site_at_pileup_mean_depth\n# tps_pileup_median_depth = theta_per_site_at_pileup_median_depth\n"
-        )
-        f.close()
-
-    new_idx = ["pileup_mean_depth", "tps_pileup_mean_depth", "pileup_median_depth", "tps_pileup_median_depth"]
-    all_summary_stats_df.index = new_idx
-    all_summary_stats_df = all_summary_stats_df.drop(columns=["variable"])
-    all_summary_stats_df.to_csv("Theta_estimate_stats.csv", mode="a", header=False)
+    plot_theta(num_variant_positions, genome_size, min_depth, max_depth)
