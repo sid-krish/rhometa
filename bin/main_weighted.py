@@ -99,6 +99,7 @@ if __name__ == "__main__":
     lookup_table_rho_range = sys.argv[3]
     pairwise_table_file = sys.argv[4]
     num_cores = int(sys.argv[5])
+    genome_size  = int(sys.argv[6])
 
     # recom_tract_len = 1000
     # depth_range = "3,250"
@@ -136,4 +137,7 @@ if __name__ == "__main__":
 
     rho_estimate = results.iloc[results["log_likelihood_sum"].idxmax()]
     rho_estimate = rho_estimate.to_frame().T
+    rho_estimate["genome_length"] = genome_size
+    rho_estimate["recom_tract_len"] = recom_tract_len
+    rho_estimate["rho_per_site"] = rho_estimate["rho"] / rho_estimate["recom_tract_len"]
     rho_estimate.to_csv("rho_estimate.csv", index=False)

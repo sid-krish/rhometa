@@ -199,13 +199,17 @@ process PAIRWISE_TABLE_SINGLE_END{
     output:
         tuple val(filename_prefix),
             path("pairwise_table.pkl"),
-            val(seed)
+            val(seed),
+            env(genome_size)
 
     script:
     // -n Sort by read names (i.e., the QNAME field) rather than by chromosomal coordinates.
     """
     samtools sort -n -@ $task.cpus -o qsorted.bam ${bam}
     pairwise_table_single_end.py qsorted.bam ${vcf_file} $task.cpus ${window_size}
+
+    #New solution works for bams aligned to single/multiple sequences by summing the lengths of all @SQ records.
+    genome_size=\$(samtools view -H ${bam} |  awk '/^@SQ/ {l+=substr(\$3,4)}END{print l}')
     """
 }
 
@@ -231,13 +235,17 @@ process PAIRWISE_TABLE_PAIRED_END{
     output:
         tuple val(filename_prefix),
             path("pairwise_table.pkl"),
-            val(seed)
+            val(seed),
+            env(genome_size)
 
     script:
     // -n Sort by read names (i.e., the QNAME field) rather than by chromosomal coordinates.
     """
     samtools sort -n -@ $task.cpus -o qsorted.bam ${bam}
     pairwise_table_paired_end.py qsorted.bam ${vcf_file} $task.cpus ${window_size}
+
+    #New solution works for bams aligned to single/multiple sequences by summing the lengths of all @SQ records.
+    genome_size=\$(samtools view -H ${bam} |  awk '/^@SQ/ {l+=substr(\$3,4)}END{print l}')
     """
 }
 
@@ -247,12 +255,15 @@ process RHO_ESTIMATE {
       * Maximum likelihood estimation of recombination rate.
       **/
 
+    debug true
+
     publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "rho_estimate/${filename_prefix}${filename}"}
 
     input:
         tuple val(filename_prefix),
             path(pairwise_table_pkl),
-            val(seed)
+            val(seed),
+            val(genome_size)
 
         path downsampled_lookup_tables
         val tract_len
@@ -267,9 +278,8 @@ process RHO_ESTIMATE {
 
     script:
     """
-    main_weighted.py ${tract_len} ${depth_range} ${lookup_grid} ${pairwise_table_pkl} $task.cpus
+    main_weighted.py ${tract_len} ${depth_range} ${lookup_grid} ${pairwise_table_pkl} $task.cpus $genome_size
     """
-
 }
 
 
