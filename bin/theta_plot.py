@@ -45,7 +45,7 @@ def depth_distribution(pileup):
     return pileup_df
 
 
-@nb.jit
+@nb.jit(nopython=True)
 def watterson_estimate(segregating_sites, genome_len, samples):
     """
     Theta per site
