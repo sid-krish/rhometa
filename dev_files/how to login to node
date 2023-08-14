@@ -1,0 +1,3 @@
+from head node submit configured job script and let nextflow submit jobs to any node or i3q
+
+dev_files/hpc_node_run.sh is currently configured to launch tasks from i3q
