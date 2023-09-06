@@ -45,7 +45,7 @@ process FILENAME_PREFIX {
 
     script:
     """
-    filename_prefix.py ${bam} ${prefix_fn} 
+    filename_prefix.py ${bam} ${prefix_fn} ${seed}
     """
 }
 
