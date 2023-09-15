@@ -22,6 +22,8 @@
 
 /env_analysis/
 
+/Testing/
+
 .DS_Store
 
 *.bam
