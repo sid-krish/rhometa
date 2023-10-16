@@ -92,9 +92,7 @@ process FREEBAYES {
         tuple val(filename_prefix),
             path(bam),
             path(fasta),
-            path("freebayes_filt.vcf")
-        
-        path 'freebayes_raw.vcf'
+            path("freebayes_raw.vcf")
 
     script:
     """
@@ -103,13 +101,32 @@ process FREEBAYES {
 
     # call variants with freebayes
     freebayes -f ${fasta} -p 1 ${bam} > freebayes_raw.vcf
-
-    bcftools filter --threads ${task.cpus} -i 'TYPE="snp"' freebayes_raw.vcf > freebayes_filt.vcf
     """
-    // Testing
-    // keep SNPs and remove low quality and low depth calls
-    // bcftools filter --threads ${task.cpus} \
-    //     -i 'TYPE="snp" && QUAL>=${params.snp_qual} && FORMAT/DP>=${params.min_snp_depth} && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
+}
+
+
+process VCF_FILTER {
+    publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
+
+    // maxForks 1
+
+    input:
+        tuple val(filename_prefix),
+            path(bam),
+            path(fasta),
+            path("freebayes_raw.vcf")
+
+    output:
+        tuple val(filename_prefix),
+            path(bam),
+            path(fasta),
+            path("freebayes_filt.vcf")
+
+    script:
+    """
+    bcftools filter --threads ${task.cpus} \
+         -i 'TYPE="snp" && QUAL>=${params.snp_qual} && FORMAT/DP>=${params.min_snp_depth} && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
+    """
 }
 
 
@@ -221,9 +238,11 @@ workflow {
 
     FREEBAYES(SORT_BAM.out)
 
-    // freebayes returns two channels, we just need the first
-    THETA_ESTIMATE(FREEBAYES.out[0])
+    VCF_FILTER(FREEBAYES.out)
 
-    THETA_EST_PLOT(FREEBAYES.out[0])
+    // freebayes returns two channels, we just need the first
+    THETA_ESTIMATE(VCF_FILTER.out)
+
+    // THETA_EST_PLOT(VCF_FILTER.out)
 
 }
