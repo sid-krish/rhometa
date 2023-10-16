@@ -11,8 +11,7 @@ import pysam
 def get_var_pos_from_vcf(vcf_file):
     f = pysam.VariantFile(vcf_file)
 
-    # set comprehension to remove duplicates
-    var_pos = {i.pos for i in f.fetch()}
+    var_pos = {(i.chrom, i.pos) for i in f.fetch()}
 
     f.close()
 
