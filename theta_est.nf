@@ -240,9 +240,8 @@ workflow {
 
     VCF_FILTER(FREEBAYES.out)
 
-    // freebayes returns two channels, we just need the first
     THETA_ESTIMATE(VCF_FILTER.out)
 
-    // THETA_EST_PLOT(VCF_FILTER.out)
+    THETA_EST_PLOT(VCF_FILTER.out)
 
 }

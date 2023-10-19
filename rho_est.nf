@@ -70,12 +70,12 @@ process SORT_BAM {
 
     output:
     tuple val(filename_prefix), 
-        path('filtered_sorted.bam'), 
+        path('aligned_sorted.bam'), 
         path(fasta), 
         val(seed)
 
     """
-    samtools sort -@ ${task.cpus} -o filtered_sorted.bam ${bam}
+    samtools sort -@ ${task.cpus} -o aligned_sorted.bam ${bam}
     """
 }
 
@@ -87,19 +87,19 @@ process MAKE_PILEUP {
 
     input:
     tuple val(filename_prefix), 
-        path('filtered_sorted.bam'), 
+        path('aligned_sorted.bam'), 
         path(fasta), 
         val(seed)
 
     output:
     tuple val(filename_prefix), 
-        path('filtered_sorted.bam'), 
-        path('filtered_sorted.pileup'), 
+        path('aligned_sorted.bam'), 
+        path('aligned_sorted.pileup'), 
         path(fasta), 
         val(seed)
 
     """
-    samtools mpileup -o filtered_sorted.pileup filtered_sorted.bam
+    samtools mpileup -o aligned_sorted.pileup aligned_sorted.bam
     """
 }
 
@@ -113,8 +113,8 @@ process SUBSAMPLE {
     
     input:
     tuple val(filename_prefix), 
-        path('filtered_sorted.bam'), 
-        path('filtered_sorted.pileup'), 
+        path('aligned_sorted.bam'), 
+        path('aligned_sorted.pileup'), 
         path(fasta), 
         val(seed)
 
@@ -129,14 +129,14 @@ process SUBSAMPLE {
     path("subsample_fraction.txt")
 
     """
-    subsample_bam_seeded.py filtered_sorted.pileup ${depth_range} filtered_sorted.bam ${seed} > subsample_fraction.txt
+    subsample_bam_seeded.py aligned_sorted.pileup ${depth_range} aligned_sorted.bam ${seed} > subsample_fraction.txt
     """
 }
 
 
 process FREEBAYES {
     /**
-      * Call variants using FreeBayes and filter the result VCF for quality follow FreeBayes recommendations.
+      * Filter the result VCF for quality.
       * - Only snps
       * - Variant quality minimum
       * - Depths: "DP, AO and RO" minimums
@@ -154,10 +154,8 @@ process FREEBAYES {
         tuple val(filename_prefix),
             path(bam),
             path(fasta),
-            path("freebayes_filt.vcf"),
+            path("freebayes_raw.vcf"),
             val(seed)
-        
-        path 'freebayes_raw.vcf'
 
     script:
     """
@@ -167,14 +165,40 @@ process FREEBAYES {
 
     # call variants with freebayes
     freebayes -f ${fasta} -p 1 Aligned.csorted.bam > freebayes_raw.vcf
-
-    # keep only SNPs
-    bcftools filter --threads ${task.cpus} -i 'TYPE="snp"' freebayes_raw.vcf > freebayes_filt.vcf
     """
-    // Testing
-    // keep SNPs and remove low quality and low depth calls
-    // bcftools filter --threads ${task.cpus} \
-    //     -i 'TYPE="snp" && QUAL>=${params.snp_qual} && FORMAT/DP>=${params.min_snp_depth} && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
+}
+
+
+process VCF_FILTER {
+    /**
+      * Filter the result VCF for quality.
+      * - Only snps
+      * - Variant quality minimum
+      * - Depths: "DP, AO and RO" minimums
+      **/
+    publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
+
+    // maxForks 1
+
+    input:
+        tuple val(filename_prefix),
+            path(bam),
+            path(fasta),
+            path("freebayes_raw.vcf"),
+            val(seed)
+
+    output:
+        tuple val(filename_prefix),
+            path(bam),
+            path(fasta),
+            path("freebayes_filt.vcf"),
+            val(seed)
+
+    script:
+    """
+    bcftools filter --threads ${task.cpus} \
+         -i 'TYPE="snp" && QUAL>=${params.snp_qual} && FORMAT/DP>=${params.min_snp_depth} && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
+    """
 }
 
 
@@ -321,8 +345,8 @@ workflow {
     params.single_end = false
     params.depth_range = "3,85" // min_depth, max_depth
     // VCF filter settings
-    // params.snp_qual = 20 // Minimum phred-scaled quality score to filter vcf by
-    // params.min_snp_depth = 10 // Minimum read depth to filter vcf by
+    params.snp_qual = 20 // Minimum phred-scaled quality score to filter vcf by
+    params.min_snp_depth = 10 // Minimum read depth to filter vcf by
 
     params.output_dir = 'Rho_Est_Output'
     params.bam = 'none'
@@ -367,10 +391,12 @@ workflow {
     SUBSAMPLE(MAKE_PILEUP.out, 
               params.depth_range)
     
-    FREEBAYES(SUBSAMPLE.out[0]) // freebayes returns two channels, we just need the first
+    FREEBAYES(SUBSAMPLE.out[0])
+
+    VCF_FILTER(FREEBAYES.out)
 
     if (params.single_end == true) {
-        PAIRWISE_TABLE_SINGLE_END(FREEBAYES.out[0], 
+        PAIRWISE_TABLE_SINGLE_END(VCF_FILTER.out, 
                     params.single_end, 
                     params.window_size)
 
@@ -382,7 +408,7 @@ workflow {
     }
     
     else if (params.single_end == false) {
-        PAIRWISE_TABLE_PAIRED_END(FREEBAYES.out[0], 
+        PAIRWISE_TABLE_PAIRED_END(VCF_FILTER.out, 
                     params.single_end, 
                     params.window_size)
 
