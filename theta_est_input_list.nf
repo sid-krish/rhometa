@@ -12,8 +12,7 @@ def helpMessage() {
     nextflow run theta_est.nf --help
 
     Required:
-    --bam [*.bam], Query name sorted bam file. Multi bam support via glob input e.g. "*.bam", quotes must be included for glob. Use with one fasta file only
-    --fa [*.fa],  Single/Multi genome fasta file
+    --input_csv, csv file with paths to bams and references, "bam" and "reference" need to be the header
 
     Options:
     --filename_prefix [str], prefix string to output filenames to help distinguish runs
@@ -205,8 +204,6 @@ workflow {
     params.min_snp_depth = 10 // Minimum read depth to filter vcf by
 
     params.output_dir = 'Theta_Est_Output'
-    params.bam = 'none'
-    params.fa = 'none'
 
     // Input verification
     if (params.help) {
@@ -216,7 +213,7 @@ workflow {
         exit 0
     }
 
-    params.input_csv = ""
+    params.input_csv = "" // csv file with paths to bams and references, "bam" and "reference" need to the header
 
     input_list = Channel.fromPath(params.input_csv)
                 .splitCsv(header:true)
