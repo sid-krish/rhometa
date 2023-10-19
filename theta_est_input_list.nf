@@ -21,6 +21,8 @@ def helpMessage() {
     --snp_qual [int], default:[20], Minimum phred-scaled quality score to filter vcf by
     --min_snp_depth [int], default:[10], Minimum read depth to filter vcf by
     """.stripIndent()
+
+
 }
 
 
@@ -197,6 +199,7 @@ workflow {
     // Params
     params.help = false
     params.filename_prefix = "none"
+
     // VCF filter settings
     params.snp_qual = 20 // Minimum phred-scaled quality score to filter vcf by
     params.min_snp_depth = 10 // Minimum read depth to filter vcf by
@@ -204,11 +207,6 @@ workflow {
     params.output_dir = 'Theta_Est_Output'
     params.bam = 'none'
     params.fa = 'none'
-
-    // Channels
-    bam_channel = Channel.fromPath( params.bam, checkIfExists: true )
-    fa_channel = Channel.fromPath( params.fa, checkIfExists: true )
-    bam_and_fa = bam_channel.combine(fa_channel)
 
     // Input verification
     if (params.help) {
@@ -218,18 +216,14 @@ workflow {
         exit 0
     }
 
-    if (params.fa == 'none') {
-        println "No input .fa specified. Use --fa [.fa]"
-        exit 1
-    }
+    params.input_csv = ""
 
-    if (params.bam == 'none') {
-        println "No input .bam specified. Use --bam [.bam]"
-        exit 1
-    }
+    input_list = Channel.fromPath(params.input_csv)
+                .splitCsv(header:true)
+                .map { row-> tuple(file(row.bam), file(row.reference)) }
 
     // Process execution
-    FILENAME_PREFIX(bam_and_fa,
+    FILENAME_PREFIX(input_list,
                     params.filename_prefix)
 
     SORT_BAM(FILENAME_PREFIX.out)
@@ -238,8 +232,9 @@ workflow {
 
     VCF_FILTER(FREEBAYES.out)
 
+    // freebayes returns two channels, we just need the first
     THETA_ESTIMATE(VCF_FILTER.out)
 
-    THETA_EST_PLOT(VCF_FILTER.out)
+    // THETA_EST_PLOT(VCF_FILTER.out)
 
 }

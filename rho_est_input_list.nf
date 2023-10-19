@@ -418,6 +418,6 @@ workflow {
                             params.lookup_grid)
     }
 
-    RESULTS_PLOT(RHO_ESTIMATE.out)
+    // RESULTS_PLOT(RHO_ESTIMATE.out)
 
 }
