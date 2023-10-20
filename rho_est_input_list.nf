@@ -365,7 +365,7 @@ workflow {
                 .map { row-> tuple(file(row.bam), file(row.reference)) }
 
     // Process execution
-    FILENAME_PREFIX(bam_and_fa, 
+    FILENAME_PREFIX(input_list, 
                     params.filename_prefix, 
                     params.seed)
     
