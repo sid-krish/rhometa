@@ -140,7 +140,7 @@ process FREEBAYES {
       * - Depths: "DP, AO and RO" minimums
       **/
 
-    // publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
+    publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
 
     input:
         tuple val(filename_prefix),
@@ -277,7 +277,7 @@ process RHO_ESTIMATE {
       * Maximum likelihood estimation of recombination rate.
       **/
 
-    debug true
+    // debug true
 
     publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "rho_estimate/${filename_prefix}${filename}"}
 
