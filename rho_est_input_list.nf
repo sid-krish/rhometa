@@ -349,6 +349,7 @@ workflow {
 
     params.output_dir = 'Rho_Est_Output'
     params.lookup_tables = "Lookup_tables"
+    downsampled_lookup_tables = Channel.fromPath( "${params.lookup_tables}/lk_downsampled_*.csv", checkIfExists: true ).collect()
 
     // Input verification
     if (params.help) {
