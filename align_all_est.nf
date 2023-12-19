@@ -31,7 +31,9 @@ include { FILTER_FASTQ_SINGLE_END;
 include { FILENAME_PREFIX as TE_FILENAME_PREFIX;
         SORT_BAM as TE_SORT_BAM;
         FREEBAYES as TE_FREEBAYES;
-        THETA_ESTIMATE
+        VCF_FILTER as TE_VCF_FILTER;
+        THETA_ESTIMATE;
+        THETA_EST_PLOT;
         } from './theta_est' addParams(output_dir: "Theta_Est_Output") // output_dir is only called internally within module, not called here
 
 
@@ -99,9 +101,11 @@ workflow theta_est {
 
         TE_FREEBAYES(TE_SORT_BAM.out)
 
-        THETA_ESTIMATE(TE_FREEBAYES.out[0])
+        TE_VCF_FILTER(TE_FREEBAYES.out)
 
-        // THETA_EST_PLOT(TE_FREEBAYES.out[0])
+        THETA_ESTIMATE(TE_VCF_FILTER.out)
+
+        // THETA_EST_PLOT(THETA_ESTIMATE.out)
 
 }
 
