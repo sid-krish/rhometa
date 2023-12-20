@@ -42,6 +42,7 @@ include { FILENAME_PREFIX as RE_FILENAME_PREFIX;
         MAKE_PILEUP as RE_MAKE_PILEUP;
         SUBSAMPLE as RE_SUBSAMPLE;
         FREEBAYES as RE_FREEBAYES;
+        VCF_FILTER as RE_VCF_FILTER;
         PAIRWISE_TABLE_SINGLE_END as RE_PAIRWISE_TABLE_SINGLE_END;
         PAIRWISE_TABLE_PAIRED_END as RE_PAIRWISE_TABLE_PAIRED_END;
         RHO_ESTIMATE;
@@ -131,8 +132,10 @@ workflow rho_est {
         
         RE_FREEBAYES(RE_SUBSAMPLE.out[0]) // freebayes returns two channels, we just need the first
 
+        RE_VCF_FILTER(RE_FREEBAYES.out)
+
         if (params.single_end == true) {
-            RE_PAIRWISE_TABLE_SINGLE_END(RE_FREEBAYES.out[0], 
+            RE_PAIRWISE_TABLE_SINGLE_END(RE_VCF_FILTER.out, 
                         params.single_end, 
                         params.window_size)
 
@@ -144,7 +147,7 @@ workflow rho_est {
         }
         
         else if (params.single_end == false) {
-            RE_PAIRWISE_TABLE_PAIRED_END(RE_FREEBAYES.out[0], 
+            RE_PAIRWISE_TABLE_PAIRED_END(RE_VCF_FILTER.out, 
                         params.single_end, 
                         params.window_size)
 

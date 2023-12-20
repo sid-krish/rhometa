@@ -27,7 +27,9 @@ include {
 include { FILENAME_PREFIX as TE_FILENAME_PREFIX;
         SORT_BAM as TE_SORT_BAM;
         FREEBAYES as TE_FREEBAYES;
-        THETA_ESTIMATE
+        VCF_FILTER as TE_VCF_FILTER;
+        THETA_ESTIMATE;
+        THETA_EST_PLOT;
         } from './theta_est' addParams(output_dir: "Theta_Est_Output") // output_dir is only called internally within module, not called here
 
 
@@ -36,6 +38,7 @@ include { FILENAME_PREFIX as RE_FILENAME_PREFIX;
         MAKE_PILEUP as RE_MAKE_PILEUP;
         SUBSAMPLE as RE_SUBSAMPLE;
         FREEBAYES as RE_FREEBAYES;
+        VCF_FILTER as RE_VCF_FILTER;
         PAIRWISE_TABLE_SINGLE_END as RE_PAIRWISE_TABLE_SINGLE_END;
         PAIRWISE_TABLE_PAIRED_END as RE_PAIRWISE_TABLE_PAIRED_END;
         RHO_ESTIMATE;
@@ -69,7 +72,11 @@ workflow theta_est {
 
         TE_FREEBAYES(TE_SORT_BAM.out)
 
-        THETA_ESTIMATE(TE_FREEBAYES.out[0])
+        TE_VCF_FILTER(TE_FREEBAYES.out)
+
+        THETA_ESTIMATE(TE_VCF_FILTER.out)
+
+        // THETA_EST_PLOT(THETA_ESTIMATE.out)
 
 }
 
@@ -97,8 +104,10 @@ workflow rho_est {
         
         RE_FREEBAYES(RE_SUBSAMPLE.out[0]) // freebayes returns two channels, we just need the first
 
+        RE_VCF_FILTER(RE_FREEBAYES.out)
+
         if (params.single_end == true) {
-            RE_PAIRWISE_TABLE_SINGLE_END(RE_FREEBAYES.out[0], 
+            RE_PAIRWISE_TABLE_SINGLE_END(RE_VCF_FILTER.out, 
                         params.single_end, 
                         params.window_size)
 
@@ -110,7 +119,7 @@ workflow rho_est {
         }
         
         else if (params.single_end == false) {
-            RE_PAIRWISE_TABLE_PAIRED_END(RE_FREEBAYES.out[0], 
+            RE_PAIRWISE_TABLE_PAIRED_END(RE_VCF_FILTER.out, 
                         params.single_end, 
                         params.window_size)
 
@@ -121,7 +130,7 @@ workflow rho_est {
                                 params.lookup_grid)
         }
 
-        RE_RESULTS_PLOT(RHO_ESTIMATE.out)
+        // RE_RESULTS_PLOT(RHO_ESTIMATE.out)
 }
 
 
