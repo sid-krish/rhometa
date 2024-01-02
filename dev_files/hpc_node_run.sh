@@ -7,4 +7,4 @@ cd $PBS_O_WORKDIR
 source $HOME/miniconda3/etc/profile.d/conda.sh
 conda activate
 
-nextflow run align_all_est_norm.nf -qs 50 -resume
+nextflow run align_reads.nf -qs 50 -resume

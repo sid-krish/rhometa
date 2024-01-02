@@ -114,6 +114,9 @@ process VCF_FILTER {
             path(fasta),
             path("freebayes_raw.vcf")
 
+        val snp_qual
+        val min_snp_depth
+
     output:
         tuple val(filename_prefix),
             path(bam),
@@ -123,7 +126,7 @@ process VCF_FILTER {
     script:
     """
     bcftools filter --threads ${task.cpus} \
-         -i 'TYPE="snp" && QUAL>=${params.snp_qual} && FORMAT/DP>=${params.min_snp_depth} && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
+         -i 'TYPE="snp" && QUAL>=${snp_qual} && FORMAT/DP>=${min_snp_depth} && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
     """
 }
 
@@ -236,7 +239,7 @@ workflow {
 
     FREEBAYES(SORT_BAM.out)
 
-    VCF_FILTER(FREEBAYES.out)
+    VCF_FILTER(FREEBAYES.out, params.snp_qual, params.min_snp_depth)
 
     THETA_ESTIMATE(VCF_FILTER.out)
 

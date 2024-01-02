@@ -186,6 +186,9 @@ process VCF_FILTER {
             path("freebayes_raw.vcf"),
             val(seed)
 
+        val snp_qual
+        val min_snp_depth
+
     output:
         tuple val(filename_prefix),
             path(bam),
@@ -196,7 +199,7 @@ process VCF_FILTER {
     script:
     """
     bcftools filter --threads ${task.cpus} \
-         -i 'TYPE="snp" && QUAL>=${params.snp_qual} && FORMAT/DP>=${params.min_snp_depth} && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
+         -i 'TYPE="snp" && QUAL>=${snp_qual} && FORMAT/DP>=${min_snp_depth} && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
     """
 }
 
@@ -392,7 +395,7 @@ workflow {
     
     FREEBAYES(SUBSAMPLE.out[0])
 
-    VCF_FILTER(FREEBAYES.out)
+    VCF_FILTER(FREEBAYES.out, params.snp_qual, params.min_snp_depth)
 
     if (params.single_end == true) {
         PAIRWISE_TABLE_SINGLE_END(VCF_FILTER.out, 

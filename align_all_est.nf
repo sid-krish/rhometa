@@ -18,6 +18,9 @@ params.lookup_tables = "Lookup_tables"
 // align_reads and rho_est
 params.single_end = false
 
+params.snp_qual = 20 // Minimum phred-scaled quality score to filter vcf by
+params.min_snp_depth = 10 // Minimum read depth to filter vcf by
+
 // Import modules
 include { FILTER_FASTQ_SINGLE_END;
         FILTER_FASTQ_PAIRED_END;
@@ -102,7 +105,7 @@ workflow theta_est {
 
         TE_FREEBAYES(TE_SORT_BAM.out)
 
-        TE_VCF_FILTER(TE_FREEBAYES.out)
+        TE_VCF_FILTER(TE_FREEBAYES.out, params.snp_qual, params.min_snp_depth)
 
         THETA_ESTIMATE(TE_VCF_FILTER.out)
 
@@ -132,7 +135,7 @@ workflow rho_est {
         
         RE_FREEBAYES(RE_SUBSAMPLE.out[0]) // freebayes returns two channels, we just need the first
 
-        RE_VCF_FILTER(RE_FREEBAYES.out)
+        RE_VCF_FILTER(RE_FREEBAYES.out, params.snp_qual, params.min_snp_depth)
 
         if (params.single_end == true) {
             RE_PAIRWISE_TABLE_SINGLE_END(RE_VCF_FILTER.out, 
