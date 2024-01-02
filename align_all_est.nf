@@ -18,6 +18,7 @@ params.lookup_tables = "Lookup_tables"
 // align_reads and rho_est
 params.single_end = false
 
+// VCF filter settings
 params.snp_qual = 20 // Minimum phred-scaled quality score to filter vcf by
 params.min_snp_depth = 10 // Minimum read depth to filter vcf by
 
