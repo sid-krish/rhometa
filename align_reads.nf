@@ -112,7 +112,7 @@ process BWA_MEM_PAIRED_END {
 
 process FILTER_BAM {
     publishDir "Align_Reads_Output", mode: 'copy', pattern: '*flagstat.*.txt', saveAs: {filename -> "filter_bam/${filename}"}
-    // publishDir "Align_Reads_Output", mode: 'copy', pattern: '*.bam', saveAs: {filename -> "${filename}"}
+    publishDir "Align_Reads_Output", mode: 'copy', pattern: '*.bam', saveAs: {filename -> "${filename}"}
 
     input:
         tuple path(bam),
