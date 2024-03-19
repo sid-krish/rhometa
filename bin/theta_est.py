@@ -114,6 +114,6 @@ if __name__ == "__main__":
     # Export all summary stats
     all_summary_stats_df = pd.concat([depth_summary_stats_df, theta_sum_stats_df], axis=1)
 
-    all_summary_stats_df = all_summary_stats_df.drop(columns=["pileup_mean_depth", "theta_per_site_mean_depth"])
+    # all_summary_stats_df = all_summary_stats_df.drop(columns=["pileup_mean_depth", "theta_per_site_mean_depth"])
     all_summary_stats_df["genome_length"] = genome_size
     all_summary_stats_df.to_csv("Theta_estimate_stats.csv", index=False)
