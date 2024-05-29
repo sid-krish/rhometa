@@ -33,10 +33,10 @@ def get_mean_sub_probability(af_list,genome_len):
 
 def main():
     # Objective: ρ (per site)/θ (per site) * tract length * substitution probability = r/m
-    # Compute substitution probability, then rest is available
+    # Compute substitution probability for recombination (nu), then rest is available
 
-    genome_len = "some_val"
-    vcf_file_loc = "some_location"
+    genome_len = "10000"
+    vcf_file_loc = "139794_R_GCF_002101315_filtered_subsampled_freebayes_filt.vcf"
 
     vcf = load_vcf(vcf_file_loc)
 
