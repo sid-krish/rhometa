@@ -2,7 +2,7 @@ import pandas as pd
 import pysam
 
 
-def get_allelel_freqs(vcf_file):
+def get_AO_and_RO(vcf_file):
     # the variant allele frequencies might be able to help compute a substitution probability
     # use pysam to simply extract and return the full list of AF values
 
@@ -10,7 +10,7 @@ def get_allelel_freqs(vcf_file):
     f = pysam.VariantFile(vcf_file)
 
     for i in f:
-        pos_af.append([i.pos,i.info["AF"][0]]) #i.info["AF"] outputs a tuple with the first entry containing the value. Also tested with other info tags
+        pos_af.append([i.pos,i.info["AO"][0],i.info["RO"]]) #i.info["AO"] outputs a tuple with the first entry containing the value. A few tags are like this
 
     return pos_af
 
@@ -20,29 +20,31 @@ def get_mean_sub_probability(df_pos_af,genome_len):
 
     sub_probabilities = []
 
-    for i in df_pos_af["af"]:
+    for i in df_pos_af["AF"]:
         sp = 2 * i * (1-i)
         sub_probabilities.append(sp)
 
-    print(sub_probabilities)
+    # print(sub_probabilities)
 
     mean_sub_probability = sum(sub_probabilities)/genome_len
 
     return mean_sub_probability
 
 
-# def main():
-# Objective: ρ (per site)/θ (per site) * tract length * substitution probability = r/m
-# Compute substitution probability for recombination (nu) - not universal, then rest is available
+if __name__ == "__main__":
+    # Objective: ρ (per site)/θ (per site) * tract length * substitution probability = r/m
+    # Compute substitution probability for recombination (nu) - not universal, then rest is available
 
-genome_len = 10000
-vcf_file = "139794_R_GCF_002101315_filtered_subsampled_freebayes_filt.vcf"
+    genome_len = 1200090
+    vcf_file = "139794_R_GCF_002101315_filtered_subsampled_freebayes_filt.vcf"
 
-pos_af_list = get_allelel_freqs(vcf_file)
+    pos_AO_RO_list = get_AO_and_RO(vcf_file)
 
-df_pos_af = pd.DataFrame(pos_af_list, columns=["pos","af"])
+    df_AO_RO = pd.DataFrame(pos_AO_RO_list, columns=["Pos","AO","RO"])
 
-mean_sub_probability = get_mean_sub_probability(df_pos_af, genome_len)
+    df_AO_RO["AF"] = df_AO_RO.apply(lambda x : x["AO"]/(x["AO"]+x["RO"]), axis=1)
 
-# output mean_sub_probability along side theta estimates
-print(mean_sub_probability)
+    mean_sub_probability = get_mean_sub_probability(df_AO_RO, genome_len)
+
+    # # output mean_sub_probability along side theta estimates
+    print(mean_sub_probability)
