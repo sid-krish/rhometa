@@ -116,6 +116,7 @@ process VCF_FILTER {
 
         val snp_qual
         val min_snp_depth
+        val top_depth_cutoff_percentage
 
     output:
         tuple val(filename_prefix),
@@ -125,8 +126,7 @@ process VCF_FILTER {
 
     script:
     """
-    bcftools filter --threads ${task.cpus} \
-         -i 'TYPE="snp" && QUAL>=${snp_qual} && FORMAT/DP>=${min_snp_depth} && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
+    vcf_filter.py ${task.cpus} freebayes_raw.vcf ${snp_qual} ${min_snp_depth} ${top_depth_cutoff_percentage}
     """
 }
 
@@ -135,6 +135,8 @@ process THETA_ESTIMATE {
     publishDir params.output_dir, mode: "copy", saveAs: {filename -> "theta_estimate/${filename_prefix}${filename}"}
 
     // maxForks 1
+
+    debug true
 
     input:
         tuple val(filename_prefix),
@@ -203,6 +205,7 @@ workflow {
     // VCF filter settings
     params.snp_qual = 20 // Minimum phred-scaled quality score to filter vcf by
     params.min_snp_depth = 10 // Minimum read depth to filter vcf by
+    params.top_depth_cutoff_percentage = 5 // Top n percent of depth to cutoff from the vcf file
 
     params.output_dir = 'Theta_Est_Output'
     params.bam = 'none'
@@ -239,7 +242,7 @@ workflow {
 
     FREEBAYES(SORT_BAM.out)
 
-    VCF_FILTER(FREEBAYES.out, params.snp_qual, params.min_snp_depth)
+    VCF_FILTER(FREEBAYES.out, params.snp_qual, params.min_snp_depth, params.top_depth_cutoff_percentage)
 
     THETA_ESTIMATE(VCF_FILTER.out)
 
