@@ -28,8 +28,6 @@ process FILENAME_PREFIX {
     
     // maxForks 1
 
-    // echo true
-
     input:
         tuple path(bam),
             path(fasta)
@@ -70,13 +68,6 @@ process SORT_BAM {
 
 
 process FREEBAYES {
-    /**
-      * Call variants using FreeBayes and filter the result VCF for quality follow FreeBayes reccomendations.
-      * - Only snps
-      * - Variant quality minimum
-      * - Depths: "DP, AO and RO" minimums
-      **/
-
     publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
 
     // maxForks 1
@@ -104,6 +95,13 @@ process FREEBAYES {
 
 
 process VCF_FILTER {
+    /**
+      * Filter the VCF.
+      * - SNPS Only
+      * - Minimum variant quality
+      * - Depths: "DP, AO and RO" minimums
+      * - Outlier depth cutoff
+      **/
     publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
 
     // maxForks 1
@@ -246,6 +244,6 @@ workflow {
 
     THETA_ESTIMATE(VCF_FILTER.out)
 
-    THETA_EST_PLOT(VCF_FILTER.out)
+    // THETA_EST_PLOT(VCF_FILTER.out)
 
 }

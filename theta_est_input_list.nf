@@ -29,8 +29,6 @@ process FILENAME_PREFIX {
     
     // maxForks 1
 
-    // echo true
-
     input:
         tuple path(bam),
             path(fasta)
@@ -71,12 +69,6 @@ process SORT_BAM {
 
 
 process FREEBAYES {
-    /**
-      * Call variants using FreeBayes and filter the result VCF for quality follow FreeBayes reccomendations.
-      * - Only snps
-      * - Variant quality minimum
-      * - Depths: "DP, AO and RO" minimums
-      **/
 
     publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
 
@@ -105,6 +97,13 @@ process FREEBAYES {
 
 
 process VCF_FILTER {
+    /**
+      * Filter the VCF.
+      * - SNPS Only
+      * - Minimum variant quality
+      * - Depths: "DP, AO and RO" minimums
+      * - Outlier depth cutoff
+      **/
     publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
 
     // maxForks 1
@@ -115,6 +114,10 @@ process VCF_FILTER {
             path(fasta),
             path("freebayes_raw.vcf")
 
+        val snp_qual
+        val min_snp_depth
+        val top_depth_cutoff_percentage
+
     output:
         tuple val(filename_prefix),
             path(bam),
@@ -123,8 +126,7 @@ process VCF_FILTER {
 
     script:
     """
-    bcftools filter --threads ${task.cpus} \
-         -i 'TYPE="snp" && QUAL>=${params.snp_qual} && FORMAT/DP>=${params.min_snp_depth} && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
+    vcf_filter.py ${task.cpus} freebayes_raw.vcf ${snp_qual} ${min_snp_depth} ${top_depth_cutoff_percentage}
     """
 }
 
@@ -202,6 +204,7 @@ workflow {
     // VCF filter settings
     params.snp_qual = 20 // Minimum phred-scaled quality score to filter vcf by
     params.min_snp_depth = 10 // Minimum read depth to filter vcf by
+    params.top_depth_cutoff_percentage = 5 // Top n percent of depth to cutoff from the vcf file
 
     params.output_dir = 'Theta_Est_Output'
 
@@ -227,9 +230,8 @@ workflow {
 
     FREEBAYES(SORT_BAM.out)
 
-    VCF_FILTER(FREEBAYES.out)
+    VCF_FILTER(FREEBAYES.out, params.snp_qual, params.min_snp_depth, params.top_depth_cutoff_percentage)
 
-    // freebayes returns two channels, we just need the first
     THETA_ESTIMATE(VCF_FILTER.out)
 
     // THETA_EST_PLOT(VCF_FILTER.out)

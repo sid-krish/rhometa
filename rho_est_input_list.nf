@@ -133,13 +133,6 @@ process SUBSAMPLE {
 
 
 process FREEBAYES {
-    /**
-      * Filter the result VCF for quality.
-      * - Only snps
-      * - Variant quality minimum
-      * - Depths: "DP, AO and RO" minimums
-      **/
-
     publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
 
     input:
@@ -169,10 +162,11 @@ process FREEBAYES {
 
 process VCF_FILTER {
     /**
-      * Filter the result VCF for quality.
-      * - Only snps
-      * - Variant quality minimum
+      * Filter the VCF.
+      * - SNPS Only
+      * - Minimum variant quality
       * - Depths: "DP, AO and RO" minimums
+      * - Outlier depth cutoff
       **/
     publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
 
@@ -185,6 +179,10 @@ process VCF_FILTER {
             path("freebayes_raw.vcf"),
             val(seed)
 
+        val snp_qual
+        val min_snp_depth
+        val top_depth_cutoff_percentage
+
     output:
         tuple val(filename_prefix),
             path(bam),
@@ -194,8 +192,7 @@ process VCF_FILTER {
 
     script:
     """
-    bcftools filter --threads ${task.cpus} \
-         -i 'TYPE="snp" && QUAL>=${params.snp_qual} && FORMAT/DP>=${params.min_snp_depth} && FORMAT/RO>=2 && FORMAT/AO>=2' freebayes_raw.vcf > freebayes_filt.vcf
+    vcf_filter.py ${task.cpus} freebayes_raw.vcf ${snp_qual} ${min_snp_depth} ${top_depth_cutoff_percentage}
     """
 }
 
@@ -346,6 +343,7 @@ workflow {
     // VCF filter settings
     params.snp_qual = 20 // Minimum phred-scaled quality score to filter vcf by
     params.min_snp_depth = 10 // Minimum read depth to filter vcf by
+    params.top_depth_cutoff_percentage = 5 // Top n percent of depth to cutoff from the vcf file
 
     params.output_dir = 'Rho_Est_Output'
     params.lookup_tables = "Lookup_tables"
@@ -379,7 +377,7 @@ workflow {
     
     FREEBAYES(SUBSAMPLE.out[0])
 
-    VCF_FILTER(FREEBAYES.out)
+    VCF_FILTER(FREEBAYES.out, params.snp_qual, params.min_snp_depth, params.top_depth_cutoff_percentage)
 
     if (params.single_end == true) {
         PAIRWISE_TABLE_SINGLE_END(VCF_FILTER.out, 
