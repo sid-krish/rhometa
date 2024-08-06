@@ -21,6 +21,7 @@ params.single_end = false
 // VCF filter settings
 params.snp_qual = 20 // Minimum phred-scaled quality score to filter vcf by
 params.min_snp_depth = 10 // Minimum read depth to filter vcf by
+params.top_depth_cutoff_percentage = 5 // Top n percent of depth to cutoff from the vcf file
 
 // Import modules
 include {
@@ -76,7 +77,7 @@ workflow theta_est {
 
         TE_FREEBAYES(TE_SORT_BAM.out)
 
-        TE_VCF_FILTER(TE_FREEBAYES.out, params.snp_qual, params.min_snp_depth)
+        TE_VCF_FILTER(TE_FREEBAYES.out, params.snp_qual, params.min_snp_depth, params.top_depth_cutoff_percentage)
 
         THETA_ESTIMATE(TE_VCF_FILTER.out)
 
@@ -106,9 +107,9 @@ workflow rho_est {
         RE_SUBSAMPLE(RE_MAKE_PILEUP.out, 
                 params.depth_range)
         
-        RE_FREEBAYES(RE_SUBSAMPLE.out[0]) // freebayes returns two channels, we just need the first
+        RE_FREEBAYES(RE_SUBSAMPLE.out[0])
 
-        RE_VCF_FILTER(RE_FREEBAYES.out, params.snp_qual, params.min_snp_depth)
+        RE_VCF_FILTER(RE_FREEBAYES.out, params.snp_qual, params.min_snp_depth, params.top_depth_cutoff_percentage)
 
         if (params.single_end == true) {
             RE_PAIRWISE_TABLE_SINGLE_END(RE_VCF_FILTER.out, 
