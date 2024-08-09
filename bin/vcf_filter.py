@@ -29,8 +29,8 @@ if __name__ == "__main__":
     a slow-evolving gene and reads from other similar species are therefore able to map because the sequence identity is high enough (ie "conserved regions"). 
     '''
     depth_vals = get_depth_vals(vcf_file)
-    percentile_val = np.percentile(depth_vals, cutoff_percentage)
+    percentile_val = np.percentile(depth_vals[depth_vals >= min_snp_depth], cutoff_percentage)
 
     command = f"""bcftools filter --threads {cpus} -i 'TYPE="snp" && QUAL>={snp_qual} && FORMAT/DP>={min_snp_depth} && FORMAT/DP<={round(percentile_val)} && FORMAT/RO>={min_RO_AO} && FORMAT/AO>={min_RO_AO}' {vcf_file} > freebayes_filt.vcf"""
 
-    process = subprocess.Popen(command, shell=True)
+    process = subprocess.run(command, shell=True, check=True)
