@@ -30,6 +30,7 @@ if __name__ == "__main__":
     '''
     depth_vals = get_depth_vals(vcf_file)
     percentile_val = np.percentile(depth_vals[depth_vals >= min_snp_depth], cutoff_percentage)
+    # Since we only keep entries with values more than the min_snp_depth cut off, the top n% cutoff is evaluated based on  remaning values where values >= min_snp_depth
 
     command = f"""bcftools filter --threads {cpus} -i 'TYPE="snp" && QUAL>={snp_qual} && FORMAT/DP>={min_snp_depth} && FORMAT/DP<={round(percentile_val)} && FORMAT/RO>={min_RO_AO} && FORMAT/AO>={min_RO_AO}' {vcf_file} > freebayes_filt.vcf"""
 
