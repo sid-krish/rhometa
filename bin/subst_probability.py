@@ -17,6 +17,7 @@ def get_AO_and_RO(vcf_file):
         pos_af.append([i.pos,i.info["AO"][0],i.info["RO"]])
         # i.info["AO"] outputs a tuple. For the rhometa pipeline there is only one value in the tuple
         # (in the case of multi allele sites there may be more) 
+        # @Aaron I'm unsure why we dont see more is it because I filter by SNPs only?
 
     return pos_af
 
@@ -31,6 +32,7 @@ def get_mean_sub_probability(df_pos_af,genome_len):
      is at abundance 0.5 the probability is 0.5. To get the overall 
      genome-wide probability you'll need to average 
      across all sites: sum(2 * x_i * (1-x_i) for i in sites)) / |sites|.
+     @Aaron I reworte this bit in a way that I understand better
     '''
 
     sub_probabilities = []
@@ -61,7 +63,7 @@ if __name__ == "__main__":
     pos_AO_RO_list = get_AO_and_RO(vcf_file)
 
     df_AO_RO = pd.DataFrame(pos_AO_RO_list, columns=["Pos","AO","RO"])
-
+    # @Aaron I only seem to be observing one AO value, possibly due to fitlers applied with freebayes?
     # Logic for calculating Allele Frequency
     # Forumla for calculating AF https://help.galaxyproject.org/t/calculating-variant-allele-frequency-from-freebayes-vcf/1630
 
