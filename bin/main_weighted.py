@@ -6,6 +6,7 @@ from multiprocessing import Pool
 import numpy as np
 import pandas as pd
 
+from bin import subst_probability
 from ldpop import rhos_from_string
 from rmeta_main import biallelic_filter_pairwise_table
 from rmeta_main import custom_hap_sets_and_merge
@@ -100,6 +101,7 @@ if __name__ == "__main__":
     pairwise_table_file = sys.argv[4]
     num_cores = int(sys.argv[5])
     genome_size  = int(sys.argv[6])
+    subst_probability = float(sys.argv[7])
 
     # recom_tract_len = 1000
     # depth_range = "3,250"
@@ -139,5 +141,6 @@ if __name__ == "__main__":
     rho_estimate = rho_estimate.to_frame().T
     rho_estimate["genome_length"] = genome_size
     rho_estimate["recom_tract_len"] = recom_tract_len
-    rho_estimate["rho_per_site"] = rho_estimate["rho"] / rho_estimate["recom_tract_len"]
+    rho_estimate["subst_probability"] = subst_probability
+    rho_estimate["rho_per_site"] = rho_estimate["rho"] / (2 * rho_estimate["recom_tract_len"]) # To get c divide by 2t. 2N_e is still present unchanged
     rho_estimate.to_csv("rho_estimate.csv", index=False)

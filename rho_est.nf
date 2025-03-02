@@ -220,6 +220,7 @@ process PAIRWISE_TABLE_SINGLE_END{
         tuple val(filename_prefix),
             path("pairwise_table.pkl"),
             val(seed),
+            path(vcf_file),
             env(genome_size)
 
     script:
@@ -256,6 +257,7 @@ process PAIRWISE_TABLE_PAIRED_END{
         tuple val(filename_prefix),
             path("pairwise_table.pkl"),
             val(seed),
+            path(vcf_file),
             env(genome_size)
 
     script:
@@ -272,7 +274,7 @@ process PAIRWISE_TABLE_PAIRED_END{
 
 process RHO_ESTIMATE {
     /**
-      * Maximum likelihood estimation of recombination rate.
+      * Composite likelihood estimation of recombination rate.
       **/
 
     // debug true
@@ -283,6 +285,7 @@ process RHO_ESTIMATE {
         tuple val(filename_prefix),
             path(pairwise_table_pkl),
             val(seed),
+            path(vcf_file),
             val(genome_size)
 
         path downsampled_lookup_tables
@@ -298,7 +301,8 @@ process RHO_ESTIMATE {
 
     script:
     """
-    main_weighted.py ${tract_len} ${depth_range} ${lookup_grid} ${pairwise_table_pkl} $task.cpus $genome_size
+    subst_probability=\$(subst_probability.py $genome_size ${vcf_file})
+    main_weighted.py ${tract_len} ${depth_range} ${lookup_grid} ${pairwise_table_pkl} $task.cpus $genome_size \$subst_probability
     """
 }
 
