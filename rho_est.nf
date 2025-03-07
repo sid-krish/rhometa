@@ -156,7 +156,8 @@ process FREEBAYES {
     samtools index -@ $task.cpus Aligned.csorted.bam
 
     # call variants with freebayes
-    freebayes -f ${fasta} -p 1 Aligned.csorted.bam > freebayes_raw.vcf
+    # --haplotype-length=-1: Allow haplotype calls with contiguous embedded matches of up to this length. Set N=-1 to disable clumping.
+    freebayes -f ${fasta} -p 1 Aligned.csorted.bam --haplotype-length=-1 --min-alternate-count 2 > freebayes_raw.vcf
     """
 }
 
@@ -302,6 +303,7 @@ process RHO_ESTIMATE {
     script:
     """
     subst_probability=\$(subst_probability.py $genome_size ${vcf_file})
+    # echo \$subst_probability 
     main_weighted.py ${tract_len} ${depth_range} ${lookup_grid} ${pairwise_table_pkl} $task.cpus $genome_size \$subst_probability
     """
 }
@@ -337,7 +339,7 @@ workflow {
 
     // Params
     params.help = false
-    params.seed = [123] // used for samtools subsamping and final bootstrap algorithm
+    params.seed = [123,456] // used for samtools subsamping and final bootstrap algorithm
     params.filename_prefix = "none"
     params.tract_len = 1000
     params.lookup_grid = "101,100" // The range of rho values used to generate lookup tables

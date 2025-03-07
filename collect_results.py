@@ -63,6 +63,7 @@ def theta_results(theta_results_path):
     df_list = [
         pd.read_csv(file) for file in csv_files
     ]
+
     combined_df = pd.concat(df_list, ignore_index=True)
 
     combined_df["reference"] = reference_list
@@ -103,7 +104,7 @@ def rho_results(rho_results_path):
 
     combined_df = combined_df.reindex(
         columns=["reference", "identifier", "seed", "rho","log_likelihood_sum",
-                 "recom_tract_len","rho_per_site"]
+                 "recom_tract_len","per_site_rho","subst_probability"]
     )
     combined_df.to_csv("collected_rho_results.csv", index=False)
 
