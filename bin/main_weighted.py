@@ -6,7 +6,6 @@ from multiprocessing import Pool
 import numpy as np
 import pandas as pd
 
-from bin import subst_probability
 from ldpop import rhos_from_string
 from rmeta_main import biallelic_filter_pairwise_table
 from rmeta_main import custom_hap_sets_and_merge
@@ -141,6 +140,18 @@ if __name__ == "__main__":
     rho_estimate = rho_estimate.to_frame().T
     rho_estimate["genome_length"] = genome_size
     rho_estimate["recom_tract_len"] = recom_tract_len
+    rho_estimate["per_site_rho"] = rho_estimate["rho"] / (2 * rho_estimate["recom_tract_len"]) 
+    """
+    Why divide by (2 * recom_tract_len)?
+    - This follows the theoretical framework outlined in Eqn 4 of:
+    https://academic.oup.com/genetics/article/160/3/1231/6052507
+    - The factor of 2 accounts for gene conversion endpoints.
+    - In crossover recombination, a single breakpoint occurs.
+    - In gene conversion, there are two endpoints, effectively doubling the count.
+    - This correction ensures consistency with how recombination rates are typically modeled.
+    - The assumption holds particularly when recombination events are inferred from short-read sequencing.
+    - If a gene conversion event spans 2000 bp but reads are only 500 bp long, breakpoints appear separate.
+    - This artificially inflates the number of recombination events, requiring the 2x correction factor.
+    """
     rho_estimate["subst_probability"] = subst_probability
-    rho_estimate["rho_per_site"] = rho_estimate["rho"] / (2 * rho_estimate["recom_tract_len"]) # To get c divide by 2t. 2N_e is still present unchanged
     rho_estimate.to_csv("rho_estimate.csv", index=False)

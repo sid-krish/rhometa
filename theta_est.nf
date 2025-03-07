@@ -89,7 +89,8 @@ process FREEBAYES {
     samtools index -@ $task.cpus ${bam}
 
     # call variants with freebayes
-    freebayes -f ${fasta} -p 1 ${bam} > freebayes_raw.vcf
+    # --haplotype-length=-1: Allow haplotype calls with contiguous embedded matches of up to this length. Set N=-1 to disable clumping.
+    freebayes -f ${fasta} -p 1 ${bam} --haplotype-length=-1 --min-alternate-count 2 > freebayes_raw.vcf
     """
 }
 
