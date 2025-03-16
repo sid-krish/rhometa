@@ -302,7 +302,7 @@ process RHO_ESTIMATE {
 
     script:
     """
-    subst_probability=\$(subst_probability.py $genome_size ${vcf_file})
+    subst_probability=\$(substitution_probability.py $genome_size ${vcf_file})
     # echo \$subst_probability 
     main_weighted.py ${tract_len} ${depth_range} ${lookup_grid} ${pairwise_table_pkl} $task.cpus $genome_size \$subst_probability
     """

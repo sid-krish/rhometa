@@ -5,28 +5,25 @@ import pysam
 
 
 def get_variant_allele_frequency(vcf_file):
-    # the variant allele frequencies can help compute a substitution probability
-    # use pysam to compute and return the full list of AF values
-    
+    """
+    The variant allele frequencies can help compute a substitution probability
+    Compute variant allele frequency for each position in the VCF file
+    Logic and formula used for calculating AF https://help.galaxyproject.org/t/calculating-variant-allele-frequency-from-freebayes-vcf/1630
+    AF = AO / (AO + RO), assuming  VAF as the frequency of the most observed variant allele:
+    """
     pos_af = []
     f = pysam.VariantFile(vcf_file)
 
     for i in f:
-        # Logic and formula used for calculating AF https://help.galaxyproject.org/t/calculating-variant-allele-frequency-from-freebayes-vcf/1630
-        # AF = AO / (AO + RO), assuming  VAF as the frequency of the most observed variant allele:
-
         # split AO on comma
         # find the maximum in the resulting list of values and use it as the numerator for your ratio
         numerator = max(i.info["AO"])
-        # print(i.info["AO"], numerator)
 
         # sum up all values in the list and add the RO value => use the result as the denominator
         denominator = sum(i.info["AO"]) + i.info["RO"]
-        # print(sum(i.info["AO"]), i.info["RO"], denominator)
 
         # divide the numerator by the denominator to get the AF
         pos_af.append(numerator/denominator)
-        # print(numerator,denominator,numerator/denominator)
 
     return pos_af
 
@@ -58,11 +55,8 @@ if __name__ == "__main__":
     # Objective: ρ (per site)/θ (per site) * tract length * substitution probability = r/m
     # Compute substitution probability for recombination (nu) in this script
 
-    genome_len = 50000
-    vcf_file = "/mnt/c/Users/sid/Documents/GitHub/rhometa/testing/filtereda.vcf"
-
-    # genome_len = int(sys.argv[1])
-    # vcf_file = sys.argv[2]
+    genome_len = int(sys.argv[1])
+    vcf_file = sys.argv[2]
 
     # The bams are subsampled and from the rho estimation pipeline, 
     # we have to use the variants actually considered for the rho estimate.

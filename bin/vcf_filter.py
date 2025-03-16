@@ -12,12 +12,6 @@ def get_depth_vals(vcf_file):
 
 
 if __name__ == "__main__":
-    # cpus = int(4)
-    # vcf_file = "../testing/123_ERR599090_GCA_937897125_filtered_sorted_freebayes_raw.vcf"
-    # snp_qual = int(20)
-    # min_snp_depth = int(10)
-    # cutoff_percentage = 100 - int(5)  # top n percent to cut off
-
     cpus = int(sys.argv[1])
     vcf_file = sys.argv[2]
     snp_qual = int(sys.argv[3])
