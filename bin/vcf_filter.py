@@ -17,6 +17,7 @@ if __name__ == "__main__":
     snp_qual = int(sys.argv[3])
     min_snp_depth = int(sys.argv[4])
     cutoff_percentage = 100 - int(sys.argv[5])  # top n percent to cut off
+    out_file = sys.argv[6]
 
     # min_RO_AO = 2 not checking RO only AO filter applied at freebayes command
 
@@ -29,7 +30,7 @@ if __name__ == "__main__":
 
     vcf_in = pysam.VariantFile(vcf_file)
 
-    bcf_out = pysam.VariantFile('freebayes_filt.vcf', 'w', header=vcf_in.header)
+    bcf_out = pysam.VariantFile(out_file, 'w', header=vcf_in.header)
 
     depth_vals = get_depth_vals(vcf_in)
     percentile_val = np.percentile(depth_vals[depth_vals >= min_snp_depth], cutoff_percentage)

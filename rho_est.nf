@@ -189,17 +189,17 @@ process VCF_FILTER {
         tuple val(filename_prefix),
             path(bam),
             path(fasta),
-            path("freebayes_filt.vcf"),
+            path(params.VCF_FILTERED_FILE),
             val(seed)
 
     script:
     """
-    vcf_filter.py ${task.cpus} freebayes_raw.vcf ${snp_qual} ${min_snp_depth} ${top_depth_cutoff_percentage}
+    vcf_filter.py ${task.cpus} freebayes_raw.vcf ${snp_qual} ${min_snp_depth} ${top_depth_cutoff_percentage} ${params.VCF_FILTERED_FILE}
     """
 }
 
 
-process PAIRWISE_TABLE_SINGLE_END{
+process PAIRWISE_TABLE_SINGLE_END {
     /**
       * Create pair-wise table for final stage of rhometa analysis.
       **/
@@ -356,6 +356,9 @@ workflow {
     params.bam = 'none'
     params.fa = 'none'
     params.lookup_tables = "Lookup_tables"
+
+    // Output file names
+    params.VCF_FILTERED_FILE = 'freebayes_filt.vcf'
 
 
     // Channels
