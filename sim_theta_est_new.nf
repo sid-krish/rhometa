@@ -24,24 +24,41 @@ def helpMessage() {
 }
 
 
-process FILENAME_PREFIX {
-    
+process PREFIX_FILENAME {
+
     // maxForks 1
 
+    // echo true
+
+    label 'LOCAL_EXEC'
+
     input:
-        tuple path(bam),
-            path(fasta)
+        tuple val(sample_id),
+            path(bam_and_fa)
         
         val(prefix_fn)
 
     output:
         tuple stdout,
-            path(bam),
-            path(fasta)
+            path("${bam_and_fa[0]}"),
+            path("${bam_and_fa[1]}")
 
     script:
     """
-    filename_prefix.py ${bam} ${prefix_fn} 
+    #!/usr/bin/env python
+
+    bam = "${bam_and_fa[0]}"
+    prepend_file = "${prefix_fn}"
+
+    # bam = "a.s_bs_ds.bam"
+    # prepend_file = "none"
+
+    if prepend_file == "none":
+        file_name = bam.rsplit(".",1)[0]
+        print(f"{file_name}_", end = '')
+
+    else:
+        print(prepend_file, end = '')
     """
 }
 
@@ -65,7 +82,6 @@ process SORT_BAM {
     samtools sort -@ $task.cpus -o Aligned_sorted.bam ${bam}
     """
 }
-
 
 process FREEBAYES {
     publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
@@ -128,7 +144,6 @@ process VCF_FILTER {
     """
 }
 
-
 process THETA_ESTIMATE {
     publishDir params.output_dir, mode: "copy", saveAs: {filename -> "theta_estimate/${filename_prefix}${filename}"}
 
@@ -161,36 +176,6 @@ process THETA_ESTIMATE {
 }
 
 
-process THETA_EST_PLOT {
-    publishDir params.output_dir, mode: "copy", saveAs: {filename -> "theta_estimate_plots/${filename_prefix}${filename}"}
-
-    // maxForks 1
-
-    input:
-        tuple val(filename_prefix),
-            path(bam),
-            path(fasta),
-            path(vcf)
-
-    output:
-        path "theta_estimates.png"
-        path "depth_distribution.png"
-        
-    script:
-    """
-    samtools mpileup ${bam} > Aligned_sorted.pileup
-
-    #old solution only worked for bams aligned to single sequence
-    #genome_size=\$(samtools view -H ${bam} | grep "@SQ" | awk '{ print \$3 }' | cut -c 4-)
-
-    #New solution works for bams aligned to single/multiple sequences by summing the lengths of all @SQ records.
-    genome_size=\$(samtools view -H ${bam} |  awk '/^@SQ/ {l+=substr(\$3,4)}END{print l}')
-
-    theta_plot.py \$genome_size Aligned_sorted.pileup ${vcf}
-    """
-}
-
-
 workflow {
     // Note: Channels can be called unlimited number of times in DSL2
     // A process component can be invoked only once in the same workflow context
@@ -211,11 +196,9 @@ workflow {
 
     // Output file names
     params.VCF_FILTERED_FILE = 'freebayes_filt.vcf'
-
+    
     // Channels
-    bam_channel = Channel.fromPath( params.bam, checkIfExists: true )
-    fa_channel = Channel.fromPath( params.fa, checkIfExists: true )
-    bam_and_fa = bam_channel.combine(fa_channel)
+    bam_and_fa = Channel.fromFilePairs('./Sim_Gen_Output/*.{bam,fa}', checkIfExists: true)
 
     // Input verification
     if (params.help) {
@@ -225,21 +208,10 @@ workflow {
         exit 0
     }
 
-    if (params.fa == 'none') {
-        println "No input .fa specified. Use --fa [.fa]"
-        exit 1
-    }
-
-    if (params.bam == 'none') {
-        println "No input .bam specified. Use --bam [.bam]"
-        exit 1
-    }
-
     // Process execution
-    FILENAME_PREFIX(bam_and_fa,
-                    params.filename_prefix)
+    PREFIX_FILENAME(bam_and_fa, params.filename_prefix)
 
-    SORT_BAM(FILENAME_PREFIX.out)
+    SORT_BAM(PREFIX_FILENAME.out)
 
     FREEBAYES(SORT_BAM.out)
 

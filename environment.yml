@@ -8,7 +8,7 @@ dependencies:
   - 'pandas=2.2'
   - 'scipy=1.14'
   - 'seaborn=0.13'
-  - 'numba=0.60'
+  - 'numba'
   - 'tqdm=4.66'
   - 'bcftools=1.18'
   - 'bwa-mem2=2.2.1'
