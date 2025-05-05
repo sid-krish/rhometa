@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     vcf_in = pysam.VariantFile(vcf_file)
 
-    bcf_out = pysam.VariantFile(out_file, 'w', header=vcf_in.header)
+    vcf_out = pysam.VariantFile(out_file, 'w', header=vcf_in.header)
 
     depth_vals = get_depth_vals(vcf_in)
     percentile_val = np.percentile(depth_vals[depth_vals >= min_snp_depth], cutoff_percentage)
@@ -39,6 +39,6 @@ if __name__ == "__main__":
         if i.info["TYPE"] in [('snp',), ('snp','snp'), ('snp','snp','snp')]:
             if i.qual >= snp_qual and i.info["DP"] >= min_snp_depth and i.info["DP"] <= round(percentile_val):
                 # print(i)
-                bcf_out.write(i)
+                vcf_out.write(i)
 
-    bcf_out.close()
+    vcf_out.close()

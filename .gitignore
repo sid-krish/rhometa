@@ -39,3 +39,4 @@
 .nextflow.log
 
 .nextflow.log.*
+/testing
