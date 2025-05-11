@@ -2,35 +2,46 @@
 nextflow.enable.dsl=2
 
 process collectResults {
+    // debug true
+
+    publishDir "Final_Output", mode: 'copy'
+
     input:
-    path input_file
+    path theta_files
+    path rho_files
 
     output:
-    path "results.txt"
+    path "collected_merged_results.csv"
 
     script:
     """
-    # Your script to collect results goes here
-    echo "Processing \$input_file" > results.txt
+    # Collect files from nextflow input and merge results from theta and rho files
+    collect_results.py
     """
 }
 
 process computeRatios {
+    publishDir "Final_Output", mode: 'copy'
+
     input:
     path results_file
 
     output:
-    path "ratios.txt"
+    path "collected_merged_final.csv"
 
     script:
     """
-    # Your script to compute ratios goes here
-    echo "Computing ratios from \$results_file" > ratios.txt
+    compute_ratios.py ${results_file}
     """
 }
 
 workflow {
-    input_file = file('/path/to/your/input_file.txt')
-    results = collectResults(input_file)
-    computeRatios(results)
+    params.theta_dir = "Theta_Est_Output/theta_estimate"
+    params.rho_dir = "Rho_Est_Output/rho_estimate"
+
+    theta_files = Channel.fromPath(params.theta_dir + "/*Theta_estimate_stats.csv").collect()
+    rho_files = Channel.fromPath(params.rho_dir + "/*rho_estimate.csv").collect()
+
+    collectResults(theta_files, rho_files)
+    computeRatios(collectResults.out)
 }

@@ -1,8 +1,11 @@
 #!/usr/bin/env python
+import sys
 import pandas as pd
 
+results_csv = sys.argv[1]
+
 # Load data
-df = pd.read_csv("collected_merged_results.csv")
+df = pd.read_csv(results_csv)
 
 # Compute mean values for rho, per_site_rho, and subst_probability
 gdf = df.groupby(["identifier", "reference"]).agg(
