@@ -60,6 +60,8 @@ process SORT_BAM {
     /**
       * Simply sort the BAM in coordinate order.
       **/
+
+    publishDir params.output_dir, mode: 'copy', pattern: '*.bam', saveAs: {filename -> "sort_bam/${filename_prefix}${filename}"}
     
     input:
     tuple val(filename_prefix), 
@@ -72,17 +74,16 @@ process SORT_BAM {
         path('aligned_sorted.bam'), 
         path(fasta), 
         val(seed)
-
+    
+    script:
     """
     samtools sort -@ ${task.cpus} -o aligned_sorted.bam ${bam}
     """
 }
 
 
-process MAKE_PILEUP {
-    /**
-      * Create a mpileup file, a pre-req for down-sampling
-      **/
+process GET_READ_DEPTH {
+    publishDir params.output_dir, mode: 'copy', pattern: '*.depth', saveAs: {filename -> "depth/${filename_prefix}${filename}"}
 
     input:
     tuple val(filename_prefix), 
@@ -93,12 +94,13 @@ process MAKE_PILEUP {
     output:
     tuple val(filename_prefix), 
         path('aligned_sorted.bam'), 
-        path('aligned_sorted.pileup'), 
+        path('aligned_sorted.depth'), 
         path(fasta), 
         val(seed)
 
+    script:
     """
-    samtools mpileup -o aligned_sorted.pileup aligned_sorted.bam
+    samtools depth -@ $task.cpus -o aligned_sorted.depth aligned_sorted.bam
     """
 }
 
@@ -113,7 +115,7 @@ process SUBSAMPLE {
     input:
     tuple val(filename_prefix), 
         path('aligned_sorted.bam'), 
-        path('aligned_sorted.pileup'), 
+        path('aligned_sorted.depth'), 
         path(fasta), 
         val(seed)
 
@@ -127,8 +129,9 @@ process SUBSAMPLE {
 
     path("subsample_fraction.txt")
 
+    script:
     """
-    subsample_bam_seeded.py aligned_sorted.pileup ${depth_range} aligned_sorted.bam ${seed} > subsample_fraction.txt
+    subsample_bam_seeded.py aligned_sorted.depth ${depth_range} aligned_sorted.bam ${seed} > subsample_fraction.txt
     """
 }
 
@@ -393,9 +396,9 @@ workflow {
     
     SORT_BAM(FILENAME_PREFIX.out)
     
-    MAKE_PILEUP(SORT_BAM.out)
+    GET_READ_DEPTH(SORT_BAM.out)
     
-    SUBSAMPLE(MAKE_PILEUP.out, 
+    SUBSAMPLE(GET_READ_DEPTH.out, 
               params.depth_range)
     
     FREEBAYES(SUBSAMPLE.out[0])
