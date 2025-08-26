@@ -61,6 +61,7 @@ process SORT_BAM {
         path('Aligned_sorted.bam'), 
         path(fasta)
 
+    script:
     """
     samtools sort -@ $task.cpus -o Aligned_sorted.bam ${bam}
     """
@@ -143,7 +144,7 @@ process THETA_ESTIMATE {
             path(vcf)
 
     output:
-        // path "Aligned_sorted.pileup"
+        path "Aligned_sorted.pileup"
         path "Theta_estimate_stats.csv"
         
     script:
