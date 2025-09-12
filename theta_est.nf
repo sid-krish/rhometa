@@ -68,8 +68,8 @@ process SORT_BAM {
 }
 
 
-process FREEBAYES {
-    publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
+process ANGSD_THETA_ESTIMATE {
+    publishDir params.output_dir, mode: "copy", saveAs: {filename -> "theta_estimate/${filename_prefix}${filename}"}
 
     // maxForks 1
 
@@ -82,112 +82,41 @@ process FREEBAYES {
         tuple val(filename_prefix),
             path(bam),
             path(fasta),
-            path("freebayes_raw.vcf")
+            path("angsd_theta_raw.tsv"),
+            path("angsd_theta_final.txt")
 
     script:
     """
     samtools faidx ${fasta}
     samtools index -@ $task.cpus ${bam}
 
-    # call variants with freebayes
-    # --haplotype-length=-1: Allow haplotype calls with contiguous embedded matches of up to this length. Set N=-1 to disable clumping.
-    freebayes -f ${fasta} -p 1 ${bam} --haplotype-length=-1 --min-alternate-count 2 > freebayes_raw.vcf
-    """
-}
+    # Need to think about maths behind these steps so that it can be documented. Which parts are ML and which parts are Bayesian?
 
-process VCF_FILTER {
-    /**
-      * Filter the VCF.
-      * - SNPS Only
-      * - Minimum variant quality
-      * - Depths: "DP, AO and RO" minimums
-      * - Outlier depth cutoff
-      **/
-    publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
+    # Commands follow steps from https://www.popgen.dk/angsd/index.php/Thetas,Tajima,Neutrality_tests
 
-    // maxForks 1
+    #First estimate the site allele frequency likelihood
+    angsd -i ${bam} -doSaf 1 -anc ${fasta} -GL 1 -P $task.cpus -out out #output is log scale
 
-    input:
-        tuple val(filename_prefix),
-            path(bam),
-            path(fasta),
-            path("freebayes_raw.vcf")
+    #For folded " If you do not have the ancestral state you can simply use the assembly you have mapped agains, but remember to add -fold 1 in the 'realSFS' and 'realSFS sf2theta' step."
 
-        val snp_qual
-        val min_snp_depth
-        val top_depth_cutoff_percentage
+    # Obtain the maximum likelihood estimate of the SFS using the realSFS program
+    realSFS out.saf.idx -P $task.cpus -fold 1 > out.sfs
 
-    output:
-        tuple val(filename_prefix),
-            path(bam),
-            path(fasta),
-            path(params.VCF_FILTERED_FILE)
+    # Calculate the thetas for each site
+    realSFS saf2theta out.saf.idx -outname out -sfs out.sfs -fold 1 
 
-    script:
-    """
-    vcf_filter.py ${task.cpus} freebayes_raw.vcf ${snp_qual} ${min_snp_depth} ${top_depth_cutoff_percentage} ${params.VCF_FILTERED_FILE}
-    """
-}
+    # Estimate Tajimas D and other statistics
+    thetaStat do_stat out.thetas.idx # no longer log scale. Final vals. pestPG file are the sum of the per site estimates for a region -> chromosome wide vals
 
+    # pestPG file has the required output which is converted to TSV format for nextsteps
+    # cat out.thetas.idx.pestPG | tr '\t' ',' > angsd_theta_raw.csv
+    mv out.thetas.idx.pestPG angsd_theta_raw.tsv
 
-process THETA_ESTIMATE {
-    publishDir params.output_dir, mode: "copy", saveAs: {filename -> "theta_estimate/${filename_prefix}${filename}"}
-
-    // maxForks 1
-
-    debug true
-
-    input:
-        tuple val(filename_prefix),
-            path(bam),
-            path(fasta),
-            path(vcf)
-
-    output:
-        path "Aligned_sorted.pileup"
-        path "Theta_estimate_stats.csv"
-        
-    script:
-    """
-    samtools mpileup ${bam} > Aligned_sorted.pileup
-
-    #old solution only worked for bams aligned to single sequence
-    #genome_size=\$(samtools view -H ${bam} | grep "@SQ" | awk '{ print \$3 }' | cut -c 4-)
-
-    #New solution works for bams aligned to single/multiple sequences by summing the lengths of all @SQ records.
-    genome_size=\$(samtools view -H ${bam} |  awk '/^@SQ/ {l+=substr(\$3,4)}END{print l}')
-
-    theta_est.py \$genome_size Aligned_sorted.pileup ${vcf}
-    """
-}
-
-
-process THETA_EST_PLOT {
-    publishDir params.output_dir, mode: "copy", saveAs: {filename -> "theta_estimate_plots/${filename_prefix}${filename}"}
-
-    // maxForks 1
-
-    input:
-        tuple val(filename_prefix),
-            path(bam),
-            path(fasta),
-            path(vcf)
-
-    output:
-        path "theta_estimates.png"
-        path "depth_distribution.png"
-        
-    script:
-    """
-    samtools mpileup ${bam} > Aligned_sorted.pileup
-
-    #old solution only worked for bams aligned to single sequence
-    #genome_size=\$(samtools view -H ${bam} | grep "@SQ" | awk '{ print \$3 }' | cut -c 4-)
-
-    #New solution works for bams aligned to single/multiple sequences by summing the lengths of all @SQ records.
-    genome_size=\$(samtools view -H ${bam} |  awk '/^@SQ/ {l+=substr(\$3,4)}END{print l}')
-
-    theta_plot.py \$genome_size Aligned_sorted.pileup ${vcf}
+    # Python script for genome-wide per-site Watterson theta from ANGSD output.
+    compute_final_angsd_theta.py angsd_theta_raw.tsv > angsd_theta_final.txt 
+    
+    # Sliding window analysis. Not needed. Testing
+    # thetaStat do_stat out.thetas.idx -win 50000 -step 10000 -outnames theta.thetasWindow.gz
     """
 }
 
@@ -201,17 +130,10 @@ workflow {
     // Params
     params.help = false
     params.filename_prefix = "none"
-    // VCF filter settings
-    params.snp_qual = 20 // Minimum phred-scaled quality score to filter vcf by
-    params.min_snp_depth = 10 // Minimum read depth to filter vcf by
-    params.top_depth_cutoff_percentage = 5 // Top n percent of depth to cutoff from the vcf file
 
     params.output_dir = 'Theta_Est_Output'
     params.bam = 'none'
     params.fa = 'none'
-
-    // Output file names
-    params.VCF_FILTERED_FILE = 'freebayes_filt.vcf'
 
     // Channels
     bam_channel = Channel.fromPath( params.bam, checkIfExists: true )
@@ -242,12 +164,6 @@ workflow {
 
     SORT_BAM(FILENAME_PREFIX.out)
 
-    FREEBAYES(SORT_BAM.out)
-
-    VCF_FILTER(FREEBAYES.out, params.snp_qual, params.min_snp_depth, params.top_depth_cutoff_percentage)
-
-    THETA_ESTIMATE(VCF_FILTER.out)
-
-    // THETA_EST_PLOT(VCF_FILTER.out)
+    ANGSD_THETA_ESTIMATE(SORT_BAM.out)
 
 }

@@ -62,6 +62,7 @@ process SORT_BAM {
         path('Aligned_sorted.bam'), 
         path(fasta)
 
+    script:
     """
     samtools sort -@ $task.cpus -o Aligned_sorted.bam ${bam}
     """
