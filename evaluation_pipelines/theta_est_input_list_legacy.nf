@@ -20,8 +20,6 @@ def helpMessage() {
     --snp_qual [int], default:[20], Minimum phred-scaled quality score to filter vcf by
     --min_snp_depth [int], default:[10], Minimum read depth to filter vcf by
     """.stripIndent()
-
-
 }
 
 

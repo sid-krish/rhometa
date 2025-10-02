@@ -1,6 +1,8 @@
 1. Add r/m to final results - done verify
-2. Ensure rho per site is correctly divided by two - create breaking change
+2. Ensure rho per site is correctly divided by two - done.
 3. Update readme for the latest version of the program. Mention importance of normalising and say scripts have been provided.
 4. Remove use of mpileup to identify highest depth coverage use samtools coverage - done (samtools depth)
 5. Try using lorikeet for variant calls - wont be done
-6. Fix remaning issues on github -  maybe a post v2 release. At this point things are fundamentally fine as they are. Depends of how much the program is used in th future otherwise 
+6. Fix remaning issues on github -  maybe a post v2 release. At this point things are fundamentally fine as they are. Depends of how much the program is used in th future otherwise
+7. What to do about compute ratios script, should that be a part of a larger high level script?
+8. Check snp filter - done.

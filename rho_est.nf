@@ -61,7 +61,7 @@ process SORT_BAM {
       * Simply sort the BAM in coordinate order.
       **/
 
-    publishDir params.output_dir, mode: 'copy', pattern: '*.bam', saveAs: {filename -> "sort_bam/${filename_prefix}${filename}"}
+    // publishDir params.output_dir, mode: 'copy', pattern: '*.bam', saveAs: {filename -> "sort_bam/${filename_prefix}${filename}"}
     
     input:
     tuple val(filename_prefix), 
@@ -83,7 +83,7 @@ process SORT_BAM {
 
 
 process GET_READ_DEPTH {
-    publishDir params.output_dir, mode: 'copy', pattern: '*.depth', saveAs: {filename -> "depth/${filename_prefix}${filename}"}
+    // publishDir params.output_dir, mode: 'copy', pattern: '*.depth', saveAs: {filename -> "depth/${filename_prefix}${filename}"}
 
     input:
     tuple val(filename_prefix), 
@@ -202,7 +202,7 @@ process VCF_FILTER {
 }
 
 
-process PAIRWISE_TABLE_SINGLE_END {
+process PAIRWISE_TABLE_SINGLE_END{
     /**
       * Create pair-wise table for final stage of rhometa analysis.
       **/
@@ -342,7 +342,7 @@ workflow {
 
     // Params
     params.help = false
-    params.seed = [123,456] // used for samtools subsamping and final bootstrap algorithm
+    params.seed = [123] // used for samtools subsamping and final bootstrap algorithm
     params.filename_prefix = "none"
     params.tract_len = 1000
     params.lookup_grid = "101,100" // The range of rho values used to generate lookup tables
@@ -362,7 +362,6 @@ workflow {
 
     // Output file names
     params.VCF_FILTERED_FILE = 'freebayes_filt.vcf'
-
 
     // Channels
     bam_channel = Channel.fromPath( params.bam, checkIfExists: true )
