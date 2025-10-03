@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
-process collectResults {
+process COLLECT_RESULTS {
     // debug true
 
     publishDir "Final_Output", mode: 'copy'
@@ -20,7 +20,7 @@ process collectResults {
     """
 }
 
-process computeRatios {
+process COMPUTE_RATIOS {
     publishDir "Final_Output", mode: 'copy'
 
     input:
@@ -39,9 +39,9 @@ workflow {
     params.theta_dir = "Theta_Est_Output/theta_estimate"
     params.rho_dir = "Rho_Est_Output/rho_estimate"
 
-    theta_files = Channel.fromPath(params.theta_dir + "/*Theta_estimate_stats.csv").collect()
+    theta_files = Channel.fromPath(params.theta_dir + "/*filtered_angsd_theta_final.csv").collect()
     rho_files = Channel.fromPath(params.rho_dir + "/*rho_estimate.csv").collect()
 
-    collectResults(theta_files, rho_files)
-    computeRatios(collectResults.out)
+    COLLECT_RESULTS(theta_files, rho_files)
+    COMPUTE_RATIOS(COLLECT_RESULTS.out)
 }

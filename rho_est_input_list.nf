@@ -313,7 +313,7 @@ process RHO_ESTIMATE {
 
 process RESULTS_PLOT {
     /**
-      * Plot of maximum likelihood search over requested rho range
+      * Plot of likelihood search over requested rho range
       **/
 
     publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "results_plot/${filename_prefix}${filename}"}

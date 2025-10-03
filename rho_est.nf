@@ -314,7 +314,7 @@ process RHO_ESTIMATE {
 
 process RESULTS_PLOT {
     /**
-      * Plot of maximum likelihood search over requested rho range
+      * Plot of likelihood search over requested rho range
       **/
 
     publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "results_plot/${filename_prefix}${filename}"}
@@ -342,7 +342,7 @@ workflow {
 
     // Params
     params.help = false
-    params.seed = [123] // used for samtools subsamping and final bootstrap algorithm
+    params.seed = [123,456] // used for samtools subsamping and final bootstrap algorithm
     params.filename_prefix = "none"
     params.tract_len = 1000
     params.lookup_grid = "101,100" // The range of rho values used to generate lookup tables
@@ -355,7 +355,7 @@ workflow {
     params.min_snp_depth = 10 // Minimum read depth to filter vcf by
     params.top_depth_cutoff_percentage = 5 // Top n percent of depth to cutoff from the vcf file
 
-    params.output_dir = 'Rho_Est_Output'
+    params.rho_output_dir = 'Rho_Est_Output'
     params.bam = 'none'
     params.fa = 'none'
     params.lookup_tables = "Lookup_tables"

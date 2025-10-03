@@ -131,7 +131,7 @@ process VCF_FILTER {
 
 
 process THETA_ESTIMATE {
-    publishDir params.output_dir, mode: "copy", saveAs: {filename -> "theta_estimate/${filename_prefix}${filename}"}
+    publishDir params.output_dir, mode: "copy", pattern: '*.csv', saveAs: {filename -> "theta_estimate/${filename_prefix}${filename}"}
 
     // maxForks 1
 

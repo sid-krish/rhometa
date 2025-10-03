@@ -13,9 +13,13 @@ def compute_final_angsd_theta(input_file):
     # Calculate the final thetaW value
     final_theta = tW_sum / nSites_sum
 
-    return final_theta
+    return final_theta,tW_sum,nSites_sum
 
 if __name__ == "__main__":
     angsd_tsv = sys.argv[1]
-    final_theta_output = compute_final_angsd_theta(angsd_tsv)
-    print(final_theta_output)
+    genome_size = int(sys.argv[2])
+
+    final_theta_per_site, final_theta, sites_evaluated = compute_final_angsd_theta(angsd_tsv)
+
+    print("angsd_theta_per_site,angsd_theta,sites_evaluated,genome_length")
+    print(final_theta_per_site,final_theta,sites_evaluated,genome_size,sep=",")

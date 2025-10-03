@@ -161,7 +161,7 @@ process THETA_ESTIMATE {
 
 
 process THETA_EST_PLOT {
-    publishDir params.output_dir, mode: "copy", saveAs: {filename -> "theta_estimate_plots/${filename_prefix}${filename}"}
+    publishDir params.output_dir, mode: "copy", pattern: '*.csv', saveAs: {filename -> "theta_estimate_plots/${filename_prefix}${filename}"}
 
     // maxForks 1
 

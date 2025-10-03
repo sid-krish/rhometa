@@ -68,7 +68,7 @@ process SORT_BAM {
 
 
 process ANGSD_THETA_ESTIMATE {
-    publishDir params.output_dir, mode: "copy", saveAs: {filename -> "theta_estimate/${filename_prefix}${filename}"}
+    publishDir params.output_dir, mode: "copy", pattern: "angsd_theta_*", saveAs: {filename -> "theta_estimate/${filename_prefix}${filename}"}
 
     // maxForks 1
 
@@ -82,14 +82,12 @@ process ANGSD_THETA_ESTIMATE {
             path(bam),
             path(fasta),
             path("angsd_theta_raw.tsv"),
-            path("angsd_theta_final.txt")
+            path("angsd_theta_final.csv")
 
     script:
     """
     samtools faidx ${fasta}
     samtools index -@ $task.cpus ${bam}
-
-    # Need to think about maths behind these steps so that it can be documented. Which parts are ML and which parts are Bayesian?
 
     # Commands follow steps from https://www.popgen.dk/angsd/index.php/Thetas,Tajima,Neutrality_tests
 
@@ -111,8 +109,11 @@ process ANGSD_THETA_ESTIMATE {
     # cat out.thetas.idx.pestPG | tr '\t' ',' > angsd_theta_raw.csv
     mv out.thetas.idx.pestPG angsd_theta_raw.tsv
 
+    #New solution works for bams aligned to single/multiple sequences by summing the lengths of all @SQ records.
+    genome_size=\$(samtools view -H ${bam} |  awk '/^@SQ/ {l+=substr(\$3,4)}END{print l}')
+
     # Python script for genome-wide per-site Watterson theta from ANGSD output.
-    compute_final_angsd_theta.py angsd_theta_raw.tsv > angsd_theta_final.txt 
+    compute_final_angsd_theta.py angsd_theta_raw.tsv \$genome_size > angsd_theta_final.csv
     
     # Sliding window analysis. Not needed. Testing
     # thetaStat do_stat out.thetas.idx -win 50000 -step 10000 -outnames theta.thetasWindow.gz

@@ -162,8 +162,8 @@ workflow {
     // For each process there is a output of tuple with the necessary files/values to move forward until they are no longer need
 
     // Params
-    params.fq = "/home/sid/Github/rhometa/theta/*{1,2}.fq" // e.g. with quotes "*{1,2}.fq" for paired end
-    params.fa = "/home/sid/Github/rhometa/theta/*.fa"
+    params.fq = "*{1,2}.fq" // e.g. with quotes "*{1,2}.fq" for paired end
+    params.fa = "*.fa"
     params.single_end = false
 
     if (params.fq == 'none') {

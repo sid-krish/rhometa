@@ -73,9 +73,10 @@ def theta_results(csv_files):
         columns=[
             "reference",
             "identifier",
-            "angsd_theta_per_site",
-            "angsd_theta",
-            "sites_evaluated",
+            "pileup_mean_depth",
+            "pileup_median_depth",
+            "theta_per_site_mean_depth",
+            "theta_per_site_median_depth",
             "genome_length"
         ]
     )
@@ -139,7 +140,7 @@ def subsample_results(subsample_results_path):
 
 
 if __name__ == "__main__":
-    theta_files = glob.glob("*angsd_theta_final.csv")
+    theta_files = glob.glob("*Theta_estimate_stats.csv")
     rho_files = glob.glob("*rho_estimate.csv")
 
     # Process the files
