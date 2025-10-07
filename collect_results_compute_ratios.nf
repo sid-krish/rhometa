@@ -4,7 +4,7 @@ nextflow.enable.dsl=2
 process COLLECT_RESULTS {
     // debug true
 
-    publishDir "Final_Output", mode: 'copy'
+    publishDir params.final_results_out_dir, mode: 'copy'
 
     input:
     path theta_files
@@ -21,7 +21,7 @@ process COLLECT_RESULTS {
 }
 
 process COMPUTE_RATIOS {
-    publishDir "Final_Output", mode: 'copy'
+    publishDir params.final_results_out_dir, mode: 'copy'
 
     input:
     path results_file
@@ -39,8 +39,10 @@ workflow {
     params.theta_dir = "Theta_Est_Output/theta_estimate"
     params.rho_dir = "Rho_Est_Output/rho_estimate"
 
-    theta_files = Channel.fromPath(params.theta_dir + "/*filtered_angsd_theta_final.csv").collect()
-    rho_files = Channel.fromPath(params.rho_dir + "/*rho_estimate.csv").collect()
+    params.final_results_out_dir = "Final_Output"
+
+    theta_files = Channel.fromPath(params.theta_dir + "/*filtered_angsd_theta_final.csv", checkIfExists: true).collect()
+    rho_files = Channel.fromPath(params.rho_dir + "/*rho_estimate.csv", checkIfExists: true).collect()
 
     COLLECT_RESULTS(theta_files, rho_files)
     COMPUTE_RATIOS(COLLECT_RESULTS.out)

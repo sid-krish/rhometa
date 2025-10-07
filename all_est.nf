@@ -1,5 +1,5 @@
 #! /usr/bin/env nextflow
-nextflow.enable.dsl = 2
+nextflow.enable.dsl=2
 
 // Params
 // input
@@ -14,6 +14,7 @@ params.lookup_grid = "101,100" // The range of rho values used to generate looku
 params.window_size = 1000 // For single end this is the read size, for paired end this is the max insert length (1000bp is a practical upper limit)
 params.depth_range = "3,85" // min_depth, max_depth
 params.lookup_tables = "Lookup_tables"
+params.vcf_filtered_file = 'freebayes_filt.vcf'
 
 // align_reads and rho_est
 params.single_end = false
@@ -23,11 +24,9 @@ params.snp_qual = 20 // Minimum phred-scaled quality score to filter vcf by
 params.min_snp_depth = 10 // Minimum read depth to filter vcf by
 params.top_depth_cutoff_percentage = 5 // Top n percent of depth to cutoff from the vcf file
 
-// Rho and theta final output directories for collect results and compute ratios
-params.theta_dir = "Theta_Est_Output/theta_estimate"
-params.rho_dir = "Rho_Est_Output/rho_estimate"
-
-params.output_dir = 'Theta_Est_Output'
+// Rho and theta estimate output directories
+params.rho_est_out_dir = "Rho_Est_Output"
+params.theta_est_out_dir = "Theta_Est_Output"
 
 // Import modules
 include {
@@ -136,19 +135,9 @@ workflow rho_est {
 	// RE_RESULTS_PLOT(RHO_ESTIMATE.out)
 }
 
-workflow collect_results_compute_ratios {
-    //Channels
-    theta_files = Channel.fromPath(params.theta_dir + "/*filtered_angsd_theta_final.csv").collect()
-    rho_files = Channel.fromPath(params.rho_dir + "/*rho_estimate.csv").collect()
-
-	COLLECT_RESULTS(theta_files, rho_files)
-	COMPUTE_RATIOS(COLLECT_RESULTS.out)
-}
-
 
 workflow {
-	align_reads()
-	theta_est()
-	rho_est()
-	collect_results_compute_ratios()
+    align_reads()
+    theta_est()
+    rho_est()
 }

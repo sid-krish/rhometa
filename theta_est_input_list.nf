@@ -16,7 +16,7 @@ def helpMessage() {
 
     Options:
     --filename_prefix [str], prefix string to output filenames to help distinguish runs
-    --output_dir [str], default:[Theta_Est_Output], Directory to save results in
+    --theta_est_out_dir [str], default:[Theta_Est_Output], Directory to save results in
     --snp_qual [int], default:[20], Minimum phred-scaled quality score to filter vcf by
     --min_snp_depth [int], default:[10], Minimum read depth to filter vcf by
     """.stripIndent()
@@ -68,7 +68,7 @@ process SORT_BAM {
 
 
 process ANGSD_THETA_ESTIMATE {
-    publishDir params.output_dir, mode: "copy", pattern: "angsd_theta_*", saveAs: {filename -> "theta_estimate/${filename_prefix}${filename}"}
+    publishDir params.theta_est_out_dir, mode: "copy", pattern: "angsd_theta_*", saveAs: {filename -> "theta_estimate/${filename_prefix}${filename}"}
 
     // maxForks 1
 
@@ -131,7 +131,7 @@ workflow {
     params.help = false
     params.filename_prefix = "none"
 
-    params.output_dir = 'Theta_Est_Output'
+    params.theta_est_out_dir = 'Theta_Est_Output'
 
     // Input verification
     if (params.help) {

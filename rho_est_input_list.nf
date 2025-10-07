@@ -25,7 +25,7 @@ def helpMessage() {
                                 The seed value will be displayed at the start of the output file names.
                                 A list of seed values can be used, a run will be performed for each seed.
     --filename_prefix [str], prefix string to output filenames to help distinguish runs
-    --output_dir [str], default:[Rho_Est_Output], Directory to save results in
+    --rho_est_out_dir [str], default:[Rho_Est_Output], Directory to save results in
     --snp_qual [int], default:[20], Minimum phred-scaled quality score to filter vcf by
     --min_snp_depth [int], default:[10], Minimum read depth to filter vcf by
     """.stripIndent()
@@ -60,7 +60,7 @@ process SORT_BAM {
       * Simply sort the BAM in coordinate order.
       **/
 
-    // publishDir params.output_dir, mode: 'copy', pattern: '*.bam', saveAs: {filename -> "sort_bam/${filename_prefix}${filename}"}
+    // publishDir params.rho_est_out_dir, mode: 'copy', pattern: '*.bam', saveAs: {filename -> "sort_bam/${filename_prefix}${filename}"}
     
     input:
     tuple val(filename_prefix), 
@@ -82,7 +82,7 @@ process SORT_BAM {
 
 
 process GET_READ_DEPTH {
-    // publishDir params.output_dir, mode: 'copy', pattern: '*.depth', saveAs: {filename -> "depth/${filename_prefix}${filename}"}
+    // publishDir params.rho_est_out_dir, mode: 'copy', pattern: '*.depth', saveAs: {filename -> "depth/${filename_prefix}${filename}"}
 
     input:
     tuple val(filename_prefix), 
@@ -109,7 +109,7 @@ process SUBSAMPLE {
       * Down-sample the BAM file to a given maximum depth.
       **/
 
-    publishDir params.output_dir, mode: 'copy', pattern: '*.txt', saveAs: {filename -> "subsample/${filename_prefix}${filename}"}
+    publishDir params.rho_est_out_dir, mode: 'copy', pattern: '*.txt', saveAs: {filename -> "subsample/${filename_prefix}${filename}"}
     
     input:
     tuple val(filename_prefix), 
@@ -136,7 +136,7 @@ process SUBSAMPLE {
 
 
 process FREEBAYES {
-    publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
+    publishDir params.rho_est_out_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
 
     input:
         tuple val(filename_prefix),
@@ -172,7 +172,7 @@ process VCF_FILTER {
       * - Depths: "DP, AO and RO" minimums
       * - Outlier depth cutoff
       **/
-    publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
+    publishDir params.rho_est_out_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
 
     // maxForks 1
 
@@ -191,12 +191,12 @@ process VCF_FILTER {
         tuple val(filename_prefix),
             path(bam),
             path(fasta),
-            path(params.VCF_FILTERED_FILE),
+            path(params.vcf_filtered_file),
             val(seed)
 
     script:
     """
-    vcf_filter.py ${task.cpus} freebayes_raw.vcf ${snp_qual} ${min_snp_depth} ${top_depth_cutoff_percentage} ${params.VCF_FILTERED_FILE}
+    vcf_filter.py ${task.cpus} freebayes_raw.vcf ${snp_qual} ${min_snp_depth} ${top_depth_cutoff_percentage} ${params.vcf_filtered_file}
     """
 }
 
@@ -205,7 +205,7 @@ process PAIRWISE_TABLE_SINGLE_END{
     /**
       * Create pair-wise table for final stage of rhometa analysis.
       **/
-    // publishDir params.output_dir, mode: 'copy', pattern: '*.pkl', saveAs: {filename -> "pairwise_table/${filename_prefix}${filename}"}
+    // publishDir params.rho_est_out_dir, mode: 'copy', pattern: '*.pkl', saveAs: {filename -> "pairwise_table/${filename_prefix}${filename}"}
 
     // echo true
 
@@ -242,7 +242,7 @@ process PAIRWISE_TABLE_PAIRED_END{
     /**
       * Create pair-wise table for final stage of rhometa analysis.
       **/
-    // publishDir params.output_dir, mode: 'copy', pattern: '*.pkl', saveAs: {filename -> "pairwise_table/${filename_prefix}${filename}"}
+    // publishDir params.rho_est_out_dir, mode: 'copy', pattern: '*.pkl', saveAs: {filename -> "pairwise_table/${filename_prefix}${filename}"}
 
     // echo true
 
@@ -282,7 +282,7 @@ process RHO_ESTIMATE {
 
     // debug true
 
-    publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "rho_estimate/${filename_prefix}${filename}"}
+    publishDir params.rho_est_out_dir, mode: 'copy', saveAs: {filename -> "rho_estimate/${filename_prefix}${filename}"}
 
     input:
         tuple val(filename_prefix),
@@ -316,7 +316,7 @@ process RESULTS_PLOT {
       * Plot of likelihood search over requested rho range
       **/
 
-    publishDir params.output_dir, mode: 'copy', saveAs: {filename -> "results_plot/${filename_prefix}${filename}"}
+    publishDir params.rho_est_out_dir, mode: 'copy', saveAs: {filename -> "results_plot/${filename_prefix}${filename}"}
 
     input:
         tuple val(filename_prefix),
@@ -354,11 +354,11 @@ workflow {
     params.min_snp_depth = 10 // Minimum read depth to filter vcf by
     params.top_depth_cutoff_percentage = 5 // Top n percent of depth to cutoff from the vcf file
 
-    params.output_dir = 'Rho_Est_Output'
+    params.rho_est_out_dir = 'Rho_Est_Output'
     params.lookup_tables = "Lookup_tables"
 
     // Output file names
-    params.VCF_FILTERED_FILE = 'freebayes_filt.vcf'
+    params.vcf_filtered_file = 'freebayes_filt.vcf'
     downsampled_lookup_tables = Channel.fromPath( "${params.lookup_tables}/lk_downsampled_*.csv", checkIfExists: true ).collect()
 
     // Input verification
