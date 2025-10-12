@@ -101,6 +101,7 @@ if __name__ == "__main__":
     num_cores = int(sys.argv[5])
     genome_size  = int(sys.argv[6])
     subst_probability = float(sys.argv[7])
+    filename_prefix = sys.argv[8]
 
     # recom_tract_len = 1000
     # depth_range = "3,250"
@@ -134,7 +135,7 @@ if __name__ == "__main__":
     results["rho"] = [float("%.5g" % i) for i in lookup_table_rho_vals]
     results["log_likelihood_sum"] = [float("%.10g" % i) for i in log_sums]
 
-    results.to_csv("log_likelihood_sums.csv", index=False)
+    results.to_csv(f"{filename_prefix}log_likelihood_sums.csv", index=False)
 
     rho_estimate = results.iloc[results["log_likelihood_sum"].idxmax()]
     rho_estimate = rho_estimate.to_frame().T
@@ -154,4 +155,4 @@ if __name__ == "__main__":
     - This artificially inflates the number of recombination events, requiring the 2x correction factor.
     """
     rho_estimate["subst_probability"] = subst_probability
-    rho_estimate.to_csv("rho_estimate.csv", index=False)
+    rho_estimate.to_csv(f"{filename_prefix}rho_estimate.csv", index=False)

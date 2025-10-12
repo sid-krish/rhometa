@@ -283,7 +283,7 @@ process RHO_ESTIMATE {
 
     // debug true
 
-    publishDir params.rho_est_out_dir, mode: 'copy', saveAs: {filename -> "rho_estimate/${filename_prefix}${filename}"}
+    publishDir params.rho_est_out_dir, mode: 'copy', saveAs: {filename -> "rho_estimate/${filename}"}
 
     input:
         tuple val(filename_prefix),
@@ -300,14 +300,14 @@ process RHO_ESTIMATE {
 
     output:
         tuple val(filename_prefix),
-            path("log_likelihood_sums.csv"),
-            path("rho_estimate.csv")
+            path("${filename_prefix}log_likelihood_sums.csv"),
+            path("${filename_prefix}rho_estimate.csv")
 
     script:
     """
     subst_probability=\$(substitution_probability.py $genome_size ${vcf_file})
     # echo \$subst_probability 
-    main_weighted.py ${tract_len} ${depth_range} ${lookup_grid} ${pairwise_table_pkl} $task.cpus $genome_size \$subst_probability
+    main_weighted.py ${tract_len} ${depth_range} ${lookup_grid} ${pairwise_table_pkl} $task.cpus $genome_size \$subst_probability ${filename_prefix}
     """
 }
 

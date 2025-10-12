@@ -28,6 +28,9 @@ params.top_depth_cutoff_percentage = 5 // Top n percent of depth to cutoff from 
 params.rho_est_out_dir = "Rho_Est_Output"
 params.theta_est_out_dir = "Theta_Est_Output"
 
+// Final results output directory
+params.final_results_out_dir = "Final_Output"
+
 // Import modules
 include {
         SAMTOOLS_COVERAGE
@@ -64,8 +67,8 @@ workflow align_reads {
     reference_genome_channel = Channel.fromPath(params.fa, checkIfExists: true)
     combined_inputs = bams_channel.combine(reference_genome_channel)
 
-    SAMTOOLS_COVERAGE(combined_inputs)
-
+    main:
+        SAMTOOLS_COVERAGE(combined_inputs)
 }
 
 
@@ -75,13 +78,15 @@ workflow theta_est {
     reference_genome_channel = Channel.fromPath(params.fa, checkIfExists: true)
     combined_inputs = bams_channel.combine(reference_genome_channel)
 
-    
-    TE_FILENAME_PREFIX(combined_inputs, params.filename_prefix)
+    main:
+        TE_FILENAME_PREFIX(combined_inputs, params.filename_prefix)
 
-    TE_SORT_BAM(TE_FILENAME_PREFIX.out)
+        TE_SORT_BAM(TE_FILENAME_PREFIX.out)
 
-    ANGSD_THETA_ESTIMATE(TE_SORT_BAM.out)
+        ANGSD_THETA_ESTIMATE(TE_SORT_BAM.out)
 
+    emit:
+        ANGSD_THETA_ESTIMATE.out[0].map { it[4] } // emit the angsd_theta_final.csv file
 }
 
 
@@ -109,35 +114,49 @@ workflow rho_est {
 	RE_VCF_FILTER(RE_FREEBAYES.out, params.snp_qual, params.min_snp_depth, params.top_depth_cutoff_percentage)
 
 	if (params.single_end == true) {
-			RE_PAIRWISE_TABLE_SINGLE_END(RE_VCF_FILTER.out, 
-					params.single_end, 
-					params.window_size)
+        RE_PAIRWISE_TABLE_SINGLE_END(RE_VCF_FILTER.out, 
+                params.single_end, 
+                params.window_size)
 
-			RHO_ESTIMATE(RE_PAIRWISE_TABLE_SINGLE_END.out, 
-							downsampled_lookup_tables, 
-							params.tract_len, 
-							params.depth_range,
-							params.lookup_grid)
+        RHO_ESTIMATE(RE_PAIRWISE_TABLE_SINGLE_END.out, 
+                        downsampled_lookup_tables, 
+                        params.tract_len, 
+                        params.depth_range,
+                        params.lookup_grid)
 	}
 
 	else if (params.single_end == false) {
-			RE_PAIRWISE_TABLE_PAIRED_END(RE_VCF_FILTER.out, 
-					params.single_end, 
-					params.window_size)
+        RE_PAIRWISE_TABLE_PAIRED_END(RE_VCF_FILTER.out, 
+                params.single_end, 
+                params.window_size)
 
-			RHO_ESTIMATE(RE_PAIRWISE_TABLE_PAIRED_END.out, 
-							downsampled_lookup_tables, 
-							params.tract_len, 
-							params.depth_range,
-							params.lookup_grid)
+        RHO_ESTIMATE(RE_PAIRWISE_TABLE_PAIRED_END.out, 
+                        downsampled_lookup_tables, 
+                        params.tract_len, 
+                        params.depth_range,
+                        params.lookup_grid)
 	}
 
 	// RE_RESULTS_PLOT(RHO_ESTIMATE.out)
+
+    emit:
+        RHO_ESTIMATE.out[0].map { it[2] } // emit the rho_estimate.csv file
 }
 
+workflow collect_results_compute_ratios {
+    take:
+        theta_ch
+        rho_ch
+
+    main:
+        COLLECT_RESULTS(theta_ch, rho_ch)
+        COMPUTE_RATIOS(COLLECT_RESULTS.out)
+}
 
 workflow {
-    align_reads()
-    theta_est()
-    rho_est()
+    main:
+        align_reads()
+        theta_est()
+        rho_est()
+        collect_results_compute_ratios(theta_est.out.collect(), rho_est.out.collect())
 }
