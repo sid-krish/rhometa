@@ -132,14 +132,13 @@ workflow {
     params.help = false
     params.filename_prefix = "none"
 
-    params.theta_est_out_dir = 'Theta_Est_Output'
+    // Input files
+    params.input_csv = 'none' // csv file with paths to bams and references, "bam" and "reference" need to the header
     params.bam = 'none'
     params.fa = 'none'
 
-    // Channels
-    bam_channel = Channel.fromPath( params.bam, checkIfExists: true )
-    fa_channel = Channel.fromPath( params.fa, checkIfExists: true )
-    bam_and_fa = bam_channel.combine(fa_channel)
+    params.theta_est_out_dir = 'Theta_Est_Output'
+
 
     // Input verification
     if (params.help) {
@@ -149,14 +148,24 @@ workflow {
         exit 0
     }
 
-    if (params.fa == 'none') {
-        println "No input .fa specified. Use --fa [.fa]"
+    if (params.input_csv == 'none') {
+        
+        if (params.bam == 'none' || params.fa == 'none') {
+        println "Error: --bam and --fa parameters are required (or use --input_csv). Use --help for more information."
         exit 1
+        }
+
+        else {
+        bam_channel = Channel.fromPath( params.bam, checkIfExists: true )
+        fa_channel = Channel.fromPath( params.fa, checkIfExists: true )
+        bam_and_fa = bam_channel.combine(fa_channel)
+        }
+        
     }
 
-    if (params.bam == 'none') {
-        println "No input .bam specified. Use --bam [.bam]"
-        exit 1
+    else if (params.input_csv != 'none') {
+        println "Using input csv file: ${params.input_csv}"
+        bam_and_fa = Channel.fromPath( params.input_csv, checkIfExists: true ).splitCsv(header:true).map { row -> tuple( file(row.bam), file(row.reference) ) }
     }
 
     // Process execution
