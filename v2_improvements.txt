@@ -4,5 +4,5 @@
 4. Remove use of mpileup to identify highest depth coverage use samtools coverage - done (samtools depth)
 5. Try using lorikeet for variant calls - wont be done
 6. Fix remaning issues on github -  maybe a post v2 release. At this point things are fundamentally fine as they are. Depends of how much the program is used in th future otherwise
-7. What to do about compute ratios script, should that be a part of a larger high level script?
+7. What to do about compute ratios script, should that be a part of a larger high level script? - yes done
 8. Check snp filter - done.
