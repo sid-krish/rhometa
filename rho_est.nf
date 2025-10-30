@@ -343,7 +343,7 @@ workflow {
 
     // Params
     params.help = false
-    params.seed = [123] // used for samtools subsamping and final bootstrap algorithm
+    params.seed = [123] // used for samtools subsamping 
     params.filename_prefix = "none"
     params.tract_len = 1000
     params.lookup_grid = "101,100" // The range of rho values used to generate lookup tables

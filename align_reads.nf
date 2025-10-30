@@ -3,9 +3,9 @@ nextflow.enable.dsl = 2
 
 
 process FILTER_FASTQ_SINGLE_END {
-    // publishDir "Align_Reads_Output", mode: "copy", pattern: '*.gz', saveAs: {filename -> "fastp_out/${filename}"}
-    publishDir "Align_Reads_Output", mode: "copy", pattern: '*.html', saveAs: {filename -> "fastp_out/${filename}"}
-    publishDir "Align_Reads_Output", mode: "copy", pattern: '*.json', saveAs: {filename -> "fastp_out/${filename}"}
+    // publishDir params.align_out_dir, mode: "copy", pattern: '*.gz', saveAs: {filename -> "fastp_out/${filename}"}
+    publishDir params.align_out_dir, mode: "copy", pattern: '*.html', saveAs: {filename -> "fastp_out/${filename}"}
+    publishDir params.align_out_dir, mode: "copy", pattern: '*.json', saveAs: {filename -> "fastp_out/${filename}"}
 
     input:
         tuple path(fastq),
@@ -27,8 +27,8 @@ process FILTER_FASTQ_SINGLE_END {
 
 
 process FILTER_FASTQ_PAIRED_END {
-    publishDir "Align_Reads_Output", mode: 'copy', pattern: '*.html', saveAs: {filename -> "fastp_out/${filename}"}
-    publishDir "Align_Reads_Output", mode: 'copy', pattern: '*.json', saveAs: {filename -> "fastp_out/${filename}"}
+    publishDir params.align_out_dir, mode: 'copy', pattern: '*.html', saveAs: {filename -> "fastp_out/${filename}"}
+    publishDir params.align_out_dir, mode: 'copy', pattern: '*.json', saveAs: {filename -> "fastp_out/${filename}"}
 
     input:
         tuple val(sample_id),
@@ -55,7 +55,7 @@ process FILTER_FASTQ_PAIRED_END {
 
 
 process BWA_MEM_SINGLE_END {
-    // publishDir "Align_Reads_Output", mode: 'copy', pattern: '*.bam', saveAs: {filename -> "${filename}"}
+    // publishDir params.align_out_dir, mode: 'copy', pattern: '*.bam', saveAs: {filename -> "${filename}"}
 
     // echo true
 
@@ -81,7 +81,7 @@ process BWA_MEM_SINGLE_END {
 
 
 process BWA_MEM_PAIRED_END {
-    // publishDir "Align_Reads_Output", mode: 'copy', pattern: '*.bam', saveAs: {filename -> "${filename}"}
+    // publishDir params.align_out_dir, mode: 'copy', pattern: '*.bam', saveAs: {filename -> "${filename}"}
 
     // echo true
 
@@ -111,8 +111,8 @@ process BWA_MEM_PAIRED_END {
 
 
 process FILTER_BAM {
-    publishDir "Align_Reads_Output", mode: 'copy', pattern: '*flagstat.*.txt', saveAs: {filename -> "filter_bam/${filename}"}
-    publishDir "Align_Reads_Output", mode: 'copy', pattern: '*.bam', saveAs: {filename -> "${filename}"}
+    publishDir params.align_out_dir, mode: 'copy', pattern: '*flagstat.*.txt', saveAs: {filename -> "filter_bam/${filename}"}
+    publishDir params.align_out_dir, mode: 'copy', pattern: '*.bam', saveAs: {filename -> "${filename}"}
 
     input:
         tuple path(bam),
@@ -136,7 +136,7 @@ process FILTER_BAM {
 
 
 process SAMTOOLS_COVERAGE {
-    publishDir "Align_Reads_Output", mode: "copy", pattern: '*.cov', saveAs: {filename -> "coverage/${filename}"}
+    publishDir params.align_out_dir, mode: "copy", pattern: '*.cov', saveAs: {filename -> "coverage/${filename}"}
 
     input:
         tuple path(bam),
@@ -163,9 +163,11 @@ workflow {
 
     // Params
     params.input_csv = 'none' // csv file with paths to fastqs and references, "sample_id","fastq_1","fastq_2" and "reference" or "fastq" and "reference" needs to be in the header
-    params.fq = 'single_end/art_out.fq' // e.g. with quotes "*{1,2}.fq" for paired end
-    params.fa = 'single_end/final.fa'
+    params.fq = '' // e.g. with quotes "*{1,2}.fq" for paired end
+    params.fa = ''
     params.single_end = false
+
+    params.align_out_dir = "Align_Reads_Output"
 
     if (params.input_csv == 'none') {
         if (params.fq == 'none' || params.fa == 'none') {
@@ -204,9 +206,6 @@ workflow {
 
 
     if (params.single_end == true) {
-        // Channels
-
-
         // Process execution
         FILTER_FASTQ_SINGLE_END(combined_inputs)
 
@@ -219,9 +218,6 @@ workflow {
 
 
     else if (params.single_end == false) {
-        // Channels
-
-
         // Process execution
         FILTER_FASTQ_PAIRED_END(combined_inputs)
 
