@@ -12,7 +12,8 @@ def helpMessage() {
     nextflow run theta_est.nf --help
 
     Required:
-    --input_csv, csv file with paths to bams and references, "bam" and "reference" need to be the header
+    --bam [*.bam], Query name sorted bam file. Multi bam support via glob input e.g. "*.bam", quotes must be included for glob. Use with one fasta file only
+    --fa [*.fa],  Single/Multi genome fasta file
 
     Options:
     --filename_prefix [str], prefix string to output filenames to help distinguish runs
@@ -20,8 +21,6 @@ def helpMessage() {
     --snp_qual [int], default:[20], Minimum phred-scaled quality score to filter vcf by
     --min_snp_depth [int], default:[10], Minimum read depth to filter vcf by
     """.stripIndent()
-
-
 }
 
 
@@ -62,6 +61,7 @@ process SORT_BAM {
         path('Aligned_sorted.bam'), 
         path(fasta)
 
+    script:
     """
     samtools sort -@ $task.cpus -o Aligned_sorted.bam ${bam}
     """
@@ -69,7 +69,6 @@ process SORT_BAM {
 
 
 process FREEBAYES {
-
     publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
 
     // maxForks 1
@@ -91,10 +90,10 @@ process FREEBAYES {
     samtools index -@ $task.cpus ${bam}
 
     # call variants with freebayes
-    freebayes -f ${fasta} -p 1 ${bam} > freebayes_raw.vcf
+    # --haplotype-length=-1: Allow haplotype calls with contiguous embedded matches of up to this length. Set N=-1 to disable clumping.
+    freebayes -f ${fasta} -p 1 ${bam} --haplotype-length=-1 --min-alternate-count 2 > freebayes_raw.vcf
     """
 }
-
 
 process VCF_FILTER {
     /**
@@ -122,19 +121,21 @@ process VCF_FILTER {
         tuple val(filename_prefix),
             path(bam),
             path(fasta),
-            path("freebayes_filt.vcf")
+            path(params.VCF_FILTERED_FILE)
 
     script:
     """
-    vcf_filter.py ${task.cpus} freebayes_raw.vcf ${snp_qual} ${min_snp_depth} ${top_depth_cutoff_percentage}
+    vcf_filter.py ${task.cpus} freebayes_raw.vcf ${snp_qual} ${min_snp_depth} ${top_depth_cutoff_percentage} ${params.VCF_FILTERED_FILE}
     """
 }
 
 
 process THETA_ESTIMATE {
-    publishDir params.output_dir, mode: "copy", saveAs: {filename -> "theta_estimate/${filename_prefix}${filename}"}
+    publishDir params.output_dir, mode: "copy", pattern: '*.csv', saveAs: {filename -> "theta_estimate/${filename_prefix}${filename}"}
 
     // maxForks 1
+
+    debug true
 
     input:
         tuple val(filename_prefix),
@@ -143,7 +144,7 @@ process THETA_ESTIMATE {
             path(vcf)
 
     output:
-        // path "Aligned_sorted.pileup"
+        path "Aligned_sorted.pileup"
         path "Theta_estimate_stats.csv"
         
     script:
@@ -200,13 +201,22 @@ workflow {
     // Params
     params.help = false
     params.filename_prefix = "none"
-
     // VCF filter settings
     params.snp_qual = 20 // Minimum phred-scaled quality score to filter vcf by
     params.min_snp_depth = 10 // Minimum read depth to filter vcf by
     params.top_depth_cutoff_percentage = 5 // Top n percent of depth to cutoff from the vcf file
 
     params.output_dir = 'Theta_Est_Output'
+    params.bam = 'none'
+    params.fa = 'none'
+
+    // Output file names
+    params.VCF_FILTERED_FILE = 'freebayes_filt.vcf'
+
+    // Channels
+    bam_channel = Channel.fromPath( params.bam, checkIfExists: true )
+    fa_channel = Channel.fromPath( params.fa, checkIfExists: true )
+    bam_and_fa = bam_channel.combine(fa_channel)
 
     // Input verification
     if (params.help) {
@@ -216,14 +226,18 @@ workflow {
         exit 0
     }
 
-    params.input_csv = "" // csv file with paths to bams and references, "bam" and "reference" need to the header
+    if (params.fa == 'none') {
+        println "No input .fa specified. Use --fa [.fa]"
+        exit 1
+    }
 
-    input_list = Channel.fromPath(params.input_csv)
-                .splitCsv(header:true)
-                .map { row-> tuple(file(row.bam), file(row.reference)) }
+    if (params.bam == 'none') {
+        println "No input .bam specified. Use --bam [.bam]"
+        exit 1
+    }
 
     // Process execution
-    FILENAME_PREFIX(input_list,
+    FILENAME_PREFIX(bam_and_fa,
                     params.filename_prefix)
 
     SORT_BAM(FILENAME_PREFIX.out)

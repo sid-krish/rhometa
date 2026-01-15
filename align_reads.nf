@@ -3,9 +3,9 @@ nextflow.enable.dsl = 2
 
 
 process FILTER_FASTQ_SINGLE_END {
-    // publishDir "Align_Reads_Output", mode: "copy", pattern: '*.gz', saveAs: {filename -> "fastp_out/${filename}"}
-    publishDir "Align_Reads_Output", mode: "copy", pattern: '*.html', saveAs: {filename -> "fastp_out/${filename}"}
-    publishDir "Align_Reads_Output", mode: "copy", pattern: '*.json', saveAs: {filename -> "fastp_out/${filename}"}
+    // publishDir params.align_out_dir, mode: "copy", pattern: '*.gz', saveAs: {filename -> "fastp_out/${filename}"}
+    publishDir params.align_out_dir, mode: "copy", pattern: '*.html', saveAs: {filename -> "fastp_out/${filename}"}
+    publishDir params.align_out_dir, mode: "copy", pattern: '*.json', saveAs: {filename -> "fastp_out/${filename}"}
 
     input:
         tuple path(fastq),
@@ -27,35 +27,35 @@ process FILTER_FASTQ_SINGLE_END {
 
 
 process FILTER_FASTQ_PAIRED_END {
-    // publishDir "Align_Reads_Output", mode: "copy", pattern: '*.gz', saveAs: {filename -> "fastp_out/${filename}"}
-    publishDir "Align_Reads_Output", mode: "copy", pattern: '*.html', saveAs: {filename -> "fastp_out/${filename}"}
-    publishDir "Align_Reads_Output", mode: "copy", pattern: '*.json', saveAs: {filename -> "fastp_out/${filename}"}
+    publishDir params.align_out_dir, mode: 'copy', pattern: '*.html', saveAs: {filename -> "fastp_out/${filename}"}
+    publishDir params.align_out_dir, mode: 'copy', pattern: '*.json', saveAs: {filename -> "fastp_out/${filename}"}
 
     input:
         tuple val(sample_id),
-        path(fastqs),
-        path(reference_fa)
+              path(fastq_1),
+              path(fastq_2),
+              path(reference_fa)
 
     output:
         tuple val(sample_id),
-            path(reference_fa),
-            path("${fastqs[0].getSimpleName()}_fp.fq.gz"),
-            path("${fastqs[1].getSimpleName()}_fp.fq.gz")
+              path(reference_fa),
+              path("${fastq_1.getSimpleName()}_fp.fq.gz"),
+              path("${fastq_2.getSimpleName()}_fp.fq.gz")
 
-        path("${fastqs[0].getSimpleName()[0..-2]}.json")
-        path("${fastqs[0].getSimpleName()[0..-2]}.html")
+        path("${fastq_1.getSimpleName()[0..-2]}.json")
+        path("${fastq_1.getSimpleName()[0..-2]}.html")
 
     script:
     """
-    fastp --thread 1 --dedup --in1 ${fastqs[0]} --in2 ${fastqs[1]} \
-    --out1 ${fastqs[0].getSimpleName()}_fp.fq.gz --out2 ${fastqs[1].getSimpleName()}_fp.fq.gz \
-    --json ${fastqs[0].getSimpleName()[0..-2]}.json --html ${fastqs[0].getSimpleName()[0..-2]}.html
+    fastp --thread 1 --dedup --in1 ${fastq_1} --in2 ${fastq_2} \
+    --out1 ${fastq_1.getSimpleName()}_fp.fq.gz --out2 ${fastq_2.getSimpleName()}_fp.fq.gz \
+    --json ${fastq_1.getSimpleName()[0..-2]}.json --html ${fastq_1.getSimpleName()[0..-2]}.html
     """
 }
 
 
 process BWA_MEM_SINGLE_END {
-    // publishDir "Align_Reads_Output", mode: 'copy', pattern: '*.bam', saveAs: {filename -> "${filename}"}
+    // publishDir params.align_out_dir, mode: 'copy', pattern: '*.bam', saveAs: {filename -> "${filename}"}
 
     // echo true
 
@@ -81,7 +81,7 @@ process BWA_MEM_SINGLE_END {
 
 
 process BWA_MEM_PAIRED_END {
-    // publishDir "Align_Reads_Output", mode: 'copy', pattern: '*.bam', saveAs: {filename -> "${filename}"}
+    // publishDir params.align_out_dir, mode: 'copy', pattern: '*.bam', saveAs: {filename -> "${filename}"}
 
     // echo true
 
@@ -111,8 +111,8 @@ process BWA_MEM_PAIRED_END {
 
 
 process FILTER_BAM {
-    publishDir "Align_Reads_Output", mode: 'copy', pattern: '*flagstat.*.txt', saveAs: {filename -> "filter_bam/${filename}"}
-    publishDir "Align_Reads_Output", mode: 'copy', pattern: '*.bam', saveAs: {filename -> "${filename}"}
+    publishDir params.align_out_dir, mode: 'copy', pattern: '*flagstat.*.txt', saveAs: {filename -> "filter_bam/${filename}"}
+    publishDir params.align_out_dir, mode: 'copy', pattern: '*.bam', saveAs: {filename -> "${filename}"}
 
     input:
         tuple path(bam),
@@ -136,7 +136,7 @@ process FILTER_BAM {
 
 
 process SAMTOOLS_COVERAGE {
-    publishDir "Align_Reads_Output", mode: "copy", pattern: '*.cov', saveAs: {filename -> "coverage/${filename}"}
+    publishDir params.align_out_dir, mode: "copy", pattern: '*.cov', saveAs: {filename -> "coverage/${filename}"}
 
     input:
         tuple path(bam),
@@ -162,27 +162,50 @@ workflow {
     // For each process there is a output of tuple with the necessary files/values to move forward until they are no longer need
 
     // Params
-    params.fq = "none" // e.g. with quotes "*{1,2}.fq" for paired end
-    params.fa = "none"
+    params.input_csv = 'none' // csv file with paths to fastqs and references, "sample_id","fastq_1","fastq_2" and "reference" or "fastq" and "reference" needs to be in the header
+    params.fq = '' // e.g. with quotes "*{1,2}.fq" for paired end
+    params.fa = ''
     params.single_end = false
 
-    if (params.fq == 'none') {
-        println "No input .fq specified. Use --fq [.fq]"
-        exit 1
+    params.align_out_dir = "Align_Reads_Output"
+
+    if (params.input_csv == 'none') {
+        if (params.fq == 'none' || params.fa == 'none') {
+            println "Error: --fq and --fa parameters are required (or use --input_csv). Use --help for more information."
+            exit 1
+        }
+
+        else if (params.single_end == true) {
+            fastqs_channel = Channel.fromPath(params.fq)
+            reference_genome_channel = Channel.fromPath(params.fa)
+            combined_inputs = fastqs_channel.combine(reference_genome_channel)
+        }
+        
+        else if (params.single_end == false) {
+            fastqs_channel = Channel.fromFilePairs(params.fq)
+            reference_genome_channel = Channel.fromPath(params.fa)
+            combined_inputs = fastqs_channel.combine(reference_genome_channel).map { sample_id, fastqs, ref -> tuple(sample_id, fastqs[0], fastqs[1], ref) }
+        }
     }
 
-    if (params.fa == 'none') {
-        println "No input .fa specified. Use --fa [.fa]"
-        exit 1
+    else if (params.input_csv != 'none') {
+        println "Using input csv file: ${params.input_csv}"
+
+        if (params.single_end == true) {
+            combined_inputs = Channel.fromPath(params.input_csv)
+                .splitCsv(header:true)
+                .map { row-> tuple(file(row.fastq), file(row.reference)) }
+        }
+
+        else if (params.single_end == false) {
+            combined_inputs = Channel.fromPath(params.input_csv)
+                .splitCsv(header:true)
+                .map { row-> tuple(row.sample_id,file(row.fastq_1),file(row.fastq_2), file(row.reference)) }
+        }
     }
 
 
     if (params.single_end == true) {
-        // Channels
-        fastqs_channel = Channel.fromPath(params.fq)
-        reference_genome_channel = Channel.fromPath(params.fa)
-        combined_inputs = fastqs_channel.combine(reference_genome_channel)
-
         // Process execution
         FILTER_FASTQ_SINGLE_END(combined_inputs)
 
@@ -195,11 +218,6 @@ workflow {
 
 
     else if (params.single_end == false) {
-        // Channels
-        fastqs_channel = Channel.fromFilePairs(params.fq)
-        reference_genome_channel = Channel.fromPath(params.fa)
-        combined_inputs = fastqs_channel.combine(reference_genome_channel)
-
         // Process execution
         FILTER_FASTQ_PAIRED_END(combined_inputs)
 

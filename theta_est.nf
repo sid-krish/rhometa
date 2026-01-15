@@ -17,7 +17,7 @@ def helpMessage() {
 
     Options:
     --filename_prefix [str], prefix string to output filenames to help distinguish runs
-    --output_dir [str], default:[Theta_Est_Output], Directory to save results in
+    --theta_est_out_dir [str], default:[Theta_Est_Output], Directory to save results in
     --snp_qual [int], default:[20], Minimum phred-scaled quality score to filter vcf by
     --min_snp_depth [int], default:[10], Minimum read depth to filter vcf by
     """.stripIndent()
@@ -61,14 +61,15 @@ process SORT_BAM {
         path('Aligned_sorted.bam'), 
         path(fasta)
 
+    script:
     """
     samtools sort -@ $task.cpus -o Aligned_sorted.bam ${bam}
     """
 }
 
 
-process FREEBAYES {
-    publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
+process ANGSD_THETA_ESTIMATE {
+    publishDir params.theta_est_out_dir, mode: "copy", pattern: "*angsd_theta_*", saveAs: {filename -> "theta_estimate/${filename}"}
 
     // maxForks 1
 
@@ -81,112 +82,42 @@ process FREEBAYES {
         tuple val(filename_prefix),
             path(bam),
             path(fasta),
-            path("freebayes_raw.vcf")
+            path("${filename_prefix}angsd_theta_raw.tsv"),
+            path("${filename_prefix}angsd_theta_final.csv")
 
     script:
     """
     samtools faidx ${fasta}
     samtools index -@ $task.cpus ${bam}
 
-    # call variants with freebayes
-    freebayes -f ${fasta} -p 1 ${bam} > freebayes_raw.vcf
-    """
-}
+    # Commands follow steps from https://www.popgen.dk/angsd/index.php/Thetas,Tajima,Neutrality_tests
 
+    #First estimate the site allele frequency likelihood
+    angsd -i ${bam} -doSaf 1 -anc ${fasta} -GL 1 -P $task.cpus -out out #output is log scale
 
-process VCF_FILTER {
-    /**
-      * Filter the VCF.
-      * - SNPS Only
-      * - Minimum variant quality
-      * - Depths: "DP, AO and RO" minimums
-      * - Outlier depth cutoff
-      **/
-    publishDir params.output_dir, mode: 'copy', pattern: '*.vcf', saveAs: {filename -> "freebayes/${filename_prefix}${filename}"}
+    #For folded " If you do not have the ancestral state you can simply use the assembly you have mapped agains, but remember to add -fold 1 in the 'realSFS' and 'realSFS sf2theta' step."
 
-    // maxForks 1
+    # Obtain the maximum likelihood estimate of the SFS using the realSFS program
+    realSFS out.saf.idx -P $task.cpus -fold 1 > out.sfs
 
-    input:
-        tuple val(filename_prefix),
-            path(bam),
-            path(fasta),
-            path("freebayes_raw.vcf")
+    # Calculate the thetas for each site
+    realSFS saf2theta out.saf.idx -outname out -sfs out.sfs -fold 1 
 
-        val snp_qual
-        val min_snp_depth
-        val top_depth_cutoff_percentage
+    # Estimate Tajimas D and other statistics
+    thetaStat do_stat out.thetas.idx # no longer log scale. Final vals. pestPG file are the sum of the per site estimates for a region -> chromosome wide vals
 
-    output:
-        tuple val(filename_prefix),
-            path(bam),
-            path(fasta),
-            path("freebayes_filt.vcf")
-
-    script:
-    """
-    vcf_filter.py ${task.cpus} freebayes_raw.vcf ${snp_qual} ${min_snp_depth} ${top_depth_cutoff_percentage}
-    """
-}
-
-
-process THETA_ESTIMATE {
-    publishDir params.output_dir, mode: "copy", saveAs: {filename -> "theta_estimate/${filename_prefix}${filename}"}
-
-    // maxForks 1
-
-    debug true
-
-    input:
-        tuple val(filename_prefix),
-            path(bam),
-            path(fasta),
-            path(vcf)
-
-    output:
-        // path "Aligned_sorted.pileup"
-        path "Theta_estimate_stats.csv"
-        
-    script:
-    """
-    samtools mpileup ${bam} > Aligned_sorted.pileup
-
-    #old solution only worked for bams aligned to single sequence
-    #genome_size=\$(samtools view -H ${bam} | grep "@SQ" | awk '{ print \$3 }' | cut -c 4-)
+    # pestPG file has the required output which is converted to TSV format for nextsteps
+    # cat out.thetas.idx.pestPG | tr '\t' ',' > angsd_theta_raw.csv
+    mv out.thetas.idx.pestPG ${filename_prefix}angsd_theta_raw.tsv
 
     #New solution works for bams aligned to single/multiple sequences by summing the lengths of all @SQ records.
     genome_size=\$(samtools view -H ${bam} |  awk '/^@SQ/ {l+=substr(\$3,4)}END{print l}')
 
-    theta_est.py \$genome_size Aligned_sorted.pileup ${vcf}
-    """
-}
-
-
-process THETA_EST_PLOT {
-    publishDir params.output_dir, mode: "copy", saveAs: {filename -> "theta_estimate_plots/${filename_prefix}${filename}"}
-
-    // maxForks 1
-
-    input:
-        tuple val(filename_prefix),
-            path(bam),
-            path(fasta),
-            path(vcf)
-
-    output:
-        path "theta_estimates.png"
-        path "depth_distribution.png"
-        
-    script:
-    """
-    samtools mpileup ${bam} > Aligned_sorted.pileup
-
-    #old solution only worked for bams aligned to single sequence
-    #genome_size=\$(samtools view -H ${bam} | grep "@SQ" | awk '{ print \$3 }' | cut -c 4-)
-
-    #New solution works for bams aligned to single/multiple sequences by summing the lengths of all @SQ records.
-    genome_size=\$(samtools view -H ${bam} |  awk '/^@SQ/ {l+=substr(\$3,4)}END{print l}')
-
-    theta_plot.py \$genome_size Aligned_sorted.pileup ${vcf}
+    # Python script for genome-wide per-site Watterson theta from ANGSD output.
+    compute_final_angsd_theta.py ${filename_prefix}angsd_theta_raw.tsv \$genome_size > ${filename_prefix}angsd_theta_final.csv
+    
+    # Sliding window analysis. Not needed. Testing
+    # thetaStat do_stat out.thetas.idx -win 50000 -step 10000 -outnames theta.thetasWindow.gz
     """
 }
 
@@ -200,19 +131,14 @@ workflow {
     // Params
     params.help = false
     params.filename_prefix = "none"
-    // VCF filter settings
-    params.snp_qual = 20 // Minimum phred-scaled quality score to filter vcf by
-    params.min_snp_depth = 10 // Minimum read depth to filter vcf by
-    params.top_depth_cutoff_percentage = 5 // Top n percent of depth to cutoff from the vcf file
 
-    params.output_dir = 'Theta_Est_Output'
+    // Input files
+    params.input_csv = 'none' // csv file with paths to bams and references, "bam" and "reference" need to the header
     params.bam = 'none'
     params.fa = 'none'
 
-    // Channels
-    bam_channel = Channel.fromPath( params.bam, checkIfExists: true )
-    fa_channel = Channel.fromPath( params.fa, checkIfExists: true )
-    bam_and_fa = bam_channel.combine(fa_channel)
+    params.theta_est_out_dir = 'Theta_Est_Output'
+
 
     // Input verification
     if (params.help) {
@@ -222,14 +148,24 @@ workflow {
         exit 0
     }
 
-    if (params.fa == 'none') {
-        println "No input .fa specified. Use --fa [.fa]"
+    if (params.input_csv == 'none') {
+        
+        if (params.bam == 'none' || params.fa == 'none') {
+        println "Error: --bam and --fa parameters are required (or use --input_csv). Use --help for more information."
         exit 1
+        }
+
+        else {
+        bam_channel = Channel.fromPath( params.bam, checkIfExists: true )
+        fa_channel = Channel.fromPath( params.fa, checkIfExists: true )
+        bam_and_fa = bam_channel.combine(fa_channel)
+        }
+        
     }
 
-    if (params.bam == 'none') {
-        println "No input .bam specified. Use --bam [.bam]"
-        exit 1
+    else if (params.input_csv != 'none') {
+        println "Using input csv file: ${params.input_csv}"
+        bam_and_fa = Channel.fromPath( params.input_csv, checkIfExists: true ).splitCsv(header:true).map { row -> tuple( file(row.bam), file(row.reference) ) }
     }
 
     // Process execution
@@ -238,12 +174,6 @@ workflow {
 
     SORT_BAM(FILENAME_PREFIX.out)
 
-    FREEBAYES(SORT_BAM.out)
-
-    VCF_FILTER(FREEBAYES.out, params.snp_qual, params.min_snp_depth, params.top_depth_cutoff_percentage)
-
-    THETA_ESTIMATE(VCF_FILTER.out)
-
-    // THETA_EST_PLOT(VCF_FILTER.out)
+    ANGSD_THETA_ESTIMATE(SORT_BAM.out)
 
 }
